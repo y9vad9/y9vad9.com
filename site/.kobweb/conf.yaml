@@ -1,0 +1,14 @@
+site:
+  title: "Vadym Yaroshchuk"
+
+server:
+  files:
+    dev:
+      contentRoot: "build/processedResources/js/main/public"
+      script: "build/kotlin-webpack/js/developmentExecutable/y9vad9.js"
+      api: "build/libs/y9vad9.jar"
+    prod:
+      script: "build/kotlin-webpack/js/productionExecutable/y9vad9.js"
+      siteRoot: ".kobweb/site"
+
+  port: 8080
