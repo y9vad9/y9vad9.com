@@ -1,4 +1,5 @@
 import com.varabyte.kobweb.gradle.application.util.configAsKobwebApplication
+import kotlinx.html.link
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -13,15 +14,19 @@ version = "1.0-SNAPSHOT"
 kobweb {
     app {
         index {
-            description.set("Powered by Kobweb")
+            head.add {
+                link {
+                    rel = "stylesheet"
+                    href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+                }
+            }
+            description.set("Vadym Yaroshchuk's personal site")
         }
     }
 }
 
 kotlin {
-    // This example is frontend only. However, for a fullstack app, you can uncomment the includeServer parameter
-    // and the `jvmMain` source set below.
-    configAsKobwebApplication("y9vad9" /*, includeServer = true*/)
+    configAsKobwebApplication("y9vad9")
 
     sourceSets {
         commonMain.dependencies {
@@ -32,15 +37,8 @@ kotlin {
             implementation(libs.compose.html.core)
             implementation(libs.kobweb.core)
             implementation(libs.kobweb.silk)
-            // This default template uses built-in SVG icons, but what's available is limited.
-            // Uncomment the following if you want access to a large set of font-awesome icons:
-            // implementation(libs.silk.icons.fa)
+            implementation(libs.silk.icons.fa)
             implementation(libs.kobwebx.markdown)
         }
-
-        // Uncomment the following if you pass `includeServer = true` into the `configAsKobwebApplication` call.
-//        jvmMain.dependencies {
-//            compileOnly(libs.kobweb.api) // Provided by Kobweb backend at runtime
-//        }
     }
 }

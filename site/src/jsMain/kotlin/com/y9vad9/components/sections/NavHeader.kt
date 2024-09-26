@@ -3,6 +3,7 @@ package com.y9vad9.components.sections
 import androidx.compose.runtime.*
 import com.varabyte.kobweb.browser.dom.ElementTarget
 import com.varabyte.kobweb.compose.css.functions.clamp
+import com.varabyte.kobweb.compose.foundation.layout.Arrangement
 import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import com.varabyte.kobweb.silk.components.icons.CloseIcon
 import com.varabyte.kobweb.silk.components.icons.HamburgerIcon
 import com.varabyte.kobweb.silk.components.icons.MoonIcon
 import com.varabyte.kobweb.silk.components.icons.SunIcon
+import com.varabyte.kobweb.silk.components.layout.HorizontalDivider
 import com.varabyte.kobweb.silk.components.navigation.Link
 import com.varabyte.kobweb.silk.components.navigation.UncoloredLinkVariant
 import com.varabyte.kobweb.silk.components.navigation.UndecoratedLinkVariant
@@ -33,21 +35,35 @@ import com.varabyte.kobweb.silk.style.toModifier
 import com.varabyte.kobweb.silk.theme.colors.ColorMode
 import org.jetbrains.compose.web.css.*
 import com.y9vad9.components.widgets.IconButton
+import com.y9vad9.localization.Strings
 import com.y9vad9.toSitePalette
+import org.jetbrains.compose.web.dom.B
+import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.H1
+import org.jetbrains.compose.web.dom.H2
+import org.jetbrains.compose.web.dom.H3
+import org.jetbrains.compose.web.dom.Text
 
 val NavHeaderStyle = CssStyle.base {
     Modifier.fillMaxWidth().padding(1.cssRem)
+        .backgroundColor(colorMode.toSitePalette().nearBackground)
 }
 
 @Composable
-private fun NavLink(path: String, text: String) {
-    Link(path, text, variant = UndecoratedLinkVariant.then(UncoloredLinkVariant))
+private fun NavLink(path: String, text: String, selected: Boolean) {
+    Link(
+        modifier = if (selected) Modifier.color(Color.purple) else Modifier,
+        path = path,
+        variant = UndecoratedLinkVariant.then(UncoloredLinkVariant),
+        text = text,
+    )
 }
 
 @Composable
-private fun MenuItems() {
-    NavLink("/", "Home")
-    NavLink("/about", "About")
+private fun MenuItems(current: String) {
+    NavLink("/", Strings.current.homeTitle, Strings.current.homeTitle == current)
+    NavLink("/projects", Strings.current.projectsTitle, Strings.current.projectsTitle == current)
+    NavLink("/blog", Strings.current.blogTitle, Strings.current.blogTitle == current)
 }
 
 @Composable
@@ -98,45 +114,56 @@ enum class SideMenuState {
 }
 
 @Composable
-fun NavHeader() {
-    Row(NavHeaderStyle.toModifier(), verticalAlignment = Alignment.CenterVertically) {
-        Link("https://kobweb.varabyte.com") {
-            // Block display overrides inline display of the <img> tag, so it calculates centering better
-            Image("/kobweb-logo.png", "Kobweb Logo", Modifier.height(2.cssRem).display(DisplayStyle.Block))
-        }
+fun NavHeader(currentPage: String) {
+    Column(NavHeaderStyle.toModifier(), verticalArrangement = Arrangement.spacedBy(8.px)) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
 
-        Spacer()
+            B {
+                Text(Strings.current.myName)
+            }
 
-        Row(Modifier.gap(1.5.cssRem).displayIfAtLeast(Breakpoint.MD), verticalAlignment = Alignment.CenterVertically) {
-            MenuItems()
-            ColorModeButton()
-        }
+            Spacer()
 
-        Row(
-            Modifier
-                .fontSize(1.5.cssRem)
-                .gap(1.cssRem)
-                .displayUntil(Breakpoint.MD),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            var menuState by remember { mutableStateOf(SideMenuState.CLOSED) }
+            Row(
+                modifier = Modifier.gap(1.5.cssRem).displayIfAtLeast(Breakpoint.MD),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MenuItems(currentPage)
+                ColorModeButton()
+            }
 
-            ColorModeButton()
-            HamburgerButton(onClick =  { menuState = SideMenuState.OPEN })
+            Row(
+                Modifier
+                    .fontSize(1.5.cssRem)
+                    .gap(1.cssRem)
+                    .displayUntil(Breakpoint.MD),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                var menuState by remember { mutableStateOf(SideMenuState.CLOSED) }
 
-            if (menuState != SideMenuState.CLOSED) {
-                SideMenu(
-                    menuState,
-                    close = { menuState = menuState.close() },
-                    onAnimationEnd = { if (menuState == SideMenuState.CLOSING) menuState = SideMenuState.CLOSED }
-                )
+                ColorModeButton()
+                HamburgerButton(onClick = { menuState = SideMenuState.OPEN })
+
+                if (menuState != SideMenuState.CLOSED) {
+                    SideMenu(
+                        currentPage,
+                        menuState,
+                        close = { menuState = menuState.close() },
+                        onAnimationEnd = { if (menuState == SideMenuState.CLOSING) menuState = SideMenuState.CLOSED }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SideMenu(menuState: SideMenuState, close: () -> Unit, onAnimationEnd: () -> Unit) {
+private fun SideMenu(
+    current: String,
+    menuState: SideMenuState,
+    close: () -> Unit,
+    onAnimationEnd: () -> Unit,
+) {
     Overlay(
         Modifier
             .setVariable(OverlayVars.BackgroundColor, Colors.Transparent)
@@ -167,8 +194,8 @@ private fun SideMenu(menuState: SideMenuState, close: () -> Unit, onAnimationEnd
                 horizontalAlignment = Alignment.End
             ) {
                 CloseButton(onClick = { close() })
-                Column(Modifier.padding(right = 0.75.cssRem).gap(1.5.cssRem).fontSize(1.4.cssRem), horizontalAlignment = Alignment.End) {
-                    MenuItems()
+                Column(Modifier.padding(right = 0.75.cssRem).gap(1.5.cssRem).fontSize(1.2.cssRem), horizontalAlignment = Alignment.End) {
+                    MenuItems(current)
                 }
             }
         }
