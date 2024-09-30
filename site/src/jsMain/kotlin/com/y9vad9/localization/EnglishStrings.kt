@@ -22,15 +22,13 @@ object EnglishStrings : Strings {
             name = "TimeMates",
             description = "The application for time-management and collaboration. With TimeMates, you can achieve a perfect work-life balance while staying productive and efficient. Time-boxing feature allows you to easily set up a timer that fits your schedule, whether you're working on a project or taking a break. TimeMates isn't just another time-management tool; it's a lifestyle change.",
             url = "https://github.com/timemates",
-            // todo
-            imageUrl = "https://y9vad9.com/images/timemates.gif"
+            imageUrl = "timemates-icon.png"
         ),
         Project(
             name = "Kotlin Course",
             description = "Kotlin course that's perfect for very-very beginners. It's available in both Ukrainian and English versions, and it's divided into two tracks - one for Gradle and one for Kotlin.",
             url = "https://github.com/y9vad9/kotlin-course",
-            // todo
-            imageUrl = "https://y9vad9.com/images/course.png",
+            imageUrl = "kotlin-course-icon.png",
             roundImage = false,
         )
     )
