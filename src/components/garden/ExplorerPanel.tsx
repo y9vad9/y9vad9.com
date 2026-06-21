@@ -127,21 +127,22 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
     },
   })
 
-  // Pull the highlighted item into view whenever the user navigates to a
-  // different note (wiki link, tab click, command palette, browser back).
-  // The keyboard-nav hook already calls `scrollIntoView` when its `idx`
-  // changes, so we just need to nudge `idx` onto whatever the current
-  // slug is. We deliberately depend ONLY on `currentSlug` and
-  // `filteredEntries`: `filesNav` is a fresh object on every render, so
-  // listing it would fire this effect after every hover / scroll and
-  // snap the cursor back onto the current note, ruining manual
-  // browsing. `setIdx` is a stable React state setter, so reading it
-  // from a stale closure is safe.
+  // Dedicated scroll target for the currently-viewed note row. We can't
+  // piggyback on the keyboard-nav hook's `scrollIntoView` for this:
+  //   - The hook only scrolls when its `idx` state *changes*. On the
+  //     panel's very first mount `idx` already equals the current
+  //     note's index (via `initialIdx`), so a `setIdx(sameValue)` from
+  //     us is a no-op and no scroll fires.
+  //   - If we instead synced `idx` to the current note on every render,
+  //     hover/keyboard moves would get snapped back to the active note
+  //     (the bug we hit on the previous attempt).
+  // So we keep a separate ref pointed at the active row and scroll it
+  // into view whenever `currentSlug` or the visible list changes —
+  // independent of the kbd cursor.
+  const currentItemRef = useRef<HTMLAnchorElement | null>(null)
   useEffect(() => {
     if (!currentSlug) return
-    const idx = filteredEntries.findIndex((e) => e.slug === currentSlug)
-    if (idx >= 0) filesNav.setIdx(idx)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    currentItemRef.current?.scrollIntoView({ block: 'nearest' })
   }, [currentSlug, filteredEntries])
 
   const searchNav = useListKeyboardNav({
@@ -264,13 +265,23 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
             {filteredEntries.map((entry, idx) => {
               const isCurrent = currentSlug === entry.slug
               const isKbd = filesNav.idx === idx
+              const setKbdRef = filesNav.setItemRef(idx)
+              const refCallback = (el: HTMLAnchorElement | null) => {
+                // Keep the kbd hook's ref array in sync.
+                setKbdRef(el)
+                // Also park the active row's ref so the scroll-into-view
+                // effect above can pull it back into the viewport on
+                // navigation. We only assign on the current note; other
+                // rows mustn't clobber it on their own ref callbacks.
+                if (isCurrent) currentItemRef.current = el
+              }
               return (
                 <NoteLink
                   key={entry.slug}
                   slug={entry.slug}
                   title={entry.displayTitle}
                   href={`/${params.locale}/notes/${entry.slug}`}
-                  ref={filesNav.setItemRef(idx)}
+                  ref={refCallback}
                   onMouseEnter={() => filesNav.setIdx(idx)}
                   className={`panel-item ${isCurrent ? 'is-active' : ''} ${isKbd ? 'is-kbd' : ''}`}
                   role="option"
