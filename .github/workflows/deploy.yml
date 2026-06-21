@@ -4,10 +4,9 @@ on:
   # Manual trigger only (disabled by default)
   workflow_dispatch:
   
-  # Uncomment the trigger below to automate deployments on push to main
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:

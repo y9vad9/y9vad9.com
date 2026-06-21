@@ -1,24 +1,16 @@
 ---
-title: Software Design
-preview: Notes and ideas about writing software that is simple, deep, and maintainable.
-date: 2024-01-15
-parents: []
 epic: true
+title: Software Design
+preview: "Some thoughts on software design"
+parents: ["Programming"]
 ---
 
-Software design is the practice of deciding how to structure a system so it remains understandable and changeable over time.
+At the very beginning, I viewed programming as the act of making things work. Nowadays, it's an integral part of me as an engineer.
 
-The central insight from John Ousterhout's work is that **complexity is the enemy**. Complexity makes code hard to understand, hard to change, and hard to debug. The goal of good design is to reduce it.
+Usually, when anybody asks me what kind of "programmer" I am, I always answer that I'm a "software design" kind of guy. It's something I always reflect on and try to get better at. My interest comes from the intolerance for ambiguity. 
 
-## Core ideas tracked in this garden
+The biggest shift for me over the years is that I don't consider a codebase to be just a set of instructions anymore. My goal is to move away from implicit assumptions or "gut" feelings towards stable and logical rules (what I think of as mathematical guarantees for the system).
 
-- Deep modules — hide complexity behind simple interfaces
-- Tactical vs strategic programming
-- Information hiding
-- Naming and comments
+Main motivation for writing notes about Software Design is almost always rather personal — I get better at something when I'm trying to explain that "something".
 
-## Related reading
-
-- *A Philosophy of Software Design* — John Ousterhout
-- *Clean Code* — Robert C. Martin
-- *The Pragmatic Programmer* — Hunt & Thomas
+You can find my notes related to the "Software Design" in "Linked mentions" below.

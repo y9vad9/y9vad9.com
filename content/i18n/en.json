@@ -1,3 +1,24 @@
 {
-  "_comment": "Override any framework strings here. Keys must match messages/en.json structure."
+  "home": {
+    "chips": {
+      "quickFacts": [
+        "6+ Years Coding",
+        "Full Stack Engineer",
+        "B.Sc. Student (2022-2026)",
+        "Bad at drawing 🎨"
+      ],
+      "techHighlights": [
+        "Kotlin Multiplatform",
+        "TypeScript",
+        "Gradle",
+        "AWS"
+      ],
+      "focusAreas": [
+        "Mentoring",
+        "Writing",
+        "Psychology",
+        "Table Tennis 😋"
+      ]
+    }
+  }
 }

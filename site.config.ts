@@ -2,34 +2,19 @@ import type { SiteConfig } from '@config/site'
 
 export const config: SiteConfig = {
   owner: {
-    name: 'Alex Rivers',
-    handle: 'alexrivers',
-    profileImage: '/profile.svg',
-    bio: 'Software engineer, open-source contributor, and lifelong learner. I write about software design, Kotlin, and building things that last.',
+    name: 'Vadym Yaroshchuk',
+    handle: 'y9vad9',
+    profileImage: '/images/hero.webp',
+    bio: 'I am a Software Engineer and software design enthusiast based in Munich. My main focus is system design and the Kotlin ecosystem, where I enjoy solving the structural puzzles that others often overlook. I use this space to explore how to build software that lasts — focusing on clear contracts, intentional design, and code that speaks for itself.',
     socials: [
-      { platform: 'github', url: 'https://github.com' },
-      { platform: 'linkedin', url: 'https://linkedin.com' },
-      { platform: 'twitter', url: 'https://twitter.com' },
-      // Any platform name is accepted. For unknown names — or to override
-      // the default icon — pass `icon` as a PascalCase lucide name from
-      // https://lucide.dev/icons (e.g. `icon: 'Github'`):
-      // { platform: 'mastodon', url: 'https://mastodon.social/@you', icon: 'AtSign' },
+      { platform: 'telegram', url: 'https://t.me/y9vad9' },
+      { platform: 'linkedin', url: 'https://linkedin.com/in/y9vad9' },
+      { platform: 'github', url: 'https://github.com/y9vad9' },
+      { platform: 'instagram', url: 'https://instagram.com/y9vad9' },
+      { platform: 'twitter', url: 'https://x.com/y9vad9' },
+      { platform: 'threads', url: 'https://www.threads.net/@y9vad9' },
     ],
   },
-
-  // Optional brand mark for the header. Omit to use `owner.handle` as text.
-  // branding: { kind: 'text', text: 'My Site' },
-  // branding: { kind: 'image', src: '/logo.svg', alt: 'My Site', width: 28, height: 28 },
-
-  // Optional theme list. Omit for the five framework defaults (light, dark,
-  // warm, forest, system). Add/remove/reorder freely; each `id` must match
-  // a `.theme-<id>` rule in `content/theme.css` (or `globals.css`).
-  // themes: [
-  //   { id: 'light', label: 'light', icon: 'Sun' },
-  //   { id: 'dark',  label: 'dark',  icon: 'Moon' },
-  //   { id: 'ocean', label: 'ocean', icon: 'Waves' },
-  //   { id: 'system', label: 'system', icon: 'Monitor' },
-  // ],
 
   locales: {
     primary: 'en',
@@ -40,80 +25,78 @@ export const config: SiteConfig = {
   mode: 'static',
 
   pwa: {
-    name: 'Alex Rivers',
-    shortName: 'alexrivers',
-    description: 'Personal portfolio and digital garden.',
+    name: 'Vadym Yaroshchuk',
+    shortName: 'y9vad9',
+    description: 'Software Engineer & software design enthusiast in Munich. Exploring system design and the Kotlin ecosystem to build software that lasts with clear contracts.',
   },
 
   navigation: {
-    featuredNotes: ['deep-modules', 'kotlin-coroutines-intro', 'building-this-site'],
-    workExperienceNote: 'work-experience',
+    featuredNotes: ['contract-violation-handling', 'semantic-typing', 'package-naming-problem'],
+    workExperienceNote: 'experience',
     projectsNote: 'projects',
     educationNote: 'education',
-    summaryNote: 'about',
+    summaryNote: 'summary',
   },
 
   home: {
     workExperience: [
       {
-        company: 'Acme Corp',
-        role: 'Senior Software Engineer',
-        period: '2022 – Present',
-        url: 'https://example.com',
-        logo: '/logos/acme.svg',
+        company: 'Jochen Schweizer mydays Group',
+        role: 'Web (JS/TS) Software Engineer • Apprenticeship',
+        period: 'September 2025 — Present',
+        url: '',
+        logo: '/images/jochen-schweizer-mydays-group-logo.webp?dark-invert',
       },
       {
-        company: 'Startup XYZ',
-        role: 'Backend Engineer',
-        period: '2019 – 2022',
-        url: 'https://example.com',
-        logo: '/logos/startup.svg',
+        company: 'Ajax Systems',
+        role: 'Android Software Engineer',
+        period: 'January 2023 — April 2023',
+        url: '',
+        logo: '/images/ajax-systems-logo.webp?dark-invert',
       },
     ],
 
     projects: [
       {
-        name: 'Onvu',
-        description: 'A personal portfolio and digital garden template for developers.',
-        url: 'https://github.com',
+        name: 'Cadento',
+        description: 'Multiplatform productivity application built with Kotlin, Compose, Coroutines and Ktor.',
+        url: 'notes/projects#cadento',
       },
       {
-        name: 'klib',
-        description: 'A lightweight Kotlin utility library for coroutines and flow.',
-        url: 'https://github.com',
+        name: 'Krawler',
+        description: 'Kotlin-powered Club Manager Bot for Brawl Stars (Telegram & Discord)',
+        url: 'notes/projects#krawler',
       },
     ],
 
     education: [
       {
-        institution: 'University of Technology',
-        degree: 'B.Sc. Computer Science',
-        period: '2015 – 2019',
-        logo: '/logos/university.svg',
+        institution: 'Open International University of Human Development "Ukraine"',
+        degree: "Bachelor's in Software Engineering",
+        period: 'September 2022 — June 2026',
+        logo: '/images/OIUHD-Ukraine-logo.webp',
+        url: 'notes/education#open-international-university-of-human-development-ukraine',
+      },
+      {
+        institution: 'College of Kyiv International University',
+        degree: 'Incomplete Professional Junior Bachelor in "Computer Science"',
+        period: 'September 2020 — June 2022',
+        logo: '/images/KyMU-logo.webp',
+        url: 'notes/education#college-of-kyiv-international-university',
       },
     ],
   },
 
-  // Comments. `provider: 'none'` (the default) renders no section at all.
-  // Switch to `provider: 'giscus'` and fill in the keys from giscus.app to
-  // enable per-note discussion threads backed by a GitHub Discussions repo.
-  comments: { provider: 'none' },
+  comments: {
+    provider: 'giscus',
+    repo: 'y9vad9/y9vad9.com',
+    repoId: 'R_kgDOTBG89w',
+    category: 'Announcements',
+    categoryId: 'DIC_kwDOTBG8984C_nHl',
+  },
 
-  // SEO + structured data. Set `siteUrl` to your production origin so
-  // canonical/OG URLs resolve, then fill the rest in as you go.
   seo: {
-    siteUrl: 'https://example.com',
-    // defaultOgImage: '/og/default.png',
-    // twitterHandle: '@yourhandle',
-    // organization: { name: 'Acme Inc', logo: '/logo.png' },
-    // verification: { google: 'xxxx', bing: 'yyyy' },
+    siteUrl: 'https://y9vad9.com',
     noindexPaths: ['/notes/graph'],
   },
-  // comments: {
-  //   provider: 'giscus',
-  //   repo: 'yourusername/your-repo',
-  //   repoId: 'R_xxxx',
-  //   category: 'Announcements',
-  //   categoryId: 'DIC_xxxx',
-  // },
 }

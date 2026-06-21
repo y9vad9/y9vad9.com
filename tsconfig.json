@@ -24,7 +24,9 @@
       "@lib/*": ["./src/lib/*"],
       "@i18n/*": ["./src/i18n/*"],
       "~/site.config": ["./site.config"],
-      "~/content/*": ["./content/*"]
+      "~/site.*.config": ["./site.*.config"],
+      "~/content/*": ["./content/*"],
+      "~/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

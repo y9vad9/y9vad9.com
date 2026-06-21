@@ -1,3 +1,24 @@
 {
-  "_comment": "Überschreiben Sie hier Framework-Zeichenketten."
+  "home": {
+    "chips": {
+      "quickFacts": [
+        "6+ Jahre Coding",
+        "Full-Stack-Entwickler",
+        "B.Sc.-Student (2022-2026)",
+        "Schlecht im Zeichnen 🎨"
+      ],
+      "techHighlights": [
+        "Kotlin Multiplatform",
+        "TypeScript",
+        "Gradle",
+        "AWS"
+      ],
+      "focusAreas": [
+        "Mentoring",
+        "Schreiben",
+        "Psychologie",
+        "Tischtennis 😋"
+      ]
+    }
+  }
 }
