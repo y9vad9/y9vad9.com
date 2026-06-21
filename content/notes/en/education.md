@@ -8,7 +8,7 @@ parents: ["Summary"]
 My academic journey has always been about more than just attending classes. For me, university and college were spaces to test my knowledge by teaching others, applying technical concepts to real-world (even if hurried) projects, and most importantly, meeting people who share my passion for the field. I love talking about programming, and these institutions provided an essential platform for that exchange.
 
 ## [Open International University of Human Development "Ukraine"](https://vmurolen.uu.edu.ua/)
-**Bachelor's in Software Engineering (2022 — 2026, Ongoing)**
+**Bachelor's in Software Engineering (2022 — 2026)**
 
 While diving into the fundamentals of Software Engineering from early age, I found that I learned best by explaining things to others. This led to several mentoring and teaching initiatives:
 

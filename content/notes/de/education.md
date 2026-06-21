@@ -8,7 +8,7 @@ parents: ["Zusammenfassung"]
 Mein akademischer Weg war für mich immer mehr als nur der Besuch von Vorlesungen. Universität und College waren für mich Räume, in denen ich mein Wissen testen konnte, indem ich andere unterrichtete, technische Konzepte in realen (wenn auch manchmal eiligen) Projekten anwandte und – was am wichtigsten war – Gleichgesinnte traf. Ich liebe es, über Programmierung zu sprechen, und diese Institutionen boten eine wesentliche Plattform für diesen Austausch.
 
 ## [Open International University of Human Development "Ukraine"](https://vmurolen.uu.edu.ua/)
-**Bachelor in Software Engineering (2022 — 2026, laufend)**
+**Bachelor in Software Engineering (2022 — 2026)**
 
 Während ich tief in die Grundlagen des Software Engineering von klein auf eintauchte, stellte ich fest, dass ich am besten lerne, wenn ich anderen Dinge erkläre. Dies führte zu mehreren Mentoring- und Lehrinitiativen:
 
