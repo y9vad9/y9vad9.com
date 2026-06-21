@@ -131,13 +131,18 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   // different note (wiki link, tab click, command palette, browser back).
   // The keyboard-nav hook already calls `scrollIntoView` when its `idx`
   // changes, so we just need to nudge `idx` onto whatever the current
-  // slug is. The list itself already highlights the current note via
-  // `is-active`; this effect makes sure the highlight is visible.
+  // slug is. We deliberately depend ONLY on `currentSlug` and
+  // `filteredEntries`: `filesNav` is a fresh object on every render, so
+  // listing it would fire this effect after every hover / scroll and
+  // snap the cursor back onto the current note, ruining manual
+  // browsing. `setIdx` is a stable React state setter, so reading it
+  // from a stale closure is safe.
   useEffect(() => {
     if (!currentSlug) return
     const idx = filteredEntries.findIndex((e) => e.slug === currentSlug)
     if (idx >= 0) filesNav.setIdx(idx)
-  }, [currentSlug, filteredEntries, filesNav])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSlug, filteredEntries])
 
   const searchNav = useListKeyboardNav({
     count: searchResults.length,
