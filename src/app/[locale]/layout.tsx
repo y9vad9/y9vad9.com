@@ -26,6 +26,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
   return baseMetadata({ locale })
+  // (`baseMetadata` is async — Next happily accepts a Promise<Metadata>
+  // return from `generateMetadata`; no extra await needed at this level.)
 }
 
 export default async function LocaleLayout({

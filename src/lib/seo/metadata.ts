@@ -1,20 +1,31 @@
 import type { Metadata } from 'next'
-import { config as siteConfig } from '~/site.config'
 import { routing } from '@i18n/routing'
+import { loadSiteConfig } from '@lib/config/loadConfig'
 import { absoluteUrl, localizedPath, siteUrl } from './url'
 
 /**
  * Build the base metadata block applied to every page. Routes spread the
  * result of this and override only what's specific to them (canonical,
  * page-specific title/description, article fields, etc).
+ *
+ * Async because the per-locale site config has to be awaited: the
+ * `description`, `openGraph.siteName`, `title.template` and
+ * `title.default` all read from `loadSiteConfig(locale)` so that
+ * `<head>` metadata is localised. Without this, every page on every
+ * locale was serving the English `owner.name` and `owner.bio` from the
+ * base `site.config.ts` regardless of route — Telegram, Twitter,
+ * Google etc. all saw English even for /uk and /de. `loadSiteConfig`
+ * caches per-locale, so the await is essentially free after the first
+ * call per locale per render.
  */
-export function baseMetadata({
+export async function baseMetadata({
   locale,
   path = '/',
 }: {
   locale: string
   path?: string
-}): Metadata {
+}): Promise<Metadata> {
+  const siteConfig = await loadSiteConfig(locale)
   const canonical = absoluteUrl(localizedPath(locale, path))
   const languages: Record<string, string> = {
     'x-default': absoluteUrl(localizedPath(routing.defaultLocale, path)),

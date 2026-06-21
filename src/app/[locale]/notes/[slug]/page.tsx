@@ -36,7 +36,7 @@ export async function generateMetadata({
   const note = await getNote(repo, slug)
   if (!note) return {}
 
-  const base = baseMetadata({ locale, path: `/notes/${slug}` })
+  const base = await baseMetadata({ locale, path: `/notes/${slug}` })
   const description = note.description ?? note.preview
   const image = note.ogImage ?? note.coverImage ?? undefined
   const authorName = note.author ?? siteConfig.owner.name

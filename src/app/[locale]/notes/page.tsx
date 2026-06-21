@@ -22,9 +22,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'garden' })
+  const [t, base] = await Promise.all([
+    getTranslations({ locale, namespace: 'garden' }),
+    baseMetadata({ locale, path: '/notes' }),
+  ])
   return {
-    ...baseMetadata({ locale, path: '/notes' }),
+    ...base,
     title: t('welcome'),
     description: t('welcomeDescription'),
   }

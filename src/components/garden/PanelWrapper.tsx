@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePanelStore } from '@store/panelStore'
 import { usePanelResize } from '@hooks/usePanelResize'
 import { useIsMobile } from '@hooks/useMediaQuery'
@@ -45,6 +45,23 @@ export function PanelWrapper({
   // until mount so neither path leaks SSR defaults.
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
+  // Per-viewport first-visit default. The store ships with both panels
+  // closed so mobile never sees them open — even momentarily — before
+  // the layout settles. On desktop we still want the open-by-default
+  // affordance though, so once we've mounted AND we know the viewport
+  // is desktop AND there's no persisted preference (`panels` key in
+  // localStorage), flip both to open. After this runs once, zustand's
+  // persist takes over: the user's toggles win for every future visit.
+  const flippedRef = useRef(false)
+  useEffect(() => {
+    if (!mounted || flippedRef.current) return
+    if (isMobile) return
+    if (typeof localStorage === 'undefined') return
+    if (localStorage.getItem('panels')) return // user already has a preference
+    flippedRef.current = true
+    usePanelStore.setState({ leftOpen: true, rightOpen: true })
+  }, [mounted, isMobile])
 
   if (!mounted) {
     return (

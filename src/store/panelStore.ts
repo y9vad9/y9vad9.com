@@ -39,8 +39,14 @@ function clamp(px: number): number {
 export const usePanelStore = create<PanelStore>()(
   persist(
     (set) => ({
-      leftOpen: true,
-      rightOpen: true,
+      // Both panels closed by default. Mobile never gets a "panels
+      // open" flash, even briefly, because the only way panels open
+      // here is via an opt-in path after mount. `PanelWrapper` opens
+      // them on desktop on first visit (no localStorage preference
+      // yet) — see the comment over `useDefaultPanelsOnDesktop`
+      // there.
+      leftOpen: false,
+      rightOpen: false,
       leftWidth: 240,
       rightWidth: 240,
       explorerMode: 'files',

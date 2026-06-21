@@ -17,13 +17,18 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const [t, siteConfig] = await Promise.all([
-    getTranslations({ locale, namespace: 'home' }),
+  const [base, siteConfig] = await Promise.all([
+    baseMetadata({ locale, path: '/' }),
     loadSiteConfig(locale),
   ])
   return {
-    ...baseMetadata({ locale, path: '/' }),
-    title: { absolute: `${siteConfig.owner.name} — ${t('notes')}` },
+    ...base,
+    // This is the portfolio landing page, not the notes index — the
+    // notes index lives at /notes. The tab title should just be the
+    // owner's name. `absolute` keeps it from being wrapped by the
+    // `%s | <owner>` template that `baseMetadata` sets on every other
+    // page.
+    title: { absolute: siteConfig.owner.name },
   }
 }
 

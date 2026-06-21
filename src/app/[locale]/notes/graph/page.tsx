@@ -14,7 +14,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
   return {
-    ...baseMetadata({ locale, path: '/notes/graph' }),
+    ...(await baseMetadata({ locale, path: '/notes/graph' })),
     robots: { index: false, follow: true },
   }
 }
