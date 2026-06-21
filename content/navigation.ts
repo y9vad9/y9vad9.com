@@ -13,7 +13,7 @@ import type { NavigationConfig } from '@config/navigation'
 export const navigation: NavigationConfig = {
   default: [
     {
-      label: 'Writing',
+      label: 'Notes',
       items: [{ label: 'View all notes', href: '/notes' }],
     },
     {
@@ -32,7 +32,7 @@ export const navigation: NavigationConfig = {
   byLocale: {
     de: [
       {
-        label: 'Schreiben',
+        label: 'Notizen',
         items: [{ label: 'Alle Notizen', href: '/notes' }],
       },
       {
@@ -49,7 +49,7 @@ export const navigation: NavigationConfig = {
     ],
     uk: [
       {
-        label: 'Тексти',
+        label: 'Нотатки',
         items: [{ label: 'Усі нотатки', href: '/notes' }],
       },
       {
