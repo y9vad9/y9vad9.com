@@ -56,7 +56,7 @@ export async function LandingBody({ locale }: { locale: string }) {
       >
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">{title}</h3>
+            <div className="font-semibold">{title}</div>
             <ArrowRight className="w-4 h-4 text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
           </div>
           <div className="space-y-2">
