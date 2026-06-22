@@ -16,6 +16,7 @@ While diving into the fundamentals of Software Engineering from early age, I fou
 *   **Teaching JavaScript:** Led one of the practical lessons where we explored the basics of JavaScript. As part of this, I created a [video guide for JS fundamentals](https://www.youtube.com/watch?v=7NTxuNKRfao) to help the group stay on track.
 *   **Java Coursework:** Developed a [Telegram Bot for a restaurant](https://github.com/y9vad9/restaurant-coursework/tree/master) using Java. 
     > **Code Quality Warning:** Looking back, the code is absolutely terrible. I was rushing so hard to meet the deadline that I produced some top-tier spaghetti and architectural non-sense. It works, but please don't judge me on it today! 😅
+*   **Bachelor's Thesis:** [Minesweeper](https://github.com/y9vad9/minesweeper) — a cross-platform Minesweeper game built with Kotlin and Compose Multiplatform, targeting Android, iOS, desktop, and web (Wasm). Uses SQLDelight for persistence and kotlinx.serialization.
 
 **Main Highlights:** JavaScript, Java, Python, C++, and parallel computing with OpenMPI.
 

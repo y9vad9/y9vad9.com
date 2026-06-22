@@ -2,7 +2,7 @@
 title: Zusammenfassung
 preview: "Lernen Sie mich schnell besser kennen."
 coverImage: ""
-parents: ["Persönliches"]
+parents: ["Persönlich"]
 ---
 Geboren am 26. April 2005 in der pulsierenden Stadt Kiew, Ukraine, bin ich ein Softwareentwickler, der Neugier in einen Beruf verwandelt hat. Meine Geschichte ist verknüpft mit einer Liebe zum Code, zur Gemeinschaft und zum kontinuierlichen Lernen. Aber lassen wir das nicht in die Länge ziehen – hier ist alles, was Sie vielleicht wissen möchten:
 

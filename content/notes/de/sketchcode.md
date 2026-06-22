@@ -2,7 +2,7 @@
 title: Sketchcode
 preview: "Eine Reise durch die Entwicklung von Sketchcode, einem sozialen Netzwerk für Sketchware-Entwickler, das sich von einem No-Code-Projekt zu einer lebendigen Plattform entwickelte, die Tausende von Benutzern unterstützte. Entdecken Sie seine Hauptfunktionen, seinen Einfluss auf die Community und die entscheidende Rolle, die es in meiner Programmierlaufbahn spielte."
 coverImage: ""
-parents: ["Persönliches"]
+parents: ["Persönlich"]
 ---
 > Im Jahr 2018 habe ich Sketchcode ins Leben gerufen, ein soziales Netzwerk für Entwickler, die [Sketchware](https://sketchware-docs.vercel.app/) nutzen – einen No-Code-Android-App-Builder. Es
 > ging nicht nur um das Teilen von Projekten; es wurde zu einem Zentrum für Tutorials, UI-Komponenten und Zusammenarbeit. Auf seinem Höhepunkt
