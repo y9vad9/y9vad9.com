@@ -1,6 +1,40 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind 4 replaces the three legacy `@tailwind` directives with a
+   single import; the engine wires base/components/utilities itself. */
+@import 'tailwindcss';
+
+/* Tell Tailwind 4 to scan the content/ folder too — by default it only
+   scans the source tree of the package and would miss user-editable
+   layout files (landing.tsx, footer.tsx) that author Tailwind classes. */
+@source '../../content';
+
+/* `@theme` is Tailwind 4's CSS-first replacement for the old JS
+   `theme.extend` block in `tailwind.config.ts`. Each `--*-NAME` token
+   becomes a utility (`bg-bg`, `text-fg`, `font-sans`, `rounded`, etc.)
+   exactly as the legacy `colors` / `fontFamily` / `borderRadius` /
+   `transitionDuration` keys did. */
+@theme {
+  --color-bg: var(--bg);
+  --color-shell: var(--shell-bg);
+  --color-fg: var(--fg);
+  --color-primary: var(--primary);
+  --color-primary-muted: var(--primary-muted);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  --default-transition-duration: 300ms;
+}
 
 /* KaTeX is NOT imported here on purpose — it adds ~21 KiB to the global
    render-blocking CSS and only note bodies with math actually need it.

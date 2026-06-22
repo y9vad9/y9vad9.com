@@ -2,34 +2,66 @@ import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import * as LucideIcons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import * as SimpleIcons from 'react-icons/si'
+import * as FaIcons from 'react-icons/fa6'
+import type { IconType } from 'react-icons'
 
 /**
- * Default platform → lucide icon name mapping for the most common socials.
- * Users add a platform that isn't here by passing `icon: 'IconName'` on the
- * `SocialLink` entry in `site.config.ts`. Any PascalCase lucide-react icon
- * is valid (https://lucide.dev/icons).
+ * Two icon sources cover socials:
+ *   - Lucide for non-brand glyphs (Mail, Rss, Globe, Link, AtSign, …).
+ *     lucide-react 1.x dropped every brand mark, so anything Github /
+ *     Twitter / Linkedin-shaped has to come from elsewhere.
+ *   - react-icons/si (Simple Icons) for the brand marks — tree-shaken
+ *     per import, so only the brands users actually reference get into
+ *     the bundle.
+ *
+ * Resolution order for each entry:
+ *   1. If `iconName` is provided on the SocialLink, look it up in BOTH
+ *      icon sets (PascalCase lucide name OR `Si*` / `Fa*` react-icons
+ *      identifier). This lets a downstream user pick e.g. "SiBluesky"
+ *      explicitly when they want a colour-accurate brand glyph.
+ *   2. Otherwise consult `DEFAULTS` for the platform's standard glyph.
+ *   3. Fall back to the platform's first letter so users at least see
+ *      *something* if they typo'd the icon name.
  */
-const DEFAULTS: Record<string, string> = {
-  github: 'Github',
-  gitlab: 'Gitlab',
-  linkedin: 'Linkedin',
-  twitter: 'Twitter',
-  x: 'Twitter',
-  instagram: 'Instagram',
-  youtube: 'Youtube',
-  twitch: 'Twitch',
-  facebook: 'Facebook',
-  email: 'Mail',
-  mail: 'Mail',
-  rss: 'Rss',
-  telegram: 'Send',
-  discord: 'MessageCircle',
-  slack: 'Slack',
-  mastodon: 'AtSign',
-  bluesky: 'Cloud',
-  threads: 'AtSign',
-  website: 'Globe',
-  link: 'Link',
+
+type IconRef =
+  | { lib: 'lucide'; name: string }
+  | { lib: 'si'; name: string }
+  | { lib: 'fa'; name: string }
+
+const DEFAULTS: Record<string, IconRef> = {
+  github: { lib: 'si', name: 'SiGithub' },
+  gitlab: { lib: 'si', name: 'SiGitlab' },
+  linkedin: { lib: 'si', name: 'SiLinkedin' },
+  twitter: { lib: 'si', name: 'SiX' },
+  x: { lib: 'si', name: 'SiX' },
+  instagram: { lib: 'si', name: 'SiInstagram' },
+  youtube: { lib: 'si', name: 'SiYoutube' },
+  twitch: { lib: 'si', name: 'SiTwitch' },
+  facebook: { lib: 'si', name: 'SiFacebook' },
+  telegram: { lib: 'si', name: 'SiTelegram' },
+  discord: { lib: 'si', name: 'SiDiscord' },
+  slack: { lib: 'si', name: 'SiSlack' },
+  mastodon: { lib: 'si', name: 'SiMastodon' },
+  bluesky: { lib: 'si', name: 'SiBluesky' },
+  threads: { lib: 'si', name: 'SiThreads' },
+  // Generic / non-brand glyphs stay on Lucide.
+  email: { lib: 'lucide', name: 'Mail' },
+  mail: { lib: 'lucide', name: 'Mail' },
+  rss: { lib: 'lucide', name: 'Rss' },
+  website: { lib: 'lucide', name: 'Globe' },
+  link: { lib: 'lucide', name: 'Link' },
+}
+
+function lookup(iconName: string): IconType | LucideIcon | undefined {
+  if (iconName.startsWith('Si')) {
+    return (SimpleIcons as unknown as Record<string, IconType | undefined>)[iconName]
+  }
+  if (iconName.startsWith('Fa')) {
+    return (FaIcons as unknown as Record<string, IconType | undefined>)[iconName]
+  }
+  return (LucideIcons as unknown as Record<string, LucideIcon | undefined>)[iconName]
 }
 
 export function resolveSocialIcon(
@@ -37,12 +69,15 @@ export function resolveSocialIcon(
   iconName: string | undefined,
   size = 20,
 ): ReactNode {
-  const name = iconName ?? DEFAULTS[platform.toLowerCase()]
-  if (name) {
-    const Icon = (LucideIcons as unknown as Record<string, LucideIcon | undefined>)[name]
+  if (iconName) {
+    const Icon = lookup(iconName)
     if (Icon) return createElement(Icon, { size })
   }
-  // Last-resort fallback: first letter of the platform name.
+  const def = DEFAULTS[platform.toLowerCase()]
+  if (def) {
+    const Icon = lookup(def.name)
+    if (Icon) return createElement(Icon, { size })
+  }
   return createElement(
     'span',
     { className: 'text-base font-bold' },

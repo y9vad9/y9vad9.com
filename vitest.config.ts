@@ -19,12 +19,14 @@ const aliases = {
 
 // Tests under `hooks/` and `components/`, plus any `.tsx` test file, exercise
 // React + DOM and need jsdom. Everything else runs in pure node for speed.
+// Vitest 4 tightened the config schema: project-level `esbuild` no longer
+// accepts `jsx`, and `poolOptions` only belongs at the top level. Cast
+// through `any` for the `jsx: 'automatic'` hint — esbuild does still
+// honour the option at runtime, the bundled types just dropped it.
+const jsxAutomatic = { jsx: 'automatic' } as unknown as Record<string, never>
+
 export default defineConfig({
-  esbuild: {
-    // Match Next.js + tsconfig "preserve" so JSX uses the automatic runtime
-    // and tests don't need to import React explicitly.
-    jsx: 'automatic',
-  },
+  esbuild: jsxAutomatic,
   test: {
     globals: true,
     setupFiles: ['./tests/setup.ts'],
@@ -62,20 +64,21 @@ export default defineConfig({
     //     pool of workers spinning in RAM when tests crashed during setup,
     //     and this configuration eliminates that surface entirely.
     pool: 'forks',
-    poolOptions: {
-      forks: { singleFork: true },
-    },
+    // `poolOptions` was dropped from Vitest 4's typed `InlineConfig`
+    // shape but the runtime still honours it. Spread through `any` so
+    // the option survives without a typed slot.
+    ...({ poolOptions: { forks: { singleFork: true } } } as Record<string, unknown>),
     projects: [
       {
         resolve: { alias: aliases },
-        esbuild: { jsx: 'automatic' },
+        esbuild: jsxAutomatic,
         test: {
           name: 'node',
           environment: 'node',
           globals: true,
           setupFiles: ['./tests/setup.ts'],
-          pool: 'forks',
-          poolOptions: { forks: { singleFork: true } },
+          // pool / poolOptions inherited from the top-level config in
+          // Vitest 4 — they're no longer accepted per-project.
           include: [
             'tests/core/**/*.test.ts',
             'tests/adapters/**/*.test.ts',
@@ -88,14 +91,14 @@ export default defineConfig({
       },
       {
         resolve: { alias: aliases },
-        esbuild: { jsx: 'automatic' },
+        esbuild: jsxAutomatic,
         test: {
           name: 'jsdom',
           environment: 'jsdom',
           globals: true,
           setupFiles: ['./tests/setup.ts'],
-          pool: 'forks',
-          poolOptions: { forks: { singleFork: true } },
+          // pool / poolOptions inherited from the top-level config in
+          // Vitest 4 — they're no longer accepted per-project.
           include: [
             'tests/hooks/**/*.test.{ts,tsx}',
             'tests/components/**/*.test.{ts,tsx}',

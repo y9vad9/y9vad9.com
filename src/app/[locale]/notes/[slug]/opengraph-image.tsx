@@ -29,11 +29,12 @@ export function generateStaticParams() {
 export default async function NoteOgImage({
   params,
 }: {
-  params: { locale: string; slug: string }
+  params: Promise<{ locale: string; slug: string }>
 }) {
+  const { locale, slug } = await params
   const [note, siteConfig] = await Promise.all([
-    getNote(createRepository(params.locale), params.slug),
-    loadSiteConfig(params.locale),
+    getNote(createRepository(locale), slug),
+    loadSiteConfig(locale),
   ])
   const title = note?.title ?? siteConfig.owner.name
   const description = note?.description ?? note?.preview ?? siteConfig.owner.bio
