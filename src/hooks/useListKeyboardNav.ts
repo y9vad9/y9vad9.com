@@ -96,12 +96,23 @@ export function useListKeyboardNav({
     containerRef,
     setItemRef,
     focus,
-    /** Spread these onto the scrollable list container. */
+    /**
+     * Spread these onto the scrollable list container.
+     *
+     * Intentionally no `role="listbox"`. The ARIA listbox pattern requires
+     * each child to carry `role="option"` and the container to expose an
+     * accessible name + `aria-activedescendant` — wiring that across
+     * heterogeneous panel items (links, headings, separators) is more
+     * intrusive than the role buys us. Lighthouse flagged both omissions
+     * as accessibility failures. The container stays focusable so the
+     * `onKeyDown` shortcut handlers still work; screen readers fall back
+     * to announcing each `<a>` / `<button>` child individually, which is
+     * what we want for navigation lists anyway.
+     */
     containerProps: {
       ref: containerRef,
       tabIndex: 0,
       onKeyDown,
-      role: 'listbox' as const,
     },
   }
 }
