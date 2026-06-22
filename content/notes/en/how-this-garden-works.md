@@ -14,7 +14,7 @@ The notes interface is divided into three functional areas to keep context alway
 
 1.  **Left Panel (Explorer)**: Your entry point. Switch between the file browser and a deep search through the content of all notes.
 2.  **Center (The Note)**: The main reading area. It's designed to be clean and focused, with adaptive width that fills the screen when sidebars are closed.
-3.  **Right Panel (Tools)**: Your metadata hub. Access the Table of Contents, see Backlinks (who links here), and explore global tags.
+3.  **Right Panel (Tools)**: Your metadata hub. Access the Table of Contents, jump between notes in a Series, see Backlinks (who links here), and open the knowledge Graph.
 
 ## Navigation and Tabs
 
@@ -22,7 +22,7 @@ You can work with multiple notes simultaneously using the built-in tab system in
 
 *   **Opening Notes**: A regular click replaces the current tab.
 *   **New Tabs**: `Cmd + Click` (Mac) or `Ctrl + Click` (Windows/Linux) opens a note in a new tab.
-*   **Switching Tabs**: Use the numbers `1-9` with a modifier key (Control on Mac, Alt on Win) to jump between tabs instantly.
+*   **Switching Tabs**: Use `Alt + 1-9` to jump between tabs instantly.
 
 ## Advanced Search & Discovery
 
@@ -39,34 +39,38 @@ Both the Command Palette and the File Explorer support advanced tag filtering. T
 *   You can combine tags with regular text to find specific notes within a topic.
 
 ### Deep Content Search
-While the Explorer normally searches titles, the **Search Mode** (`Cmd/Ctrl + Alt + F`) looks inside the actual text of every note, highlighting the matches for you.
+While the file list normally searches titles, the **Search Mode** (`F`) looks inside the actual text of every note and highlights the matches.
 
 ## Keyboard Shortcuts
 
-The Garden is fully navigable without a mouse.
+The Garden is fully navigable without a mouse. Single-letter shortcuts only fire when you are *not* typing in a text field — so `Cmd + F` still triggers the browser's find-in-page.
 
-### Panels & Navigation
+### Panels & Tabs
 | Action | Mac | Windows / Linux |
 | :--- | :--- | :--- |
-| Toggle Left Panel | `⌘ + [` | `Alt + [` |
-| Toggle Right Panel | `⌘ + ]` | `Alt + ]` |
+| Toggle Left Panel | `⌘ + [` | `Ctrl + [` |
+| Toggle Right Panel | `⌘ + ]` | `Ctrl + ]` |
 | Close Current Tab | `⌘ + \` | `Ctrl + \` |
-| Switch to Tab (1-9) | `⌃ + [1-9]` | `Alt + [1-9]` |
-| Cycle Sections | `Tab` | `Tab` |
+| Switch to Tab (1-9) | `Alt + [1-9]` | `Alt + [1-9]` |
 
-### Search & Palette
-| Action | Mac | Windows / Linux |
-| :--- | :--- | :--- |
-| Search Files | `⌘ + F` | `Ctrl + F` |
-| Deep Search Content | `⌘ + ⌥ + F` | `Ctrl + Alt + F` |
-| Command Palette | `Shift, Shift` OR `/` | `Shift, Shift` OR `/` |
+### Left Panel (Explorer)
+| Action | Shortcut |
+| :--- | :--- |
+| Files | `E` |
+| Deep Search | `F` |
 
-### Right Panel Tools
-| Action | Mac | Windows / Linux |
-| :--- | :--- | :--- |
-| Table of Contents | `⌥ + C` | `Alt + C` |
-| Backlinks & Links | `⌥ + L` | `Alt + L` |
-| All Project Tags | `⌥ + T` | `Alt + T` |
+### Right Panel (Tools)
+| Action | Shortcut |
+| :--- | :--- |
+| Table of Contents | `T` |
+| Series | `S` |
+| Backlinks & Links | `L` |
+| Knowledge Graph | `G` |
+
+### Command Palette
+| Action | Shortcut |
+| :--- | :--- |
+| Open Palette | `Shift, Shift` OR `/` |
 
 ## Interactive Knowledge
 

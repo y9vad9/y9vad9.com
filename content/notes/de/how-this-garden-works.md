@@ -14,7 +14,7 @@ Das Notizen-Interface ist in drei Funktionsbereiche unterteilt, um den Kontext i
 
 1.  **Linkes Panel (Explorer)**: Ihr Einstiegspunkt. Wechseln Sie zwischen dem Dateibrowser und einer Tiefensuche durch den Inhalt aller Notizen.
 2.  **Mitte (Die Notiz)**: Der Hauptlesebereich. Er ist sauber und fokussiert gestaltet, mit einer adaptiven Breite, die den Bildschirm ausfüllt, wenn die Seitenleisten geschlossen sind.
-3.  **Rechtes Panel (Werkzeuge)**: Ihr Metadaten-Hub. Greifen Sie auf das Inhaltsverzeichnis zu, sehen Sie Backlinks (wer hierher verlinkt) und erkunden Sie globale Tags.
+3.  **Rechtes Panel (Werkzeuge)**: Ihr Metadaten-Hub. Greifen Sie auf das Inhaltsverzeichnis zu, navigieren Sie durch eine Notizen-Serie, sehen Sie Backlinks (wer hierher verlinkt) und öffnen Sie den Wissens-Graph.
 
 ## Navigation und Tabs
 
@@ -22,7 +22,7 @@ Sie können mit mehreren Notizen gleichzeitig arbeiten, dank des integrierten Ta
 
 *   **Notizen öffnen**: Ein normaler Klick ersetzt den aktuellen Tab.
 *   **Neue Tabs**: `Cmd + Klick` (Mac) oder `Strg + Klick` (Windows/Linux) öffnet eine Notiz in einem neuen Tab.
-*   **Tabs wechseln**: Verwenden Sie die Zahlen `1-9` mit einer Modifikatortaste (Control auf Mac, Alt auf Win), um sofort zwischen den Tabs zu springen.
+*   **Tabs wechseln**: Verwenden Sie `Alt + 1-9`, um sofort zwischen den Tabs zu springen.
 
 ## Erweiterte Suche & Entdeckung
 
@@ -39,34 +39,38 @@ Sowohl die Befehlspalette als auch der Datei-Explorer unterstützen die erweiter
 *   Sie können Tags mit regulärem Text kombinieren, um spezifische Notizen innerhalb eines Themas zu finden.
 
 ### Inhalts-Tiefensuche
-Während der Explorer normalerweise Titel durchsucht, sucht der **Suchmodus** (`Cmd/Ctrl + Alt + F`) im tatsächlichen Text jeder Notiz und hebt die Treffer für Sie hervor.
+Während die Dateiliste normalerweise Titel durchsucht, sucht der **Suchmodus** (`F`) im tatsächlichen Text jeder Notiz und hebt die Treffer für Sie hervor.
 
 ## Tastenkombinationen
 
-Der Garten ist vollständig ohne Maus navigierbar.
+Der Garten ist vollständig ohne Maus navigierbar. Einzelbuchstaben-Kürzel feuern nur, wenn Sie *nicht* in einem Textfeld tippen — `Cmd + F` öffnet also weiterhin die Browser-Suche.
 
-### Panels & Navigation
+### Panels & Tabs
 | Aktion | Mac | Windows / Linux |
 | :--- | :--- | :--- |
-| Linkes Panel umschalten | `⌘ + [` | `Alt + [` |
-| Rechtes Panel umschalten | `⌘ + ]` | `Alt + ]` |
+| Linkes Panel umschalten | `⌘ + [` | `Strg + [` |
+| Rechtes Panel umschalten | `⌘ + ]` | `Strg + ]` |
 | Aktuellen Tab schließen | `⌘ + \` | `Strg + \` |
-| Zum Tab wechseln (1-9) | `⌃ + [1-9]` | `Alt + [1-9]` |
-| Bereichsfokus wechseln | `Tab` | `Tab` |
+| Zum Tab wechseln (1-9) | `Alt + [1-9]` | `Alt + [1-9]` |
 
-### Suche & Palette
-| Aktion | Mac | Windows / Linux |
-| :--- | :--- | :--- |
-| Dateien suchen | `⌘ + F` | `Strg + F` |
-| Inhalten tief suchen | `⌘ + ⌥ + F` | `Strg + Alt + F` |
-| Befehlspalette | `Umschalt, Umschalt` | `Umschalt, Umschalt` |
+### Linkes Panel (Explorer)
+| Aktion | Kürzel |
+| :--- | :--- |
+| Dateien | `E` |
+| Tiefensuche | `F` |
 
-### Werkzeuge im rechten Panel
-| Aktion | Mac | Windows / Linux |
-| :--- | :--- | :--- |
-| Inhaltsverzeichnis | `⌥ + C` | `Alt + C` |
-| Backlinks & Links | `⌥ + L` | `Alt + L` |
-| Alle Projekttags | `⌥ + T` | `Alt + T` |
+### Rechtes Panel (Werkzeuge)
+| Aktion | Kürzel |
+| :--- | :--- |
+| Inhaltsverzeichnis | `T` |
+| Serie | `S` |
+| Backlinks & Links | `L` |
+| Wissens-Graph | `G` |
+
+### Befehlspalette
+| Aktion | Kürzel |
+| :--- | :--- |
+| Palette öffnen | `Umschalt, Umschalt` ODER `/` |
 
 ## Interaktives Wissen
 
