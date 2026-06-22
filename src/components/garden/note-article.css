@@ -1,0 +1,5 @@
+/* CSS that only ships on note routes. Imported by `NoteArticle.tsx` so
+   landing / garden / graph pages don't pay the bytes.
+   KaTeX is required to hide the raw TeX `<annotation>` fallback that
+   `rehype-katex` emits alongside the rendered HTML for accessibility. */
+@import 'katex/dist/katex.min.css';

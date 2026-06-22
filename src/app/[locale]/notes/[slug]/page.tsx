@@ -89,6 +89,18 @@ export default async function NotePage({
 
   const noteMap = new Map(allNotes.map((n) => [n.slug, n]))
 
+  // Resolve each parent name to a real note slug by case-insensitive title
+  // match against the current locale's repository. Falling back to a
+  // lowercased/dashified guess (the old behaviour) produced localised URLs
+  // for English-slugged parent notes — e.g. /uk/notes/семантична-типізація
+  // instead of /uk/notes/semantic-typing. If no match exists the parent is
+  // rendered as plain text rather than a broken link.
+  const titleToSlug = new Map(allNotes.map((n) => [n.title.toLowerCase(), n.slug]))
+  const resolvedParents = note.parents.map((name) => ({
+    name,
+    slug: titleToSlug.get(name.toLowerCase()) ?? null,
+  }))
+
   // Build the side panel's outgoing list in the same order the author wrote
   // the links in the body. Internal entries get resolved against the note
   // map; external ones get their <title> fetched (cached, best-effort) so
@@ -165,6 +177,7 @@ export default async function NotePage({
       <NoteArticle
         note={note}
         locale={locale}
+        resolvedParents={resolvedParents}
         seriesNav={seriesNavData}
         relatedNotes={relatedSerializable}
         linkedMentions={mentions.linked.map(toMentionItem)}

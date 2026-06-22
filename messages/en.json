@@ -123,6 +123,11 @@
     "title": "Comments",
     "loading": "Loading comments…"
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you were looking for doesn't exist or has moved.",
+    "goHome": "Go to home"
+  },
   "footer": {
     "copyright": "© {year} {name}. All rights reserved."
   },

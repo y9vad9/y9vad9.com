@@ -434,5 +434,35 @@ for (const locale of routing.locales) {
       }
       reportIssues(issues, 'Frontmatter validation failed')
     }, 60_000)
+
+    it('every parent name resolves to a note title in the same locale', async () => {
+      // The breadcrumb in `NoteArticle` links each parent name to a note
+      // by case-insensitive title match (see `[locale]/notes/[slug]/page.tsx`).
+      // If no note matches, the parent renders as plain text — which is a
+      // *silent* authoring drift: a renamed parent note leaves its children
+      // pointing at nothing. Catch that here so the build fails loudly
+      // instead of shipping dead breadcrumbs.
+      const repo = new FileSystemNoteRepository(locale as Locale)
+      const notes = await repo.listAll()
+      if (notes.length === 0) return
+      const titleSet = new Set(notes.map((n) => n.title.toLowerCase()))
+      const issues: Issue[] = []
+      for (const note of notes) {
+        const file = notePath(locale, note.slug)
+        const raw = readRaw(locale, note.slug)
+        for (const parent of note.parents) {
+          if (!parent.trim()) continue // covered by the frontmatter test above
+          if (titleSet.has(parent.toLowerCase())) continue
+          issues.push({
+            file,
+            line: findLine(raw, parent) ?? findLine(raw, 'parents:'),
+            kind: 'frontmatter',
+            ref: parent,
+            reason: `parent "${parent}" does not match the title of any note in locale "${locale}" — the breadcrumb will render as plain text instead of a link. Either rename the parent to match a note title exactly, or create a parent note with that title.`,
+          })
+        }
+      }
+      reportIssues(issues, 'Parent resolution failed')
+    }, 60_000)
   })
 }

@@ -29,6 +29,14 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_ONVU_MODE: process.env.ONVU_MODE || 'server',
   },
+  experimental: {
+    // Rewrites `import { X, Y } from 'lucide-react'` (and the others
+    // listed) into individual deep imports at build time so the named
+    // imports actually tree-shake. Without this Next pulls the entire
+    // icon barrel into the client bundle — a measurable hit Lighthouse
+    // flags as "unused JavaScript". The list is opt-in per package.
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+  },
 }
 
 export default withNextIntl(nextConfig)

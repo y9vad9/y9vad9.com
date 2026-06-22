@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* KaTeX styles — required to hide the raw TeX `<annotation>` fallback that
-   `rehype-katex` emits alongside the rendered HTML for accessibility. */
-@import 'katex/dist/katex.min.css';
+/* KaTeX is NOT imported here on purpose — it adds ~21 KiB to the global
+   render-blocking CSS and only note bodies with math actually need it.
+   The import lives in `NoteArticle.tsx` (via `note-article.css`) so it
+   only ships on note routes. */
 
 /* User theme overrides are loaded from `content/theme.css` in `layout.tsx`
    AFTER this file, so anything declared there wins over the defaults below. */
