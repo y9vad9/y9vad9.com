@@ -21,7 +21,14 @@ const indexCache = new Map<string, Promise<Map<string, SearchIndexEntry>>>()
 function loadIndex(locale: string): Promise<Map<string, SearchIndexEntry>> {
   let p = indexCache.get(locale)
   if (!p) {
-    p = fetch(`/api/search-index?locale=${encodeURIComponent(locale)}`)
+    // Static export has no API routes; the build emitter writes a mirror
+    // of the search index to `public/_static/<locale>/search-index.json`
+    // (see `StaticBuildEmitter.ts`). The dev/server branch keeps the
+    // `/api/search-index` route so we still get fresh data on rebuild.
+    const url = process.env.NEXT_PUBLIC_ONVU_MODE === 'static'
+      ? `/_static/${locale}/search-index.json`
+      : `/api/search-index?locale=${encodeURIComponent(locale)}`
+    p = fetch(url)
       .then((r) => (r.ok ? r.json() : []))
       .then((rows: SearchIndexEntry[]) => new Map(rows.map((r) => [r.slug, r])))
       .catch(() => new Map<string, SearchIndexEntry>())
@@ -31,12 +38,19 @@ function loadIndex(locale: string): Promise<Map<string, SearchIndexEntry>> {
 }
 
 /**
- * Watches the article container for hover events on links that point to
- * notes and shows a small floating card with the target note's title and
- * preview. Designed to be mounted once per article view.
+ * Watches for hover events on internal note links inside the article body
+ * and shows a small floating card with the target note's title and preview.
+ *
+ * Delegates from `document` rather than caching an `article .prose` node
+ * at mount time. Caching the container broke under SPA navigation: when
+ * the user switched notes the original DOM node was discarded but the
+ * listeners were still attached to it, so previews silently stopped
+ * firing for the rest of the session. Document-level delegation walks the
+ * current DOM on every event, so it stays correct across tab swaps and
+ * doesn't need a remount on slug change.
  */
 export function NoteLinkPreview({
-  containerSelector = 'article .prose',
+  containerSelector = 'article',
 }: {
   containerSelector?: string
 }) {
@@ -46,9 +60,6 @@ export function NoteLinkPreview({
   const locale = useLocale()
 
   useEffect(() => {
-    const container = document.querySelector(containerSelector)
-    if (!container) return
-
     function slugFromHref(a: HTMLAnchorElement): string | null {
       const explicit = a.getAttribute('data-note-slug')
       if (explicit) return explicit
@@ -87,11 +98,17 @@ export function NoteLinkPreview({
       })
     }
 
-    function onEnter(e: Event) {
-      const target = e.target as HTMLElement
+    function anchorInScope(target: EventTarget | null): HTMLAnchorElement | null {
+      if (!(target instanceof Element)) return null
       const a = target.closest('a')
-      if (!(a instanceof HTMLAnchorElement)) return
-      if (!container!.contains(a)) return
+      if (!(a instanceof HTMLAnchorElement)) return null
+      if (!a.closest(containerSelector)) return null
+      return a
+    }
+
+    function onEnter(e: Event) {
+      const a = anchorInScope(e.target)
+      if (!a) return
       if (hideTimer.current) {
         window.clearTimeout(hideTimer.current)
         hideTimer.current = null
@@ -101,9 +118,8 @@ export function NoteLinkPreview({
     }
 
     function onLeave(e: Event) {
-      const target = e.target as HTMLElement
-      const a = target.closest('a')
-      if (!(a instanceof HTMLAnchorElement)) return
+      const a = anchorInScope(e.target)
+      if (!a) return
       if (hoverTimer.current) {
         window.clearTimeout(hoverTimer.current)
         hoverTimer.current = null
@@ -112,11 +128,11 @@ export function NoteLinkPreview({
       hideTimer.current = window.setTimeout(() => setState(null), 180)
     }
 
-    container.addEventListener('mouseover', onEnter)
-    container.addEventListener('mouseout', onLeave)
+    document.addEventListener('mouseover', onEnter)
+    document.addEventListener('mouseout', onLeave)
     return () => {
-      container.removeEventListener('mouseover', onEnter)
-      container.removeEventListener('mouseout', onLeave)
+      document.removeEventListener('mouseover', onEnter)
+      document.removeEventListener('mouseout', onLeave)
       if (hoverTimer.current) window.clearTimeout(hoverTimer.current)
       if (hideTimer.current) window.clearTimeout(hideTimer.current)
     }
