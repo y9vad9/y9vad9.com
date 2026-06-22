@@ -317,7 +317,7 @@ function rehypeNoteImages(resolve: ImageResolver) {
           ...(!isInline && resolved.srcset
             ? {
                 srcset: resolved.srcset,
-                sizes: '(max-width: 768px) 100vw, 800px',
+                sizes: '(min-width: 768px) 720px, calc(100vw - 80px)',
               }
             : {}),
           ...(!isInline && resolved.width ? { width: resolved.width } : {}),

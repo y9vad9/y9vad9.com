@@ -1,5 +1,7 @@
 {
   "nav": {
+    "home": "Startseite",
+    "notesGarden": "Notizgarten",
     "writing": "Schreiben",
     "work": "Arbeit",
     "about": "Über mich",

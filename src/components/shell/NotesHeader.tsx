@@ -62,6 +62,7 @@ export function NotesHeader() {
   const tPanel = useTranslations('panel')
   const tCommand = useTranslations('search')
   const tGarden = useTranslations('garden')
+  const tNav = useTranslations('nav')
   const locale = useLocale() as Locale
   const {
     leftOpen,
@@ -132,8 +133,8 @@ export function NotesHeader() {
       <Link
         href={`/${locale}`}
         className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-        title="Home"
-        aria-label="Home"
+        title={tNav('home')}
+        aria-label={tNav('home')}
       >
         <Home size={15} />
       </Link>
@@ -143,8 +144,8 @@ export function NotesHeader() {
         routeTitle={tGarden('welcome')}
         routeKind="index"
         className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-        title="Garden"
-        aria-label="Garden"
+        title={tNav('notesGarden')}
+        aria-label={tNav('notesGarden')}
       >
         <Sprout size={15} />
       </RouteLink>

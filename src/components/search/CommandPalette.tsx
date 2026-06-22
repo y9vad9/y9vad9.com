@@ -39,6 +39,7 @@ async function loadIndex(locale: string): Promise<SearchIndexEntry[]> {
 export function CommandPalette() {
   const t = useTranslations('search')
   const tTheme = useTranslations('theme')
+  const tNav = useTranslations('nav')
   const langLabel = useLocaleLabel()
   const { isOpen, query, close, setQuery } = useSearchStore()
   const locale = useLocale() as Locale
@@ -128,12 +129,22 @@ export function CommandPalette() {
   const allResults = useMemo(() => {
     const r: Array<{ type: string; id: string; label: string; onSelect: () => void }> = []
 
-    // Navigation
-    if (!cleanQuery || 'home'.includes(cleanQuery.toLowerCase())) {
-      r.push({ type: 'nav', id: 'home', label: 'Home', onSelect: () => router.push(`/${locale}`) })
+    // Navigation. Match the user's typed query against the localised label
+    // so e.g. typing "Гол" surfaces Головна on the uk locale; falling back
+    // to the English form keeps "home" / "notes" working as universal
+    // hotwords regardless of UI language.
+    const homeLabel = tNav('home')
+    const gardenLabel = tNav('notesGarden')
+    const q = cleanQuery.toLowerCase()
+    if (!q || homeLabel.toLowerCase().includes(q) || 'home'.includes(q)) {
+      r.push({ type: 'nav', id: 'home', label: homeLabel, onSelect: () => router.push(`/${locale}`) })
     }
-    if (!cleanQuery || 'notes garden'.includes(cleanQuery.toLowerCase())) {
-      r.push({ type: 'nav', id: 'notes', label: 'Notes Garden', onSelect: () => router.push(`/${locale}/notes`) })
+    if (
+      !q ||
+      gardenLabel.toLowerCase().includes(q) ||
+      'notes garden'.includes(q)
+    ) {
+      r.push({ type: 'nav', id: 'notes', label: gardenLabel, onSelect: () => router.push(`/${locale}/notes`) })
     }
 
     // Notes
@@ -152,7 +163,7 @@ export function CommandPalette() {
     )
 
     return r
-  }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, pathname, router, langLabel, tTheme, setTheme])
+  }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, pathname, router, langLabel, tTheme, tNav, setTheme])
 
   function pickItem(
     item: (typeof allResults)[number],

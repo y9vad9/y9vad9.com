@@ -8,9 +8,19 @@ import { usePanelStore } from '@store/panelStore'
 import { useTabStore } from '@store/tabStore'
 import { useNoteContextStore } from '@store/noteContextStore'
 import { useListKeyboardNav } from '@hooks/useListKeyboardNav'
+import dynamic from 'next/dynamic'
 import { TableOfContents, type TableOfContentsHandle } from './TableOfContents'
-import { LocalGraph } from '@components/graph/LocalGraph'
 import { NoteLink } from './NoteLink'
+
+// `LocalGraph` pulls in `react-force-graph-2d` and d3-force, ~200 KiB
+// gzipped. The graph tab is opt-in (mounted only when the user selects
+// it in the right panel), so deferring the import keeps that weight off
+// the note page's initial bundle. The `ssr: false` flag matches the
+// dynamic boundary already used inside `ForceGraph` itself.
+const LocalGraph = dynamic(
+  () => import('@components/graph/LocalGraph').then((m) => m.LocalGraph),
+  { ssr: false },
+)
 
 const ITEM_BASE = 'panel-item'
 const ITEM_ACTIVE = 'is-active'

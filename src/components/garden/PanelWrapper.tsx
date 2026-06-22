@@ -66,9 +66,9 @@ export function PanelWrapper({
   if (!mounted) {
     return (
       <div className="flex flex-1 items-stretch gap-2 px-2 pb-2">
-        <div id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
+        <main id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
           {children}
-        </div>
+        </main>
       </div>
     )
   }
@@ -88,9 +88,9 @@ export function PanelWrapper({
             </aside>
           </>
         )}
-        <div id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
+        <main id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
           {children}
-        </div>
+        </main>
         {rightOpen && (
           <>
             <div
@@ -126,9 +126,9 @@ export function PanelWrapper({
         </>
       )}
 
-      <div id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
+      <main id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
         {children}
-      </div>
+      </main>
 
       {rightOpen && (
         <>

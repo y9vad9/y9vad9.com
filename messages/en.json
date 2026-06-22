@@ -1,5 +1,7 @@
 {
   "nav": {
+    "home": "Home",
+    "notesGarden": "Notes Garden",
     "writing": "Writing",
     "work": "Work",
     "about": "About",

@@ -242,7 +242,11 @@ body {
   background: var(--primary-muted);
   border-radius: 0 0.5rem 0.5rem 0;
   font-style: italic;
-  color: var(--muted);
+  /* `--muted` on `--primary-muted` fails WCAG AA on every palette
+     (~4.0:1 on light, similar on the others). Use `--fg` so blockquote
+     body text — including bolded callout labels like "Definition" — is
+     legible; the italic + left border still set the visual register. */
+  color: var(--fg);
 }
 
 .prose blockquote > :last-child {

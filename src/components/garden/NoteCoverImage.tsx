@@ -16,11 +16,13 @@ import Image from 'next/image'
  * before paint. Without `coverImageSrcSet` (external URL or SVG) we
  * fall back to `next/image` with `priority`.
  *
- * `sizes`: the article body is `max-w-3xl` (768px) inside `px-6`. On
- * mobile the image is full viewport width minus that padding; above the
- * breakpoint it's capped at 768px. `(max-width: 768px) 100vw, 768px`
- * is the right hint for the browser to pick the smallest srcset entry
- * that still has the right pixel density.
+ * `sizes`: the article body is `max-w-3xl` (768px) inside `px-6` (24px
+ * each side), nested inside `PanelWrapper`'s `px-2` (8px each side). So
+ * the actual rendered width is 720px at the breakpoint and above, and
+ * `100vw - 80px` (panel padding + article padding) below it. The previous
+ * `(max-width: 768px) 100vw, 768px` over-claimed by 48px on every
+ * viewport, which made the browser pick a one-step-too-large srcset
+ * entry (e.g. 800w when 480w would do at 360 CSS px × 2 DPR).
  */
 export function NoteCoverImage({
   src,
@@ -42,7 +44,7 @@ export function NoteCoverImage({
         <img
           src={src}
           srcSet={srcSet}
-          sizes="(max-width: 768px) 100vw, 768px"
+          sizes="(min-width: 768px) 720px, calc(100vw - 80px)"
           alt={alt}
           loading="eager"
           // fetchPriority is camelCase in React 19+, lowercase as a DOM
@@ -63,7 +65,7 @@ export function NoteCoverImage({
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 768px) 100vw, 768px"
+        sizes="(min-width: 768px) 720px, calc(100vw - 80px)"
         priority
         className="object-cover"
       />
