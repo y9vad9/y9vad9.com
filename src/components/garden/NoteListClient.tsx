@@ -125,7 +125,9 @@ export function NoteListClient({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('searchPlaceholder')}
-          className="w-full pl-9 pr-12 py-2 text-sm bg-card border border-border rounded-xl focus:outline-none focus:border-primary transition-colors"
+          // 16px below `sm`: iOS Safari zooms the viewport on focus for
+          // anything smaller, and never zooms back out.
+          className="w-full pl-9 pr-12 py-2 text-base sm:text-sm bg-card border border-border rounded-xl focus:outline-none focus:border-primary transition-colors"
         />
         <kbd className="hidden md:inline-block absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-xs font-mono border border-border rounded text-muted">
           /

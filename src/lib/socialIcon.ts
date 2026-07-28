@@ -14,6 +14,8 @@ import type { IconType } from 'react-icons'
  *   - react-icons/si (Simple Icons) for the brand marks — tree-shaken
  *     per import, so only the brands users actually reference get into
  *     the bundle.
+ *   - react-icons/fa6 (Font Awesome) for the handful of brands Simple
+ *     Icons has since removed on trademark grounds (LinkedIn).
  *
  * Resolution order for each entry:
  *   1. If `iconName` is provided on the SocialLink, look it up in BOTH
@@ -33,7 +35,10 @@ type IconRef =
 const DEFAULTS: Record<string, IconRef> = {
   github: { lib: 'si', name: 'SiGithub' },
   gitlab: { lib: 'si', name: 'SiGitlab' },
-  linkedin: { lib: 'si', name: 'SiLinkedin' },
+  // Simple Icons dropped the LinkedIn mark, so `SiLinkedin` is gone from
+  // react-icons ≥ 5.6 and the lookup silently fell through to the
+  // first-letter fallback ("L"). Font Awesome still ships the glyph.
+  linkedin: { lib: 'fa', name: 'FaLinkedin' },
   twitter: { lib: 'si', name: 'SiX' },
   x: { lib: 'si', name: 'SiX' },
   instagram: { lib: 'si', name: 'SiInstagram' },

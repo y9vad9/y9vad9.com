@@ -27,6 +27,21 @@ describe('panelStore', () => {
     expect(usePanelStore.getState().rightOpen).toBe(false)
   })
 
+  it('closeLeft / closeRight close, and are no-ops when already closed', () => {
+    const { closeLeft, closeRight } = usePanelStore.getState()
+    closeLeft()
+    closeRight()
+    expect(usePanelStore.getState().leftOpen).toBe(false)
+    expect(usePanelStore.getState().rightOpen).toBe(false)
+
+    // Unlike toggle*, calling again must not reopen the panel — the mobile
+    // drawer dismisses on every note pick, including repeat picks.
+    closeLeft()
+    closeRight()
+    expect(usePanelStore.getState().leftOpen).toBe(false)
+    expect(usePanelStore.getState().rightOpen).toBe(false)
+  })
+
   it('setLeftWidth / setRightWidth clamp to [MIN, MAX]', () => {
     const { setLeftWidth, setRightWidth } = usePanelStore.getState()
     setLeftWidth(50)

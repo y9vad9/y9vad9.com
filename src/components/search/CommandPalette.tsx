@@ -250,7 +250,9 @@ export function CommandPalette() {
             onChange={(e) => { setQuery(e.target.value); setHighlightedIdx(0) }}
             onKeyDown={handleKeyDown}
             placeholder={t('placeholder')}
-            className="flex-1 bg-transparent text-sm focus:outline-none placeholder:text-muted"
+            // 16px below `sm`: iOS Safari zooms the viewport on focus for
+            // anything smaller, and never zooms back out.
+            className="flex-1 bg-transparent text-base sm:text-sm focus:outline-none placeholder:text-muted"
           />
           {query && (
             <button onClick={() => setQuery('')} className="text-muted hover:text-fg transition-colors">

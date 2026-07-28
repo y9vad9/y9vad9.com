@@ -188,7 +188,9 @@ function Group({
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder="Filter…"
-            className="w-full pl-8 pr-7 py-1.5 text-xs bg-card border border-border rounded-lg focus:outline-none focus:border-primary"
+            // 16px below `sm`: iOS Safari zooms the viewport on focus for
+            // anything smaller, and never zooms back out.
+            className="w-full pl-8 pr-7 py-1.5 text-base sm:text-xs bg-card border border-border rounded-lg focus:outline-none focus:border-primary"
           />
           {filter && (
             <button

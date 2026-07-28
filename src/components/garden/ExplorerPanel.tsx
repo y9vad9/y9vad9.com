@@ -8,6 +8,7 @@ import { usePanelStore } from '@store/panelStore'
 import { useTabStore } from '@store/tabStore'
 import { useNoteContextStore } from '@store/noteContextStore'
 import { useListKeyboardNav } from '@hooks/useListKeyboardNav'
+import { useIsMobile } from '@hooks/useMediaQuery'
 import { NoteLink } from './NoteLink'
 import { buildFileTree, type FileTreeEntry } from '@lib/notes/buildFileTree'
 
@@ -71,11 +72,21 @@ function findOccurrences(
 
 export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   const t = useTranslations('explorer')
-  const { explorerMode, explorerFocusNonce } = usePanelStore()
+  const { explorerMode, explorerFocusNonce, closeLeft } = usePanelStore()
   const params = useParams<{ locale: string }>()
   const pathname = usePathname()
   const router = useRouter()
+  const isMobile = useIsMobile()
   const currentSlug = pathname.split('/').pop() ?? ''
+
+  // On mobile the explorer is an overlay drawer sitting on top of the note
+  // it links to, so picking an entry has to dismiss it — otherwise the
+  // reader navigates to content that stays hidden behind the drawer and
+  // has to tap the scrim to see anything. On desktop the panel is part of
+  // the layout and must stay put.
+  const dismissDrawer = useCallback(() => {
+    if (isMobile) closeLeft()
+  }, [isMobile, closeLeft])
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<OccurrenceHit[]>([])
@@ -113,8 +124,9 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
         useTabStore.getState().replaceActive(target, ctx.currentSlug)
       }
       router.push(`/${params.locale}/notes/${entry.slug}`)
+      dismissDrawer()
     },
-    [router, params.locale],
+    [router, params.locale, dismissDrawer],
   )
 
   const filesNav = useListKeyboardNav({
@@ -163,6 +175,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
       router.push(
         `/${params.locale}/notes/${result.slug}?q=${encodeURIComponent(searchQuery)}&hit=${result.hit}`,
       )
+      dismissDrawer()
     },
   })
 
@@ -251,7 +264,11 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 onChange={(e) => setFileFilter(e.target.value)}
                 onKeyDown={(e) => forwardListKey(e, filesNav)}
                 placeholder={t('filterByName')}
-                className="w-full pl-8 pr-3 py-1.5 text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
+                // text-base (16px) below `sm` on purpose: iOS Safari
+                // auto-zooms the viewport whenever a focused input renders
+                // below 16px, and it never zooms back out. Desktop keeps
+                // the denser text-sm.
+                className="w-full pl-8 pr-3 py-1.5 text-base sm:text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -283,6 +300,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                   href={`/${params.locale}/notes/${entry.slug}`}
                   ref={refCallback}
                   onMouseEnter={() => filesNav.setIdx(idx)}
+                  onClick={dismissDrawer}
                   className={`panel-item ${isCurrent ? 'is-active' : ''} ${isKbd ? 'is-kbd' : ''}`}
                   role="option"
                   aria-selected={isCurrent}
@@ -311,7 +329,9 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => forwardListKey(e, searchNav)}
                 placeholder={t('searchPlaceholder')}
-                className="w-full pl-8 pr-3 py-1.5 text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
+                // See the filter input above: 16px on mobile keeps iOS
+                // Safari from zooming the viewport on focus.
+                className="w-full pl-8 pr-3 py-1.5 text-base sm:text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -330,6 +350,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 href={`/${params.locale}/notes/${entry.slug}?q=${encodeURIComponent(searchQuery)}&hit=${entry.hit}`}
                 ref={searchNav.setItemRef(idx)}
                 onMouseEnter={() => searchNav.setIdx(idx)}
+                onClick={dismissDrawer}
                 className={`panel-item-block ${idx === searchNav.idx ? 'is-active' : ''}`}
                 role="option"
               >

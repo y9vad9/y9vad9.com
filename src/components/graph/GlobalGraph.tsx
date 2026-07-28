@@ -46,7 +46,10 @@ export function GlobalGraph({ graph }: { graph: MentionGraph }) {
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
               placeholder={t('search')}
-              className="w-full pl-6 pr-12 py-1 text-xs bg-card-hover border border-border rounded focus:outline-none focus:border-primary"
+              // 16px below `sm`: iOS Safari zooms the viewport on focus for
+              // anything smaller, and never zooms back out. The two range
+              // sliders below are exempt — iOS doesn't zoom on those.
+              className="w-full pl-6 pr-12 py-1 text-base sm:text-xs bg-card-hover border border-border rounded focus:outline-none focus:border-primary"
             />
             {searchQ && (
               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted tabular-nums">

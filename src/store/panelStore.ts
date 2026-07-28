@@ -22,6 +22,10 @@ interface PanelStore {
   toolsFocusNonce: number
   toggleLeft: () => void
   toggleRight: () => void
+  /** Close the left panel. No-op when it's already closed. */
+  closeLeft: () => void
+  /** Close the right panel. No-op when it's already closed. */
+  closeRight: () => void
   setLeftWidth: (px: number) => void
   setRightWidth: (px: number) => void
   setExplorerMode: (mode: ExplorerMode) => void
@@ -55,6 +59,8 @@ export const usePanelStore = create<PanelStore>()(
       toolsFocusNonce: 0,
       toggleLeft: () => set((s) => ({ leftOpen: !s.leftOpen })),
       toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
+      closeLeft: () => set({ leftOpen: false }),
+      closeRight: () => set({ rightOpen: false }),
       setLeftWidth: (px) => set({ leftWidth: clamp(px) }),
       setRightWidth: (px) => set({ rightWidth: clamp(px) }),
       setExplorerMode: (explorerMode) => set({ explorerMode }),
