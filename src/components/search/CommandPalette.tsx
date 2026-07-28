@@ -226,7 +226,6 @@ export function CommandPalette() {
   }, {})
 
   let globalIdx = 0
-  itemRefs.current = []
 
   return (
     <div
@@ -277,7 +276,10 @@ export function CommandPalette() {
                 return (
                   <button
                     key={item.id}
-                    ref={(el) => { itemRefs.current[idx] = el }}
+                    ref={(el) => {
+                      itemRefs.current[idx] = el
+                      return () => { itemRefs.current[idx] = null }
+                    }}
                     onMouseEnter={() => setHighlightedIdx(idx)}
                     onClick={(e) => pickItem(item, { newTab: e.metaKey || e.ctrlKey })}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${

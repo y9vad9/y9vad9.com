@@ -1,19 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false)
+  const mql = useMemo(
+    () => (typeof window === 'undefined' ? null : window.matchMedia(query)),
+    [query],
+  )
 
-  useEffect(() => {
-    const mql = window.matchMedia(query)
-    setMatches(mql.matches)
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches)
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [query])
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!mql) return () => {}
+      mql.addEventListener('change', onChange)
+      return () => mql.removeEventListener('change', onChange)
+    },
+    [mql],
+  )
 
-  return matches
+  return useSyncExternalStore(
+    subscribe,
+    () => mql?.matches ?? false,
+    () => false,
+  )
 }
 
 export const useIsMobile = () => useMediaQuery('(max-width: 639px)')

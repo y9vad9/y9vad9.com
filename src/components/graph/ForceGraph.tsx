@@ -115,6 +115,7 @@ export function ForceGraph({
       border: read('--border', '#e5e7eb'),
       dim: read('--border', 'rgba(0,0,0,0.05)'),
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme])
 
   useEffect(() => {

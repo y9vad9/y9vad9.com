@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useThemeStore, THEMES, THEME_OPTIONS, type Theme } from '@store/themeStore'
+import { useThemeStore, THEMES, THEME_OPTIONS } from '@store/themeStore'
 import { useSearchStore } from '@store/searchStore'
 import { useSiteConfig } from '@lib/config/SiteConfigProvider'
 import { navigation } from '~/content/navigation'

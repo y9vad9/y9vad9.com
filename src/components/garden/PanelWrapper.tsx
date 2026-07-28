@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { usePanelStore } from '@store/panelStore'
 import { usePanelResize } from '@hooks/usePanelResize'
 import { useIsMobile } from '@hooks/useMediaQuery'
+import { useHydrated } from '@hooks/useHydrated'
 import { ExplorerPanel } from './ExplorerPanel'
 import { ToolsPanel } from './ToolsPanel'
 
@@ -43,8 +44,7 @@ export function PanelWrapper({
   // with both panels open. On a phone that briefly flashes both panels at
   // full width before the mobile branch swaps in. Render a body-only layout
   // until mount so neither path leaks SSR defaults.
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useHydrated()
 
   // Per-viewport first-visit default. The store ships with both panels
   // closed so mobile never sees them open — even momentarily — before

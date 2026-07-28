@@ -36,6 +36,9 @@ export interface NoteListItem {
 const SNIPPET_RADIUS = 60
 const MAX_HITS_PER_NOTE = 8
 
+// Stable identity so an empty query doesn't churn the keyboard-nav resetKey.
+const EMPTY_RESULTS: OccurrenceHit[] = []
+
 function findOccurrences(
   entry: SearchIndexEntry,
   needle: string,
@@ -90,7 +93,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   }, [isMobile, closeLeft])
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<OccurrenceHit[]>([])
+  const [fetchedResults, setFetchedResults] = useState<OccurrenceHit[]>([])
   const [searchIndex, setSearchIndex] = useState<SearchIndexEntry[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
   const filterInputRef = useRef<HTMLInputElement>(null)
@@ -159,6 +162,29 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
     currentItemRef.current?.scrollIntoView({ block: 'nearest' })
   }, [currentSlug, filteredEntries])
 
+  // Static mode resolves hits synchronously from the prefetched index, so it
+  // derives during render; only the server-mode fetch needs state.
+  const staticResults = useMemo(() => {
+    const q = searchQuery.trim()
+    if (!q || process.env.NEXT_PUBLIC_ONVU_MODE !== 'static') return EMPTY_RESULTS
+    const out: OccurrenceHit[] = []
+    for (const entry of searchIndex) {
+      for (const h of findOccurrences(entry, q)) {
+        out.push(h)
+        if (out.length >= 200) break
+      }
+      if (out.length >= 200) break
+    }
+    return out
+  }, [searchQuery, searchIndex])
+
+  const searchResults =
+    process.env.NEXT_PUBLIC_ONVU_MODE === 'static'
+      ? staticResults
+      : searchQuery.trim()
+        ? fetchedResults
+        : EMPTY_RESULTS
+
   const searchNav = useListKeyboardNav({
     count: searchResults.length,
     resetKey: searchResults,
@@ -213,37 +239,19 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   }, [explorerMode, searchQuery, searchIndex.length, params.locale])
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([])
-      return
-    }
-
-    if (process.env.NEXT_PUBLIC_ONVU_MODE === 'static') {
-      if (searchIndex.length === 0) return
-      const out: OccurrenceHit[] = []
-      const q = searchQuery.trim()
-      for (const entry of searchIndex) {
-        const hits = findOccurrences(entry, q)
-        for (const h of hits) {
-          out.push(h)
-          if (out.length >= 200) break
-        }
-        if (out.length >= 200) break
-      }
-      setSearchResults(out)
-      return
-    }
+    if (process.env.NEXT_PUBLIC_ONVU_MODE === 'static') return
+    if (!searchQuery.trim()) return
 
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&fulltext=1`)
-        if (res.ok) setSearchResults(await res.json())
+        if (res.ok) setFetchedResults(await res.json())
       } catch {
         // graceful degradation
       }
     }, 150)
     return () => clearTimeout(timer)
-  }, [searchQuery, searchIndex])
+  }, [searchQuery])
 
   // Forward arrow keys / Enter from the filter & search inputs to the list
   // below so the user can type a filter and immediately step through results

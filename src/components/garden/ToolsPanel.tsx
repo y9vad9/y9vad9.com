@@ -134,6 +134,7 @@ export function ToolsPanel() {
                   onMouseEnter={() => seriesNav.setIdx(idx)}
                   className={`${ITEM_BASE} ${note.slug === currentSlug ? ITEM_ACTIVE : ''} ${idx === seriesNav.idx ? 'is-kbd' : ''}`}
                   role="option"
+                  aria-selected={idx === seriesNav.idx}
                 >
                   <span className="text-xs text-muted w-5 text-right flex-shrink-0">
                     {note.order}
@@ -169,6 +170,7 @@ export function ToolsPanel() {
                         onMouseEnter={() => linksNav.setIdx(idx)}
                         className={`${ITEM_BASE} ${idx === linksNav.idx ? 'is-kbd' : ''}`}
                         role="option"
+                        aria-selected={idx === linksNav.idx}
                       >
                         <span className="truncate">{note.title}</span>
                       </NoteLink>
@@ -198,6 +200,7 @@ export function ToolsPanel() {
                         onMouseEnter={() => linksNav.setIdx(idx)}
                         className={`${ITEM_BASE} ${idx === linksNav.idx ? 'is-kbd' : ''}`}
                         role="option"
+                        aria-selected={idx === linksNav.idx}
                       >
                         <span className="truncate">{link.title}</span>
                         <ArrowUpRight size={10} className="flex-shrink-0" />
@@ -212,6 +215,7 @@ export function ToolsPanel() {
                         onMouseEnter={() => linksNav.setIdx(idx)}
                         className={`${ITEM_BASE} ${idx === linksNav.idx ? 'is-kbd' : ''}`}
                         role="option"
+                        aria-selected={idx === linksNav.idx}
                       >
                         <span className="truncate">{link.title}</span>
                       </NoteLink>

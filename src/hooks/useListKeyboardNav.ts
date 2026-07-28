@@ -49,15 +49,18 @@ export function useListKeyboardNav({
   const containerRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Array<HTMLElement | null>>([])
 
-  useEffect(() => {
-    setIdx(initialIdx)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resetKey])
+  // Deliberately an effect, not a render-phase adjustment. Callers may pass a
+  // freshly-built array as `resetKey` (`series?.notes ?? []`), so the "compare
+  // against previous value" patterns that would satisfy this rule see a new
+  // identity every render and spin until React's re-render limit. Resetting
+  // from an effect degrades to a redundant `setIdx` instead, which React drops.
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+  useEffect(() => setIdx(initialIdx), [resetKey])
 
-  // Clamp when count shrinks below current idx.
-  useEffect(() => {
-    if (idx >= count) setIdx(Math.max(0, count - 1))
-  }, [count, idx])
+  // Only assign when it actually differs — a render-phase setState that keeps
+  // the same value would re-enter this branch forever (count === 0, idx === 0).
+  const clampedIdx = count > 0 ? Math.min(idx, count - 1) : 0
+  if (clampedIdx !== idx) setIdx(clampedIdx)
 
   // Scroll the highlighted item into view when the index changes.
   useEffect(() => {

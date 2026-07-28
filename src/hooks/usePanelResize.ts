@@ -24,10 +24,11 @@ export function usePanelResize(side: 'left' | 'right') {
     [side, setLeftWidth, setRightWidth],
   )
 
+  // Registered with `{ once: true }` below, so it unregisters itself rather
+  // than referencing its own binding.
   const onUp = useCallback(() => {
     startState.current = null
     document.removeEventListener('pointermove', onMove)
-    document.removeEventListener('pointerup', onUp)
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
   }, [onMove])
@@ -40,7 +41,7 @@ export function usePanelResize(side: 'left' | 'right') {
         width: side === 'left' ? leftWidth : rightWidth,
       }
       document.addEventListener('pointermove', onMove)
-      document.addEventListener('pointerup', onUp)
+      document.addEventListener('pointerup', onUp, { once: true })
       document.body.style.cursor = 'col-resize'
       document.body.style.userSelect = 'none'
       e.preventDefault()

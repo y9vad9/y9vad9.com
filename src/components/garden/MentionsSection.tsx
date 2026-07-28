@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams } from 'next/navigation'
+import { useHydrated } from '@hooks/useHydrated'
 import { useTranslations } from 'next-intl'
 import {
   Hash,
@@ -16,6 +17,14 @@ import {
 import { NoteLink } from './NoteLink'
 
 type SortMode = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
+
+function readStored(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === 'true'
+  } catch {
+    return false
+  }
+}
 
 export interface MentionItem {
   slug: string
@@ -74,21 +83,17 @@ function Group({
   const [filterOpen, setFilterOpen] = useState(false)
   const [sort, setSort] = useState<SortMode>('date-desc')
   const [sortOpen, setSortOpen] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [expandedOverride, setExpandedOverride] = useState<boolean | null>(null)
   const filterInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey)
-      if (stored === 'true') setExpanded(true)
-    } catch {
-      // ignore
-    }
-  }, [storageKey])
+  // Read the stored preference only once hydration is done, so the first
+  // client render still matches the server HTML.
+  const hydrated = useHydrated()
+  const expanded = expandedOverride ?? (hydrated && readStored(storageKey))
 
   function toggleExpanded() {
     const next = !expanded
-    setExpanded(next)
+    setExpandedOverride(next)
     try {
       localStorage.setItem(storageKey, String(next))
     } catch {

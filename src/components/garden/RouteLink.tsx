@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { forwardRef } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useTabStore, type TabKind } from '@store/tabStore'
 import { getCurrentTabAnchor } from '@lib/notes/currentTabAnchor'
 
@@ -29,7 +29,6 @@ export const RouteLink = forwardRef<HTMLAnchorElement, RouteLinkProps>(
     ref,
   ) {
     const router = useRouter()
-    const params = useParams<{ locale: string }>()
     return (
       <Link
         {...rest}

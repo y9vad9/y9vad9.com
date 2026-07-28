@@ -6,7 +6,7 @@ import {
   listFeaturedNotes,
 } from '@core/ListNotes'
 import { MemoryNoteRepository } from '@adapters/memory/MemoryNoteRepository'
-import { sampleNotes, makeNote } from '../fixtures/notes'
+import { sampleNotes } from '../fixtures/notes'
 
 describe('listAllNotes', () => {
   it('returns all notes sorted by date descending', async () => {
