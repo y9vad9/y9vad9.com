@@ -15,6 +15,29 @@ import { ProjectItem } from '@components/portfolio/Projects'
 import { EducationItem } from '@components/portfolio/Education'
 import { loadSiteConfig } from '@lib/config/loadConfig'
 
+function ChipCard({ href, title, items }: { href: string; title: string; items: string[] }) {
+  return (
+    <a
+      href={href}
+      className="group rounded-xl border border-border hover:border-primary hover:bg-card transition-all duration-300 overflow-hidden"
+    >
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-semibold">{title}</div>
+          <ArrowRight className="w-4 h-4 text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+        </div>
+        <div className="space-y-2">
+          {items.map((label) => (
+            <div key={label} className="block">
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </a>
+  )
+}
+
 /**
  * Landing page body — this is the file you edit as a template consumer.
  *
@@ -47,29 +70,6 @@ export async function LandingBody({ locale }: { locale: string }) {
   const quickFacts = t.raw('chips.quickFacts') as string[]
   const techHighlights = t.raw('chips.techHighlights') as string[]
   const focusAreas = t.raw('chips.focusAreas') as string[]
-
-  function ChipCard({ href, title, items }: { href: string; title: string; items: string[] }) {
-    return (
-      <a
-        href={href}
-        className="group rounded-xl border border-border hover:border-primary hover:bg-card transition-all duration-300 overflow-hidden"
-      >
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="font-semibold">{title}</div>
-            <ArrowRight className="w-4 h-4 text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-          </div>
-          <div className="space-y-2">
-            {items.map((label) => (
-              <div key={label} className="block">
-                {label}
-              </div>
-            ))}
-          </div>
-        </div>
-      </a>
-    )
-  }
 
   return (
     <main className="pt-14">
