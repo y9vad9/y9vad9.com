@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useTabStore, tabHref } from '@store/tabStore'
 import { useRouter, useParams, usePathname } from 'next/navigation'
+import { slugFromPathname } from '@lib/url'
 
 export function TabBar() {
   const tabs = useTabStore((s) => s.tabs)
@@ -39,7 +40,7 @@ export function TabBar() {
     useTabStore.getState().closeTab(slug)
 
     // Navigate if we closed the currently-viewed tab
-    const currentlyOnSlug = pathname.split('/').pop()
+    const currentlyOnSlug = slugFromPathname(pathname)
     if (closingActive || currentlyOnSlug === slug) {
       const after = useTabStore.getState()
       if (after.tabs.length === 0) {

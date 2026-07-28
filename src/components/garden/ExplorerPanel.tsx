@@ -11,6 +11,7 @@ import { useListKeyboardNav } from '@hooks/useListKeyboardNav'
 import { useIsMobile } from '@hooks/useMediaQuery'
 import { NoteLink } from './NoteLink'
 import { buildFileTree, type FileTreeEntry } from '@lib/notes/buildFileTree'
+import { slugFromPathname } from '@lib/url'
 
 import type { SearchIndexEntry } from '@core/search/SearchIndex'
 
@@ -77,7 +78,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useIsMobile()
-  const currentSlug = pathname.split('/').pop() ?? ''
+  const currentSlug = slugFromPathname(pathname)
 
   // On mobile the explorer is an overlay drawer sitting on top of the note
   // it links to, so picking an entry has to dismiss it — otherwise the
@@ -133,6 +134,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
     count: filteredEntries.length,
     initialIdx: initialFilesIdx,
     resetKey: filteredEntries,
+    revealOnKeyboard: true,
     onSelect: (idx, e) => {
       const entry = filteredEntries[idx]
       if (entry) navigateToFile(entry, e.metaKey || e.ctrlKey)
@@ -160,6 +162,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   const searchNav = useListKeyboardNav({
     count: searchResults.length,
     resetKey: searchResults,
+    revealOnKeyboard: true,
     onSelect: (idx, e) => {
       const result = searchResults[idx]
       if (!result) return
@@ -263,6 +266,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 value={fileFilter}
                 onChange={(e) => setFileFilter(e.target.value)}
                 onKeyDown={(e) => forwardListKey(e, filesNav)}
+                onPointerDown={filesNav.hideHighlight}
                 placeholder={t('filterByName')}
                 // text-base (16px) below `sm` on purpose: iOS Safari
                 // auto-zooms the viewport whenever a focused input renders
@@ -281,7 +285,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
             )}
             {filteredEntries.map((entry, idx) => {
               const isCurrent = currentSlug === entry.slug
-              const isKbd = filesNav.idx === idx
+              const isKbd = filesNav.kbdActive && filesNav.idx === idx
               const setKbdRef = filesNav.setItemRef(idx)
               const refCallback = (el: HTMLAnchorElement | null) => {
                 // Keep the kbd hook's ref array in sync.
@@ -299,7 +303,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                   title={entry.displayTitle}
                   href={`/${params.locale}/notes/${entry.slug}`}
                   ref={refCallback}
-                  onMouseEnter={() => filesNav.setIdx(idx)}
+                  onMouseEnter={() => filesNav.pointTo(idx)}
                   onClick={dismissDrawer}
                   className={`panel-item ${isCurrent ? 'is-active' : ''} ${isKbd ? 'is-kbd' : ''}`}
                   role="option"
@@ -328,6 +332,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => forwardListKey(e, searchNav)}
+                onPointerDown={searchNav.hideHighlight}
                 placeholder={t('searchPlaceholder')}
                 // See the filter input above: 16px on mobile keeps iOS
                 // Safari from zooming the viewport on focus.
@@ -349,9 +354,9 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 title={entry.title}
                 href={`/${params.locale}/notes/${entry.slug}?q=${encodeURIComponent(searchQuery)}&hit=${entry.hit}`}
                 ref={searchNav.setItemRef(idx)}
-                onMouseEnter={() => searchNav.setIdx(idx)}
+                onMouseEnter={() => searchNav.pointTo(idx)}
                 onClick={dismissDrawer}
-                className={`panel-item-block ${idx === searchNav.idx ? 'is-active' : ''}`}
+                className={`panel-item-block ${searchNav.kbdActive && idx === searchNav.idx ? 'is-active' : ''}`}
                 role="option"
               >
                 <p className="text-sm font-medium truncate">{entry.title}</p>

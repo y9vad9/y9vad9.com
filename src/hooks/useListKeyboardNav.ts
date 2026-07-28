@@ -13,6 +13,19 @@ interface UseListKeyboardNavOptions {
   resetKey?: unknown
   /** Wrap around at the edges (default true). */
   wrap?: boolean
+  /**
+   * Keep the roving highlight hidden until the user actually navigates with
+   * the keyboard (default false — the highlight is always live).
+   *
+   * Lists you reach by *clicking* an input want this on. The explorer's
+   * filter and search boxes sit inside the same `.kbd-section` as their
+   * list, so merely focusing the box made row 0 light up — which reads as
+   * "this row is selected" to someone driving with a mouse, who never asked
+   * for a selection and is about to click a different row. With this on the
+   * highlight appears on the first arrow/Home/End press and disappears again
+   * as soon as a pointer is used.
+   */
+  revealOnKeyboard?: boolean
 }
 
 /**
@@ -27,8 +40,12 @@ export function useListKeyboardNav({
   initialIdx = 0,
   resetKey,
   wrap = true,
+  revealOnKeyboard = false,
 }: UseListKeyboardNavOptions) {
   const [idx, setIdx] = useState(initialIdx)
+  // When the caller didn't opt in, the highlight is live from the start —
+  // every existing consumer keeps its current behaviour.
+  const [kbdActive, setKbdActive] = useState(!revealOnKeyboard)
   const containerRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Array<HTMLElement | null>>([])
 
@@ -50,6 +67,23 @@ export function useListKeyboardNav({
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (count === 0) return
+      // First keyboard press while the highlight is hidden only reveals the
+      // cursor where it already sits. Moving as well would make ArrowDown
+      // silently skip row 0 — the row the user is most likely reaching for
+      // after typing a query.
+      if (!kbdActive) {
+        const isMove =
+          e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End'
+        const isActivate = e.key === 'Enter' || e.key === ' '
+        if (!isMove && !isActivate) return
+        setKbdActive(true)
+        if (isMove) {
+          e.preventDefault()
+          return
+        }
+        // Enter / Space still activate straight away, so "type a query, hit
+        // Enter" opens the top hit without an extra keypress.
+      }
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         setIdx((i) => {
@@ -75,12 +109,32 @@ export function useListKeyboardNav({
         onSelect(idx, e)
       }
     },
-    [count, idx, onSelect, wrap],
+    [count, idx, onSelect, wrap, kbdActive],
   )
 
   const focus = useCallback(() => {
     containerRef.current?.focus()
   }, [])
+
+  /**
+   * Move the cursor from a pointer interaction (row hover). Also retires the
+   * keyboard highlight: the mouse is driving now, and `:hover` already shows
+   * where the pointer is — two highlights at once just looks like two
+   * selections.
+   */
+  const pointTo = useCallback(
+    (index: number) => {
+      setIdx(index)
+      if (revealOnKeyboard) setKbdActive(false)
+    },
+    [revealOnKeyboard],
+  )
+
+  /** Retire the keyboard highlight without moving the cursor (pointer down
+   *  on the search/filter input that feeds this list). */
+  const hideHighlight = useCallback(() => {
+    if (revealOnKeyboard) setKbdActive(false)
+  }, [revealOnKeyboard])
 
   const setItemRef = useCallback(
     (index: number) => (el: HTMLElement | null) => {
@@ -92,6 +146,15 @@ export function useListKeyboardNav({
   return {
     idx,
     setIdx,
+    /**
+     * Whether the roving highlight should be painted. Always true unless the
+     * caller passed `revealOnKeyboard`. Gate the highlight class on this —
+     * `idx` alone is always a valid index and says nothing about whether the
+     * user wants to see a cursor.
+     */
+    kbdActive,
+    pointTo,
+    hideHighlight,
     onKeyDown,
     containerRef,
     setItemRef,

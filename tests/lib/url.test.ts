@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isExternalHref } from '@lib/url'
+import { isExternalHref, slugFromPathname } from '@lib/url'
 
 describe('isExternalHref', () => {
   it('treats http(s) and protocol-relative as external', () => {
@@ -26,5 +26,27 @@ describe('isExternalHref', () => {
 
   it('returns false for empty / falsy', () => {
     expect(isExternalHref('')).toBe(false)
+  })
+})
+
+describe('slugFromPathname', () => {
+  it('reads the last segment without a trailing slash', () => {
+    expect(slugFromPathname('/en/notes/foo')).toBe('foo')
+  })
+
+  // The regression: `trailingSlash: true` in the static export made the
+  // naive `split('/').pop()` return '' for every note page in production.
+  it('reads the same slug when a trailing slash is present', () => {
+    expect(slugFromPathname('/en/notes/foo/')).toBe('foo')
+  })
+
+  it('ignores query strings and hashes', () => {
+    expect(slugFromPathname('/en/notes/foo/?q=bar&hit=2')).toBe('foo')
+    expect(slugFromPathname('/en/notes/foo#section')).toBe('foo')
+  })
+
+  it('returns empty for root-ish paths', () => {
+    expect(slugFromPathname('/')).toBe('')
+    expect(slugFromPathname('')).toBe('')
   })
 })

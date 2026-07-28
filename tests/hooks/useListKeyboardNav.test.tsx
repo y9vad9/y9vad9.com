@@ -82,4 +82,69 @@ describe('useListKeyboardNav', () => {
     act(() => result.current.onKeyDown(key('Enter')))
     expect(onSelect).not.toHaveBeenCalled()
   })
+
+  it('highlight is live from the start by default', () => {
+    const { result } = renderHook(() =>
+      useListKeyboardNav({ count: 3, onSelect: () => {} }),
+    )
+    expect(result.current.kbdActive).toBe(true)
+    // Default consumers must keep moving on the very first press.
+    act(() => result.current.onKeyDown(key('ArrowDown')))
+    expect(result.current.idx).toBe(1)
+  })
+
+  describe('revealOnKeyboard', () => {
+    const opts = { count: 3, onSelect: () => {}, revealOnKeyboard: true }
+
+    it('hides the highlight until a key is pressed', () => {
+      const { result } = renderHook(() => useListKeyboardNav(opts))
+      expect(result.current.kbdActive).toBe(false)
+    })
+
+    it('first arrow reveals the cursor without moving it', () => {
+      const { result } = renderHook(() => useListKeyboardNav(opts))
+      act(() => result.current.onKeyDown(key('ArrowDown')))
+      expect(result.current.kbdActive).toBe(true)
+      expect(result.current.idx).toBe(0) // revealed in place, row 0 not skipped
+      act(() => result.current.onKeyDown(key('ArrowDown')))
+      expect(result.current.idx).toBe(1) // subsequent presses move
+    })
+
+    it('Enter selects immediately without needing a reveal press', () => {
+      const onSelect = vi.fn()
+      const { result } = renderHook(() =>
+        useListKeyboardNav({ ...opts, onSelect }),
+      )
+      act(() => result.current.onKeyDown(key('Enter')))
+      expect(onSelect).toHaveBeenCalledWith(0, expect.anything())
+    })
+
+    it('pointTo moves the cursor and retires the highlight', () => {
+      const { result } = renderHook(() => useListKeyboardNav(opts))
+      act(() => result.current.onKeyDown(key('ArrowDown')))
+      expect(result.current.kbdActive).toBe(true)
+      act(() => result.current.pointTo(2))
+      expect(result.current.idx).toBe(2)
+      expect(result.current.kbdActive).toBe(false)
+    })
+
+    it('hideHighlight retires the highlight without moving the cursor', () => {
+      const { result } = renderHook(() => useListKeyboardNav(opts))
+      act(() => result.current.onKeyDown(key('ArrowDown')))
+      act(() => result.current.onKeyDown(key('ArrowDown')))
+      expect(result.current.idx).toBe(1)
+      act(() => result.current.hideHighlight())
+      expect(result.current.kbdActive).toBe(false)
+      expect(result.current.idx).toBe(1)
+    })
+
+    it('pointTo does not retire the highlight when not opted in', () => {
+      const { result } = renderHook(() =>
+        useListKeyboardNav({ count: 3, onSelect: () => {} }),
+      )
+      act(() => result.current.pointTo(2))
+      expect(result.current.idx).toBe(2)
+      expect(result.current.kbdActive).toBe(true)
+    })
+  })
 })

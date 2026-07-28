@@ -149,6 +149,23 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Tailwind 3's preflight gave buttons `cursor: pointer`; Tailwind 4 dropped
+   that rule to match the browser default (`cursor: default`). Every button in
+   the app — header toggles, panel mode tabs, tab-bar close buttons — then
+   read as non-interactive on hover while plain links still showed a hand.
+   Restore the affordance in one place rather than sprinkling `cursor-pointer`
+   on each button. Disabled controls keep their own cursor below. */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
 body {
   background-color: var(--bg);
   color: var(--fg);
@@ -632,8 +649,18 @@ body {
 .kbd-section:focus-within .panel-item-block.is-kbd {
   outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
   outline-offset: -2px;
+  /* A 2px outline alone was too easy to lose against the panel background,
+     especially on the current note (which already carries its own tint).
+     Back it with a fill so the row you're about to open reads at a glance. */
+  background-color: var(--card-hover);
 }
-.kbd-section:focus-within .panel-item-block.is-active {
+
+/* The selected search result must stay visible even when focus has left the
+   panel — you tab away, scroll, or click into the article and still need to
+   see which hit you're on. Previously this fill was gated behind
+   `:focus-within`, so the selection vanished entirely the moment focus moved
+   and the search list looked like nothing was selected at all. */
+.panel-item-block.is-active {
   background-color: var(--card-hover);
   transform: translateX(2px);
 }
