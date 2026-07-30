@@ -28,6 +28,13 @@ import { useTabStore } from '@store/tabStore'
  *    scroll on every content growth until either the target is reachable,
  *    the deadline elapses, or the user takes over.
  */
+/**
+ * Which note this hook last ran for, per page load. Module scope on purpose:
+ * the page component remounts on every slug change, so a ref would reset with
+ * it and every mount would look like the first one.
+ */
+let previousSlug: string | null = null
+
 export function useTabScrollRestore(slug: string) {
   const lastScrollRef = useRef(0)
   const restoringRef = useRef(false)
@@ -89,13 +96,25 @@ export function useTabScrollRestore(slug: string) {
     }
     window.addEventListener('hashchange', onHashChange)
 
+    const arrivedFrom = previousSlug
+    previousSlug = slug
+
     const hash = window.location.hash ? window.location.hash.slice(1) : ''
     if (hash) {
       scrollToHash(hash)
     } else {
       const stored = useTabStore.getState().getScrollPosition(slug)
       lastScrollRef.current = stored
-      scroller.scrollTop = 0
+      // Only rewind when arriving from a *different* note, where the shared
+      // scroller still holds the previous article's offset. On the first mount
+      // of a page load there is nothing to rewind: the tab store is in-memory
+      // so `stored` is always 0, while the server-rendered article is already
+      // scrollable from first paint. Resetting there would throw away whatever
+      // the reader scrolled during the seconds before hydration — which on a
+      // phone reads as "the page ignores me for the first few seconds".
+      // Comparing slugs (rather than a boolean) also keeps StrictMode's
+      // double-invoked effect from counting as a navigation.
+      if (arrivedFrom !== null && arrivedFrom !== slug) scroller.scrollTop = 0
       if (stored > 0) {
         restoringRef.current = true
         const apply = () => {

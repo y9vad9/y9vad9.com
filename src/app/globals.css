@@ -47,6 +47,7 @@
 /* ── Theme: Light (default) ─────────────────────────────────────────── */
 :root,
 .theme-light {
+  color-scheme: light;
   --bg: #f7f7f9;
   --shell-bg: #fcfcfd;
   --fg: #1a1a1a;
@@ -62,6 +63,7 @@
 
 /* ── Theme: Dark ─────────────────────────────────────────────────────── */
 .theme-dark {
+  color-scheme: dark;
   --bg: #0e0e10;
   --shell-bg: #161618;
   --fg: #f5f5f5;
@@ -77,6 +79,7 @@
 
 /* ── Theme: Warm ─────────────────────────────────────────────────────── */
 .theme-warm {
+  color-scheme: dark;
   --bg: #2a221a;
   --shell-bg: #322a20;
   --fg: #f5e6d3;
@@ -92,6 +95,7 @@
 
 /* ── Theme: Forest ───────────────────────────────────────────────────── */
 .theme-forest {
+  color-scheme: dark;
   --bg: #091610;
   --shell-bg: #102016;
   --fg: #d1fae5;
@@ -108,6 +112,7 @@
 /* ── Theme: System (follows OS preference) ───────────────────────────── */
 @media (prefers-color-scheme: light) {
   .theme-system {
+    color-scheme: light;
     --bg: #f7f7f9;
     --shell-bg: #fcfcfd;
     --fg: #1a1a1a;
@@ -124,6 +129,7 @@
 
 @media (prefers-color-scheme: dark) {
   .theme-system {
+    color-scheme: dark;
     --bg: #0e0e10;
     --shell-bg: #161618;
     --fg: #f5f5f5;
@@ -136,6 +142,21 @@
     --code-bg: #18181b;
     --selection: #4c1d95;
   }
+}
+
+/* ── Graph canvas ────────────────────────────────────────────────────── */
+/* The force graph runs its own d3-zoom on the canvas, so this is the one
+   surface where pinching should scale the *content* rather than the page.
+   d3 cancels the gesture from a non-passive `touchmove`, but with the default
+   `touch-action: auto` the browser can hand the pinch to the compositor first,
+   and once that happens `preventDefault()` is ignored and the graph stops
+   responding. `none` hands d3 the raw touch stream.
+
+   Scoped to the full-page graph on purpose: `LocalGraph` sits inside the
+   scrollable tools panel, where `touch-action: none` would swallow one-finger
+   scrolling whenever the finger started on the mini-map. */
+.graph-canvas-zoom canvas {
+  touch-action: none;
 }
 
 /* ── Base ────────────────────────────────────────────────────────────── */

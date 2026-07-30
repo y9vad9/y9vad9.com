@@ -18,7 +18,9 @@ interface NoteListItem {
 // Header is h-11 (2.75rem). Both side panels AND the center body are sticky
 // so the user always sees the rounded body frame in full — content scrolls
 // INSIDE the body, not the page.
-const STICKY_FRAME = 'sticky top-11 self-start h-[calc(100vh-2.75rem-0.5rem)]'
+// dvh, not vh: on iOS `100vh` is the toolbar-hidden height, so a vh-sized
+// shell inside `overflow-hidden` puts its own bottom out of reach.
+const STICKY_FRAME = 'sticky top-11 self-start h-[calc(100dvh-2.75rem-0.5rem)]'
 
 // The center body reads as a card: bordered + rounded on all sides, set
 // against the panel/header background. It owns ALL borders in the layout —

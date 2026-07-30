@@ -35,7 +35,7 @@ export default async function NotesLayout({
     <ThemeProvider>
       <GardenShortcuts />
       <div id="reading-progress" aria-hidden="true" />
-      <div className="flex flex-col h-screen overflow-hidden bg-shell">
+      <div className="flex flex-col h-dvh overflow-hidden bg-shell">
         <NotesHeader />
         <PanelWrapper noteList={noteList}>
           {children}

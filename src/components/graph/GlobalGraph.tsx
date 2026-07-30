@@ -28,7 +28,7 @@ export function GlobalGraph({ graph }: { graph: MentionGraph }) {
   const matchCount = highlightSlugs.size
 
   return (
-    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'relative w-full h-[calc(100vh-2.75rem)]'} bg-bg`}>
+    <div className={`graph-canvas-zoom ${isFullscreen ? 'fixed inset-0 z-50' : 'relative w-full h-[calc(100dvh-2.75rem)]'} bg-bg`}>
       <ForceGraph
         graph={graph}
         highlightSlugs={highlightSlugs}

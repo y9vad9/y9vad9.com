@@ -83,6 +83,7 @@ export default defineConfig({
             'tests/core/**/*.test.ts',
             'tests/adapters/**/*.test.ts',
             'tests/lib/**/*.test.ts',
+            '!tests/lib/**/*.dom.test.ts',
             'tests/store/**/*.test.ts',
             'tests/app/**/*.test.ts',
             'tests/content/**/*.test.ts',
@@ -102,6 +103,10 @@ export default defineConfig({
           include: [
             'tests/hooks/**/*.test.{ts,tsx}',
             'tests/components/**/*.test.{ts,tsx}',
+            // Most lib tests are pure and belong in the node pool; the few
+            // that touch `document` opt into jsdom with a `.dom.test.ts`
+            // suffix (excluded from the node project below).
+            'tests/lib/**/*.dom.test.{ts,tsx}',
           ],
         },
       },

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTabScrollRestore } from '@hooks/useTabScrollRestore'
 import { useTabStore } from '@store/tabStore'
@@ -83,5 +83,43 @@ describe('useTabScrollRestore', () => {
     const { unmount } = renderHook(() => useTabScrollRestore('a'))
     unmount()
     expect(useTabStore.getState().getScrollPosition('a')).toBe(0)
+  })
+})
+
+describe('useTabScrollRestore — rewind only on navigation', () => {
+  // The hook tracks the previous slug in module scope, so each case needs a
+  // freshly-imported copy to look like a first page load.
+  async function freshHook() {
+    vi.resetModules()
+    const mod = await import('@hooks/useTabScrollRestore')
+    return mod.useTabScrollRestore
+  }
+
+  it('leaves a pre-hydration scroll position alone on the first mount', async () => {
+    const hook = await freshHook()
+    const scroller = document.getElementById('notes-scroll')!
+    // The server-rendered article is scrollable before any JS runs, so the
+    // reader may already be part-way down when hydration finally lands.
+    scroller.scrollTop = 420
+    renderHook(() => hook('a'))
+    expect(scroller.scrollTop).toBe(420)
+  })
+
+  it('rewinds to the top when arriving from a different note', async () => {
+    const hook = await freshHook()
+    const scroller = document.getElementById('notes-scroll')!
+    renderHook(() => hook('a')).unmount()
+    scroller.scrollTop = 420 // offset left behind by the previous article
+    renderHook(() => hook('b'))
+    expect(scroller.scrollTop).toBe(0)
+  })
+
+  it('does not rewind when the same note mounts again', async () => {
+    const hook = await freshHook()
+    const scroller = document.getElementById('notes-scroll')!
+    renderHook(() => hook('a')).unmount()
+    scroller.scrollTop = 420
+    renderHook(() => hook('a'))
+    expect(scroller.scrollTop).toBe(420)
   })
 })

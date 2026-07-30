@@ -39,6 +39,14 @@ export interface ThemeOption {
   label?: string
   /** PascalCase lucide-react icon name. Defaults to `Palette`. */
   icon?: string
+  /**
+   * Whether the palette sits on a dark canvas. Drives `color-scheme`, which
+   * decides what the browser paints before the stylesheet loads (and how it
+   * styles scrollbars and form controls). Omit to follow the OS preference —
+   * correct for a `system` theme, but set it explicitly on a custom one or a
+   * cold load flashes the wrong colour.
+   */
+  dark?: boolean
 }
 
 export interface WorkEntry {
