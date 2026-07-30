@@ -99,6 +99,44 @@ export const config: SiteConfig = {
     siteUrl: 'https://y9vad9.com',
     noindexPaths: ['/notes/graph'],
   },
+
+  agents: {
+    markdown: {
+      enabled: true,
+      resolveWikilinks: true,
+      include: {
+        frontmatter: true,
+        series: true,
+        backlinks: true,
+        outgoing: true,
+        relatedNotes: true,
+      },
+    },
+    llmsTxt: { enabled: true, full: true },
+    discovery: {
+      linkAlternate: true,
+      jsonLdEncoding: true,
+      // Cloudflare Pages honours `_headers` (see .github/workflows/deploy.yml),
+      // so mirrors get served as text/markdown inline rather than prompting a
+      // download. Our rules are fenced and merged into the existing file —
+      // the CSP and HSTS policy in `public/_headers` is left alone.
+      emitHeadersFile: true,
+    },
+    schema: {
+      series: true,
+      mentions: true,
+      definedTerms: true,
+      citations: true,
+      knowsAbout: true,
+    },
+    // Everything allowed, stated explicitly. This matches what robots.txt
+    // already did with a blanket `Allow: /` — the value is that the intent is
+    // now on the record. Flip `training` to 'block' to keep the writing out
+    // of model training while staying citable in AI answers; that switch
+    // costs nothing in Google Search, since Google-Extended is a robots.txt
+    // token rather than a crawler.
+    crawlers: { training: 'allow', aiSearch: 'allow', userTriggered: 'allow' },
+  },
   // comments: {
   //   provider: 'giscus',
   //   repo: 'yourusername/your-repo',
