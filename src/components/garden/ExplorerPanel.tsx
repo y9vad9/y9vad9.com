@@ -10,6 +10,7 @@ import { useNoteContextStore } from '@store/noteContextStore'
 import { useListKeyboardNav } from '@hooks/useListKeyboardNav'
 import { useIsMobile } from '@hooks/useMediaQuery'
 import { NoteLink } from './NoteLink'
+import { PanelModeTabs, EXPLORER_MODES } from './PanelModeTabs'
 import { buildFileTree, type FileTreeEntry } from '@lib/notes/buildFileTree'
 import { slugFromPathname } from '@lib/url'
 
@@ -76,7 +77,7 @@ function findOccurrences(
 
 export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   const t = useTranslations('explorer')
-  const { explorerMode, explorerFocusNonce, closeLeft } = usePanelStore()
+  const { explorerMode, explorerFocusNonce, closeLeft, setExplorerMode } = usePanelStore()
   const params = useParams<{ locale: string }>()
   const pathname = usePathname()
   const router = useRouter()
@@ -264,6 +265,15 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
 
   return (
     <div className="kbd-section flex flex-col h-full overflow-hidden">
+      {isMobile && (
+        <PanelModeTabs
+          modes={EXPLORER_MODES}
+          active={explorerMode}
+          onSelect={setExplorerMode}
+          label={t('sections')}
+          labelFor={(key) => t(key as 'files' | 'search')}
+        />
+      )}
       {explorerMode === 'files' ? (
         <div className="flex flex-col h-full">
           <div className="p-2 flex-shrink-0">
@@ -284,9 +294,14 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
               />
             </div>
           </div>
+          {/* overflow-x-hidden is load-bearing, not decorative: CSS promotes
+              a `visible` overflow-x to `auto` as soon as overflow-y is not
+              `visible`, so this list picked up a horizontal scroll nobody
+              asked for. On a phone a vertical swipe drifts sideways easily
+              and the rows slid out from under the finger. */}
           <div
             {...filesNav.containerProps}
-            className="flex-1 overflow-y-auto pb-2 focus:outline-none"
+            className="flex-1 overflow-y-auto overflow-x-hidden pb-2 focus:outline-none"
           >
             {filteredEntries.length === 0 && (
               <p className="px-3 py-4 text-xs text-muted italic text-center">{t('noResults')}</p>
@@ -350,7 +365,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
           </div>
           <div
             {...searchNav.containerProps}
-            className="flex-1 overflow-y-auto focus:outline-none"
+            className="flex-1 overflow-y-auto overflow-x-hidden focus:outline-none"
           >
             {searchResults.length === 0 && searchQuery && (
               <p className="px-3 py-4 text-xs text-muted italic text-center">{t('noResults')}</p>

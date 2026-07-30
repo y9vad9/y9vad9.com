@@ -15,7 +15,9 @@
   },
   "header": {
     "searchPlaceholder": "Search…",
-    "searchHint": "Press / to search"
+    "searchHint": "Press / to search",
+    "language": "Language",
+    "theme": "Theme"
   },
   "theme": {
     "light": "Light",
@@ -108,7 +110,8 @@
     "search": "Search",
     "searchPlaceholder": "Search in notes…",
     "filterByName": "Filter by name…",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "sections": "Explorer sections"
   },
   "panel": {
     "toc": "TOC",
@@ -119,7 +122,8 @@
     "noToc": "No headings on this page.",
     "noLinks": "No links to show.",
     "noGraph": "No graph available here.",
-    "openGlobalGraph": "Open Global Graph"
+    "openGlobalGraph": "Open Global Graph",
+    "sections": "Panel sections"
   },
   "comments": {
     "title": "Comments",

@@ -164,6 +164,15 @@
   box-sizing: border-box;
 }
 
+/* `manipulation` drops double-tap-to-zoom (and its 300ms click delay) while
+   leaving panning and scrolling alone. Ancestors constrain descendants, so
+   this covers the whole document — the graph canvas declares the stricter
+   `none` above and keeps its own pinch handling. Pinch-zoom itself is
+   cancelled in JS by `ZoomLock`, since iOS ignores the viewport meta. */
+body {
+  touch-action: manipulation;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

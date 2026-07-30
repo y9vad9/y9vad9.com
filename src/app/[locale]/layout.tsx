@@ -14,6 +14,8 @@ import {
 } from '@lib/seo/jsonLd'
 import { loadSiteConfig } from '@lib/config/loadConfig'
 import { SiteConfigProvider } from '@lib/config/SiteConfigProvider'
+import { createRepository } from '@adapters/createRepositories'
+import { listAllNotes } from '@core/ListNotes'
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
@@ -41,16 +43,22 @@ export default async function LocaleLayout({
   if (!routing.locales.includes(locale as Locale)) notFound()
   setRequestLocale(locale)
 
-  const [messages, siteConfig] = await Promise.all([
+  const [messages, siteConfig, notes] = await Promise.all([
     getMessages(),
     loadSiteConfig(locale),
+    listAllNotes(createRepository(locale)),
   ])
+
+  // `knowsAbout` is derived rather than configured: the tags an author
+  // actually writes under are a truer expertise claim than a hand-kept list,
+  // and they can't drift out of date. Off unless `agents.schema.knowsAbout`.
+  const topics = Array.from(new Set(notes.flatMap((n) => n.tags))).sort()
 
   return (
     <NextIntlClientProvider messages={messages}>
       <SiteConfigProvider value={siteConfig}>
         <ClientProviders>
-          <JsonLd data={[websiteJsonLd(locale), organizationJsonLd() ?? personJsonLd()]} />
+          <JsonLd data={[websiteJsonLd(locale), organizationJsonLd() ?? personJsonLd(topics)]} />
           {children}
         </ClientProviders>
       </SiteConfigProvider>

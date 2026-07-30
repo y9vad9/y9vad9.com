@@ -15,7 +15,9 @@
   },
   "header": {
     "searchPlaceholder": "Пошук…",
-    "searchHint": "Натисніть / для пошуку"
+    "searchHint": "Натисніть / для пошуку",
+    "language": "Мова",
+    "theme": "Тема"
   },
   "theme": {
     "light": "Світла",
@@ -108,7 +110,8 @@
     "search": "Пошук",
     "searchPlaceholder": "Пошук у нотатках…",
     "filterByName": "Фільтр за назвою…",
-    "noResults": "Результатів не знайдено"
+    "noResults": "Результатів не знайдено",
+    "sections": "Розділи провідника"
   },
   "panel": {
     "toc": "Зміст",
@@ -119,7 +122,8 @@
     "noToc": "На цій сторінці немає заголовків.",
     "noLinks": "Немає посилань для показу.",
     "noGraph": "Тут немає графа.",
-    "openGlobalGraph": "Відкрити повний граф"
+    "openGlobalGraph": "Відкрити повний граф",
+    "sections": "Розділи панелі"
   },
   "comments": {
     "title": "Коментарі",

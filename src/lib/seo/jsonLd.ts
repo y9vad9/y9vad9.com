@@ -2,8 +2,15 @@ import { config as siteConfig } from '~/site.config'
 import { routing } from '@i18n/routing'
 import type { Note } from '@core/Note'
 import { absoluteUrl, localizedPath, noteUrl, siteUrl } from './url'
+import { resolveAgentsConfig, markdownMirrorPath } from '@lib/agents/config'
 
 type JsonLd = Record<string, unknown>
+
+/** Minimal note reference for the relationship fields below. */
+export interface NoteRef {
+  slug: string
+  title: string
+}
 
 export function websiteJsonLd(locale: string): JsonLd {
   return {
@@ -24,7 +31,8 @@ export function websiteJsonLd(locale: string): JsonLd {
   }
 }
 
-export function personJsonLd(): JsonLd {
+export function personJsonLd(topics: string[] = []): JsonLd {
+  const cfg = resolveAgentsConfig()
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -33,6 +41,9 @@ export function personJsonLd(): JsonLd {
     image: absoluteUrl(siteConfig.owner.profileImage),
     description: siteConfig.owner.bio,
     sameAs: siteConfig.owner.socials.map((s) => s.url),
+    // The other half of the expertise claim `sameAs` starts: who the author
+    // is, and what they actually write about. Aggregated from note tags.
+    ...(cfg.schema.knowsAbout && topics.length > 0 ? { knowsAbout: topics } : {}),
   }
 }
 
@@ -67,7 +78,104 @@ export function breadcrumbsJsonLd(items: BreadcrumbItem[]): JsonLd {
   }
 }
 
-export function articleJsonLd(note: Note, locale: string): JsonLd {
+/**
+ * Extra `Article` fields describing relationships onvu already computes but
+ * never expressed machine-readably. Each is opt-in via `agents.schema`.
+ *
+ * Worth being precise about the payoff: Google says structured data "isn't
+ * required for generative AI search" and there's "no special schema.org
+ * markup you need to add". So this is not a citation lever. It's here
+ * because the data is already on hand, the statements are simply true, and
+ * anything that *does* parse JSON-LD (Bing, RAG pipelines, an agent reading
+ * the page) gets the site's structure for free instead of inferring it.
+ */
+function articleRelationships(
+  note: Note,
+  locale: string,
+  ctx: { seriesNotes?: NoteRef[]; mentions?: NoteRef[] },
+): JsonLd {
+  const cfg = resolveAgentsConfig()
+  const out: JsonLd = {}
+
+  if (cfg.schema.series && note.series) {
+    out.isPartOf = {
+      '@type': 'CreativeWorkSeries',
+      name: note.series,
+      ...(ctx.seriesNotes && ctx.seriesNotes.length > 0
+        ? {
+            hasPart: ctx.seriesNotes.map((n) => ({
+              '@type': 'Article',
+              '@id': noteUrl(locale, n.slug),
+              name: n.title,
+            })),
+          }
+        : {}),
+    }
+    if (note.order !== null) out.position = note.order
+  }
+
+  if (cfg.schema.mentions && ctx.mentions && ctx.mentions.length > 0) {
+    // Straight from the wiki-link graph — the defining structure of a
+    // digital garden, and otherwise invisible to anything but a human reader.
+    out.mentions = ctx.mentions.map((n) => ({
+      '@type': 'Article',
+      '@id': noteUrl(locale, n.slug),
+      name: n.title,
+    }))
+  }
+
+  if (cfg.schema.citations) {
+    const external = note.outgoingLinks.filter((l) => l.kind === 'external')
+    if (external.length > 0) {
+      out.citation = external.map((l) => ({
+        '@type': 'CreativeWork',
+        url: l.kind === 'external' ? l.href : undefined,
+      }))
+    }
+  }
+
+  if (cfg.discovery.jsonLdEncoding && !note.noindex) {
+    // schema.org defines `encoding` as "a media object that encodes this
+    // CreativeWork" — exactly what a markdown mirror is.
+    out.encoding = {
+      '@type': 'MediaObject',
+      encodingFormat: 'text/markdown',
+      contentUrl: absoluteUrl(markdownMirrorPath(locale, note.slug)),
+    }
+  }
+
+  return out
+}
+
+/**
+ * A note as a `DefinedTerm` in the site's glossary. A garden note that
+ * explains a concept *is* a defined term, and the garden as a whole is the
+ * term set — so the mapping costs nothing beyond saying it out loud.
+ */
+export function definedTermJsonLd(note: Note, locale: string): JsonLd | null {
+  if (!resolveAgentsConfig().schema.definedTerms) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTerm',
+    '@id': `${noteUrl(locale, note.slug)}#term`,
+    name: note.title,
+    description: note.description ?? note.preview,
+    url: noteUrl(locale, note.slug),
+    termCode: note.slug,
+    inDefinedTermSet: {
+      '@type': 'DefinedTermSet',
+      '@id': `${absoluteUrl(localizedPath(locale, '/notes'))}#glossary`,
+      name: `${siteConfig.owner.name} — notes`,
+      url: absoluteUrl(localizedPath(locale, '/notes')),
+    },
+  }
+}
+
+export function articleJsonLd(
+  note: Note,
+  locale: string,
+  ctx: { seriesNotes?: NoteRef[]; mentions?: NoteRef[] } = {},
+): JsonLd {
   const authorName = note.author ?? siteConfig.owner.name
   const url = noteUrl(locale, note.slug)
   const image = note.ogImage
@@ -111,6 +219,7 @@ export function articleJsonLd(note: Note, locale: string): JsonLd {
       '@id': url,
     },
     url,
+    ...articleRelationships(note, locale, ctx),
   }
 }
 

@@ -1,6 +1,7 @@
 import { createRepository } from '@adapters/createRepositories'
 import { listAllNotes } from '@core/ListNotes'
 import { emitStaticData } from '@adapters/static/StaticBuildEmitter'
+import { emitAgentArtifacts } from '@adapters/static/AgentArtifactEmitter'
 import { NotesHeader } from '@components/shell/NotesHeader'
 import { ThemeProvider } from '@components/shell/ThemeProvider'
 import { PanelWrapper } from '@components/garden/PanelWrapper'
@@ -23,6 +24,9 @@ export default async function NotesLayout({
   if (process.env.ONVU_MODE !== 'server' && process.env.NODE_ENV === 'production') {
     await emitStaticData(repo, locale)
   }
+  // Agent-facing artifacts (markdown mirrors, llms.txt). No-ops unless
+  // `agents.*` opts in, and self-gated to the build phase.
+  await emitAgentArtifacts(repo, locale)
 
   const noteList = allNotes.map((n) => ({
     slug: n.slug,

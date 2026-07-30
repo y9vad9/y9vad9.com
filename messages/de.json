@@ -15,7 +15,9 @@
   },
   "header": {
     "searchPlaceholder": "Suchen…",
-    "searchHint": "/ drücken zum Suchen"
+    "searchHint": "/ drücken zum Suchen",
+    "language": "Sprache",
+    "theme": "Design"
   },
   "theme": {
     "light": "Hell",
@@ -108,7 +110,8 @@
     "search": "Suche",
     "searchPlaceholder": "In Notizen suchen…",
     "filterByName": "Nach Name filtern…",
-    "noResults": "Keine Ergebnisse gefunden"
+    "noResults": "Keine Ergebnisse gefunden",
+    "sections": "Explorer-Bereiche"
   },
   "panel": {
     "toc": "Inhalt",
@@ -119,7 +122,8 @@
     "noToc": "Keine Überschriften auf dieser Seite.",
     "noLinks": "Keine Verknüpfungen vorhanden.",
     "noGraph": "Hier ist kein Graph verfügbar.",
-    "openGlobalGraph": "Globalen Graphen öffnen"
+    "openGlobalGraph": "Globalen Graphen öffnen",
+    "sections": "Panel-Bereiche"
   },
   "comments": {
     "title": "Kommentare",

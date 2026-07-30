@@ -14,8 +14,10 @@ import { routing } from '@i18n/routing'
 import type { Note } from '@core/Note'
 import { JsonLd } from '@components/seo/JsonLd'
 import { baseMetadata } from '@lib/seo/metadata'
-import { articleJsonLd, breadcrumbsJsonLd } from '@lib/seo/jsonLd'
+import { articleJsonLd, breadcrumbsJsonLd, definedTermJsonLd } from '@lib/seo/jsonLd'
 import { fetchExternalTitle, urlLabel } from '@lib/links/fetchExternalTitle'
+import { resolveAgentsConfig, markdownMirrorPath } from '@lib/agents/config'
+import { absoluteUrl } from '@lib/seo/url'
 
 export async function generateStaticParams() {
   const params: Array<{ locale: string; slug: string }> = []
@@ -41,6 +43,15 @@ export async function generateMetadata({
   const image = note.ogImage ?? note.coverImage ?? undefined
   const authorName = note.author ?? siteConfig.owner.name
 
+  // Point agents at the markdown mirror without showing readers anything.
+  // `rel="alternate"` is the same mechanism RSS autodiscovery has used for
+  // twenty years, so an agent never has to guess the `.md` URL exists.
+  const agents = resolveAgentsConfig()
+  const markdownAlternate =
+    agents.discovery.linkAlternate && !note.noindex
+      ? { 'text/markdown': absoluteUrl(markdownMirrorPath(locale, slug)) }
+      : undefined
+
   return {
     ...base,
     title: note.title,
@@ -48,6 +59,9 @@ export async function generateMetadata({
     keywords: note.tags.length > 0 ? note.tags : undefined,
     authors: [{ name: authorName }],
     robots: note.noindex ? { index: false, follow: true } : undefined,
+    alternates: markdownAlternate
+      ? { ...base.alternates, types: markdownAlternate }
+      : base.alternates,
     openGraph: {
       ...base.openGraph,
       title: note.title,
@@ -161,8 +175,15 @@ export default async function NotePage({
             { name: tGarden('notes'), href: `/${locale}/notes` },
             { name: note.title, href: `/${locale}/notes/${slug}` },
           ]),
-          articleJsonLd(note, locale),
-        ]}
+          // Series siblings and wiki-link mentions come from data this page
+          // already loaded for the side panels — the schema just says out
+          // loud what the garden's structure already is.
+          articleJsonLd(note, locale, {
+            seriesNotes: seriesNav?.series.notes,
+            mentions: mentions.linked.map((n) => ({ slug: n.slug, title: n.title })),
+          }),
+          definedTermJsonLd(note, locale),
+        ].filter((d): d is NonNullable<typeof d> => d !== null)}
       />
       <NoteContextProvider
         value={{

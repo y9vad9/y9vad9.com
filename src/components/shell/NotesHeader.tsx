@@ -6,7 +6,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import {
   PanelLeft,
   PanelRight,
-  Files,
   Search,
   Home,
   Sprout,
@@ -17,16 +16,15 @@ import {
   Monitor,
   Globe,
   Network,
-  List,
-  BookOpen,
-  Link2,
 } from 'lucide-react'
-import { usePanelStore, type ExplorerMode, type ToolsMode } from '@store/panelStore'
+import { usePanelStore } from '@store/panelStore'
 import { useThemeStore, type Theme } from '@store/themeStore'
 import { useNoteContextStore } from '@store/noteContextStore'
 import { useTabStore } from '@store/tabStore'
 import { useSearchStore } from '@store/searchStore'
 import { useIsMobile } from '@hooks/useMediaQuery'
+import { useOnClickOutside } from '@hooks/useOnClickOutside'
+import { EXPLORER_MODES, TOOLS_MODES } from '@components/garden/PanelModeTabs'
 import { TabBar } from '@components/garden/TabBar'
 import { RouteLink } from '@components/garden/RouteLink'
 import { INDEX_TAB_SLUG, GRAPH_TAB_SLUG } from '@store/tabStore'
@@ -42,18 +40,6 @@ const THEME_ICONS: Record<Theme, React.ReactNode> = {
   forest: <Trees size={14} />,
   system: <Monitor size={14} />,
 }
-
-const EXPLORER_MODES: Array<{ mode: ExplorerMode; icon: React.ReactNode; titleKey: 'files' | 'search'; hint: string }> = [
-  { mode: 'files', icon: <Files size={14} />, titleKey: 'files', hint: 'E' },
-  { mode: 'search', icon: <Search size={14} />, titleKey: 'search', hint: 'F' },
-]
-
-const TOOLS_MODES: Array<{ mode: ToolsMode; icon: React.ReactNode; titleKey: 'toc' | 'series' | 'links' | 'graph'; hint: string }> = [
-  { mode: 'toc', icon: <List size={14} />, titleKey: 'toc', hint: 'T' },
-  { mode: 'series', icon: <BookOpen size={14} />, titleKey: 'series', hint: 'S' },
-  { mode: 'links', icon: <Link2 size={14} />, titleKey: 'links', hint: 'L' },
-  { mode: 'graph', icon: <Network size={14} />, titleKey: 'graph', hint: 'G' },
-]
 
 export function NotesHeader() {
   const tTheme = useTranslations('theme')
@@ -82,6 +68,7 @@ export function NotesHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const [langOpen, setLangOpen] = useState(false)
+  const langRef = useOnClickOutside<HTMLDivElement>(langOpen, () => setLangOpen(false))
 
   function switchLocale(target: Locale) {
     setLangOpen(false)
@@ -113,7 +100,11 @@ export function NotesHeader() {
         <PanelLeft size={16} />
       </button>
 
-      {leftOpen && (
+      {/* Desktop only. On mobile these live inside the drawer itself — see
+          `PanelModeTabs`. Squeezing four tools buttons plus two explorer
+          buttons into a phone-width navbar crushed the tab bar and search
+          trigger next to them. */}
+      {leftOpen && !isMobile && (
         <>
           <Divider />
           {EXPLORER_MODES.map(({ mode, icon, titleKey, hint }) => (
@@ -195,7 +186,7 @@ export function NotesHeader() {
         {THEME_ICONS[theme]}
       </button>
 
-      <div className="relative">
+      <div className="relative" ref={langRef}>
         <button
           onClick={() => setLangOpen((v) => !v)}
           className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
@@ -219,7 +210,7 @@ export function NotesHeader() {
       </div>
 
       {/* Right panel section buttons (when open), then divider, then collapse */}
-      {rightOpen && (
+      {rightOpen && !isMobile && (
         <>
           <Divider />
           {TOOLS_MODES.filter(({ mode }) => mode !== 'series' || !!series).map(({ mode, icon, titleKey, hint }) => (

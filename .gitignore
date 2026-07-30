@@ -52,3 +52,9 @@ coverage/
 .DS_Store
 Thumbs.db
 
+
+# Generated agent surfaces (site.config.ts → agents.*)
+public/*/notes/*.md
+public/llms.txt
+public/llms-full.txt
+public/_headers

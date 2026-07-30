@@ -11,6 +11,8 @@ import { useListKeyboardNav } from '@hooks/useListKeyboardNav'
 import dynamic from 'next/dynamic'
 import { TableOfContents, type TableOfContentsHandle } from './TableOfContents'
 import { NoteLink } from './NoteLink'
+import { PanelModeTabs, TOOLS_MODES } from './PanelModeTabs'
+import { useIsMobile } from '@hooks/useMediaQuery'
 
 // `LocalGraph` pulls in `react-force-graph-2d` and d3-force, ~200 KiB
 // gzipped. The graph tab is opt-in (mounted only when the user selects
@@ -28,7 +30,8 @@ const ITEM_ACTIVE = 'is-active'
 export function ToolsPanel() {
   const t = useTranslations('panel')
   const tNote = useTranslations('note')
-  const { toolsMode, toolsFocusNonce } = usePanelStore()
+  const { toolsMode, toolsFocusNonce, setToolsMode } = usePanelStore()
+  const isMobile = useIsMobile()
   const params = useParams<{ locale: string }>()
   const pathname = usePathname()
   const router = useRouter()
@@ -111,7 +114,20 @@ export function ToolsPanel() {
 
   return (
     <div className="kbd-section flex flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-y-auto">
+      {isMobile && (
+        <PanelModeTabs
+          // Same `series` gate as the desktop header strip: a note that
+          // isn't part of a series has no series tab to offer.
+          modes={TOOLS_MODES.filter((m) => m.mode !== 'series' || !!series)}
+          active={effectiveMode}
+          onSelect={setToolsMode}
+          label={t('sections')}
+          labelFor={(key) => t(key as 'toc' | 'series' | 'links' | 'graph')}
+        />
+      )}
+      {/* See ExplorerPanel: overflow-y alone promotes overflow-x to `auto`,
+          which let these rows slide sideways under a vertical swipe. */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {effectiveMode === 'toc' && (
           <TableOfContents ref={tocRef} headings={headings} />
         )}

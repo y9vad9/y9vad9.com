@@ -117,6 +117,108 @@ export interface SiteConfig {
   }
   comments?: CommentsConfig
   seo?: SeoConfig
+  agents?: AgentsConfig
+}
+
+/**
+ * Machine-readable surfaces for AI agents. **Everything here is off by
+ * default** — publishing your writing in an agent-friendly form is a choice,
+ * not a default, and plenty of authors would rather not.
+ *
+ * A note on expectations before you switch anything on: Google states plainly
+ * that you "don't need to create new machine readable files, AI text files,
+ * markup, or Markdown to appear in Google Search", and that such files
+ * "neither harm nor help your site's visibility" because Search ignores them.
+ * So none of this is an SEO lever.
+ *
+ * What it *is* for: agents that fetch your page at request time — coding
+ * agents, ChatGPT/Claude browsing, `Perplexity-User`. Those pay tokens for
+ * your nav chrome and get nothing from it. A markdown mirror is markedly
+ * cheaper for them to read, and the structured-data options describe
+ * relationships (series, mentions) that onvu already computes but never
+ * expressed in a machine-readable way.
+ *
+ * @see https://developers.google.com/search/docs/fundamentals/ai-optimization-guide
+ */
+export interface AgentsConfig {
+  markdown?: MarkdownMirrorConfig
+  llmsTxt?: LlmsTxtConfig
+  discovery?: AgentDiscoveryConfig
+  schema?: AgentSchemaConfig
+  /**
+   * Per-group robots.txt policy for AI crawlers. Omit and robots.txt is
+   * unchanged. See `@lib/agents/crawlers` for the groups and why the
+   * distinction between them matters.
+   */
+  crawlers?: import('@lib/agents/crawlers').CrawlerPolicyConfig
+}
+
+export interface MarkdownMirrorConfig {
+  /** Emit `/<locale>/notes/<slug>.md` beside every note page. */
+  enabled?: boolean
+  /**
+   * Rewrite `[[Wiki Links]]` to absolute URLs. On by default when mirrors
+   * are enabled: an agent can't follow `[[deep-modules]]`, so a mirror that
+   * keeps the raw syntax is only half a document. Turn it off to publish the
+   * source byte-for-byte.
+   */
+  resolveWikilinks?: boolean
+  /** Extra context appended to (or prepended to) the body. */
+  include?: {
+    /** YAML block with title, dates, tags and the canonical HTML URL. */
+    frontmatter?: boolean
+    /** "Part N of <series>" plus links to the sibling notes. */
+    series?: boolean
+    /** Notes that link *to* this one. */
+    backlinks?: boolean
+    /** Links out of this note, internal and external. */
+    outgoing?: boolean
+    /** Notes sharing a parent or tag — onvu's own relatedness heuristic. */
+    relatedNotes?: boolean
+  }
+}
+
+export interface LlmsTxtConfig {
+  /** Emit `/llms.txt`: an index of every note with its markdown mirror. */
+  enabled?: boolean
+  /** Also emit `/llms-full.txt` with every note body inlined. */
+  full?: boolean
+}
+
+export interface AgentDiscoveryConfig {
+  /**
+   * `<link rel="alternate" type="text/markdown">` in each page's head — the
+   * same mechanism RSS autodiscovery has used for twenty years. Invisible to
+   * readers, and it means an agent never has to guess the `.md` URL.
+   */
+  linkAlternate?: boolean
+  /**
+   * Schema.org `encoding` on the Article node, pointing at the mirror.
+   * Semantically exact: `encoding` is "a media object that encodes this
+   * CreativeWork". Free for anything already parsing your JSON-LD.
+   */
+  jsonLdEncoding?: boolean
+  /**
+   * Emit a Netlify/Cloudflare-Pages `_headers` file serving mirrors as
+   * `text/markdown` (most static hosts otherwise send them as a download)
+   * and marking them `noindex`. The noindex costs nothing — Google ignores
+   * markdown by its own account — and it keeps the mirrors from competing
+   * with your HTML as duplicate URLs. It never blocks a live agent fetch.
+   */
+  emitHeadersFile?: boolean
+}
+
+export interface AgentSchemaConfig {
+  /** `isPartOf` a `CreativeWorkSeries` with `position`, from series/order. */
+  series?: boolean
+  /** `mentions` from the wiki-link graph onvu already builds. */
+  mentions?: boolean
+  /** `DefinedTerm` / `DefinedTermSet` — a digital garden as a glossary. */
+  definedTerms?: boolean
+  /** `citation` for outbound external references. */
+  citations?: boolean
+  /** `Person.knowsAbout`, aggregated from note tags. */
+  knowsAbout?: boolean
 }
 
 /**

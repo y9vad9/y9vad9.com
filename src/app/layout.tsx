@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { themeBootstrapScript, META_COLOR_SCHEME } from '@lib/theme'
+import { ZoomLock } from '@components/shell/ZoomLock'
 import './globals.css'
 import '../../content/theme.css'
 
@@ -63,7 +64,10 @@ export default function RootLayout({
             which is the flash we're removing. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
       </head>
-      <body className="bg-bg text-fg">{children}</body>
+      <body className="bg-bg text-fg">
+        <ZoomLock />
+        {children}
+      </body>
     </html>
   )
 }

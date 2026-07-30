@@ -18,6 +18,8 @@ import * as LucideIcons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useThemeStore, THEMES, THEME_OPTIONS } from '@store/themeStore'
 import { useSearchStore } from '@store/searchStore'
+import { useOnClickOutside } from '@hooks/useOnClickOutside'
+import { useBodyScrollLock } from '@hooks/useBodyScrollLock'
 import { useSiteConfig } from '@lib/config/SiteConfigProvider'
 import { navigation } from '~/content/navigation'
 import type { NavGroup as NavGroupType, NavLink } from '@config/navigation'
@@ -94,6 +96,11 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const lastScrollY = useRef(0)
+  const langRef = useOnClickOutside<HTMLDivElement>(langOpen, () => setLangOpen(false))
+
+  // The drawer overlays the page, so the page behind it must not scroll —
+  // otherwise a swipe meant for the drawer runs the article underneath.
+  useBodyScrollLock(mobileOpen)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -150,7 +157,7 @@ export function Header() {
             </button>
 
             {/* Language */}
-            <div className="relative">
+            <div className="relative" ref={langRef}>
               <button
                 onClick={() => setLangOpen((v) => !v)}
                 className="p-2 rounded-lg hover:bg-card-hover transition-colors text-muted hover:text-fg"
@@ -183,10 +190,12 @@ export function Header() {
               {themeIcon(THEME_OPTIONS.find((t) => t.id === theme))}
             </button>
 
-            {/* Mobile hamburger */}
+            {/* Mobile hamburger. Same muted-to-fg treatment as the language
+                and theme buttons beside it — without it this one inherited
+                the body colour and read as the odd one out. */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden p-2 rounded-lg hover:bg-card-hover transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-card-hover transition-colors text-muted hover:text-fg"
               aria-label="Open menu"
             >
               <Menu size={18} />
@@ -202,10 +211,14 @@ export function Header() {
             className="flex-1 bg-fg/20 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="w-72 bg-bg border-l border-border flex flex-col p-4 gap-2">
+          <div className="w-72 bg-bg border-l border-border flex flex-col p-4 gap-2 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <span className="font-bold"><BrandMark /></span>
-              <button onClick={() => setMobileOpen(false)}>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-1 -m-1 rounded-lg text-muted hover:text-fg hover:bg-card-hover transition-colors"
+                aria-label="Close menu"
+              >
                 <X size={18} />
               </button>
             </div>
@@ -222,7 +235,11 @@ export function Header() {
               )),
             )}
             <hr className="border-border my-2" />
-            <div className="flex gap-2">
+            {/* Language and theme are both rows of pills, and with nothing
+                between them they read as one wrapped group — the more so
+                because one row wraps to two lines and the other doesn't.
+                A labelled section each makes the split unambiguous. */}
+            <DrawerSection title={tHeader('language')}>
               {LOCALES.map((l) => (
                 <button
                   key={l}
@@ -232,8 +249,9 @@ export function Header() {
                   {langLabel(l)}
                 </button>
               ))}
-            </div>
-            <div className="flex gap-2 mt-1 flex-wrap">
+            </DrawerSection>
+
+            <DrawerSection title={tHeader('theme')}>
               {THEMES.map((th) => (
                 <button
                   key={th}
@@ -243,11 +261,28 @@ export function Header() {
                   {themeLabel(th, tTheme)}
                 </button>
               ))}
-            </div>
+            </DrawerSection>
           </div>
         </div>
       )}
     </>
+  )
+}
+
+function DrawerSection({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="mt-3 first:mt-0">
+      <h2 className="px-1 pb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted">
+        {title}
+      </h2>
+      <div className="flex gap-2 flex-wrap">{children}</div>
+    </section>
   )
 }
 
@@ -259,15 +294,7 @@ function NavGroupRender({
   locale: string
 }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  const ref = useOnClickOutside<HTMLDivElement>(open, () => setOpen(false))
 
   // Single-item groups render as a flat link instead of a dropdown.
   if (group.items.length === 1) {
