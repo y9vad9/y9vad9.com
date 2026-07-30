@@ -100,3 +100,13 @@ describe('buildHeadersFile', () => {
     expect(out).toContain('/uk/notes/*.md')
   })
 })
+
+describe('buildHeadersFile — locale coverage', () => {
+  it('emits a rule for every locale it is handed', () => {
+    // Regression: site-wide artifacts were once accumulated across per-locale
+    // calls, but Next generates pages in separate worker processes, so each
+    // worker saw only a slice and wrote a file missing the other locales.
+    const out = buildHeadersFile(['de', 'en', 'uk'])
+    for (const l of ['de', 'en', 'uk']) expect(out).toContain(`/${l}/notes/*.md`)
+  })
+})

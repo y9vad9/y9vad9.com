@@ -58,3 +58,6 @@ public/*/notes/*.md
 public/llms.txt
 public/llms-full.txt
 public/_headers
+
+# onvu agent surfaces
+public/.onvu-headers-base

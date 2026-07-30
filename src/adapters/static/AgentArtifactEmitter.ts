@@ -2,8 +2,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import matter from 'gray-matter'
 import type { Note } from '@core/Note'
-import type { NoteRepository } from '@core/NoteRepository'
-import type { Locale } from '@config/site'
+import { createRepository } from '@adapters/createRepositories'
+import { routing } from '@i18n/routing'
 import { config as siteConfig } from '~/site.config'
 import { noteUrl, absoluteUrl } from '@lib/seo/url'
 import { resolveAgentsConfig, markdownMirrorPath } from '@lib/agents/config'
@@ -13,16 +13,11 @@ import { buildLlmsTxt, buildLlmsFullTxt, buildHeadersFile } from '@lib/agents/ll
 const PUBLIC_ROOT = path.join(process.cwd(), 'public')
 const NOTES_ROOT = path.join(process.cwd(), 'content', 'notes')
 
-/**
- * Accumulates per-locale results so the site-wide artifacts (`llms.txt`,
- * `_headers`) can be written once every locale has been through. Each locale's
- * layout invokes the emitter independently during the build, and there is no
- * "all locales done" hook to hang the final write on — so every call rewrites
- * the shared files from whatever has been collected so far. The last call wins
- * and by then the map is complete.
- */
-const collected = new Map<Locale, { notes: Note[]; bodies: Map<string, string> }>()
-const emitted = new Set<Locale>()
+/** Fences our generated block inside a user-owned `_headers`. */
+const HEADERS_BEGIN = '# --- onvu:agents begin (generated, do not edit) ---'
+const HEADERS_END = '# --- onvu:agents end ---'
+/** Snapshot of the site's own `_headers`, so ours is never appended twice. */
+const HEADERS_BASE = '.onvu-headers-base'
 
 /** Mirrors `normaliseKey` in FileSystemNoteRepository. */
 function normaliseKey(s: string): string {
@@ -100,17 +95,26 @@ function relatedOf(notes: Note[], note: Note, count = 5): Note[] {
     .filter((n): n is Note => n !== undefined)
 }
 
+
 /**
- * Writes the agent-facing artifacts for one locale, plus the site-wide ones.
+ * Writes every agent-facing artifact for the whole site.
+ *
+ * Deliberately locale-agnostic despite being invoked from a per-locale layout.
+ * Next generates static pages across a pool of worker processes, so
+ * module-level state is per-worker: an emitter that accumulated locales across
+ * calls saw only whichever subset landed in its own process, and wrote an
+ * `llms.txt` silently missing the rest. Each invocation instead builds the
+ * complete picture from all configured locales, so whichever worker runs it
+ * produces the same finished file. The guard below keeps that to once per
+ * process; repeated writes across workers are idempotent.
  *
  * Everything is off unless `agents.*` opts in, so the common case is an early
  * return costing one config read. Output goes to `public/`, which Next copies
  * into the export — the same route `emitStaticData` already uses.
  */
-export async function emitAgentArtifacts(
-  repo: NoteRepository,
-  locale: Locale,
-): Promise<void> {
+let done = false
+
+export async function emitAgentArtifacts(): Promise<void> {
   // These are build products. In server mode the layout runs per request, and
   // writing into `public/` on a live request would be both pointless and
   // impossible on a read-only filesystem — so gate on the build phase, which
@@ -119,59 +123,56 @@ export async function emitAgentArtifacts(
 
   const cfg = resolveAgentsConfig()
   if (!cfg.markdown.enabled && !cfg.llmsTxt.enabled) return
-  if (emitted.has(locale)) return
-  emitted.add(locale)
+  if (done) return
+  done = true
 
-  const all = await repo.listAll()
-  // A note excluded from search engines shouldn't get a machine-readable
-  // mirror either — the author asked for it not to be surfaced.
-  const notes = all.filter((n) => !n.noindex)
-  const resolve = buildResolver(all)
+  const perLocale = await Promise.all(
+    routing.locales.map(async (locale) => {
+      const all = await createRepository(locale).listAll()
+      // A note excluded from search engines shouldn't get a machine-readable
+      // mirror either — the author asked for it not to be surfaced.
+      const notes = all.filter((n) => !n.noindex)
+      const ctx: MirrorContext = {
+        locale,
+        noteUrl: (slug) => noteUrl(locale, slug),
+        absoluteUrl,
+        resolve: buildResolver(all),
+      }
+      const bodies = new Map<string, string>()
 
-  const ctx: MirrorContext = {
-    locale,
-    noteUrl: (slug) => noteUrl(locale, slug),
-    absoluteUrl,
-    resolve,
-  }
-
-  const bodies = new Map<string, string>()
-
-  if (cfg.markdown.enabled) {
-    const outDir = path.join(PUBLIC_ROOT, locale, 'notes')
-    await fs.mkdir(outDir, { recursive: true })
-
-    await Promise.all(
-      notes.map(async (note) => {
-        const rawBody = await readRawBody(locale, note.slug)
-        if (rawBody === null) return
-        const doc = buildNoteMarkdown(
-          note,
-          rawBody,
-          {
-            series: cfg.markdown.include.series ? seriesSiblings(notes, note) : [],
-            backlinks: cfg.markdown.include.backlinks ? backlinksOf(notes, note) : [],
-            related: cfg.markdown.include.relatedNotes ? relatedOf(notes, note) : [],
-          },
-          cfg.markdown,
-          ctx,
+      if (cfg.markdown.enabled) {
+        const outDir = path.join(PUBLIC_ROOT, locale, 'notes')
+        await fs.mkdir(outDir, { recursive: true })
+        await Promise.all(
+          notes.map(async (note) => {
+            const rawBody = await readRawBody(locale, note.slug)
+            if (rawBody === null) return
+            const doc = buildNoteMarkdown(
+              note,
+              rawBody,
+              {
+                series: cfg.markdown.include.series ? seriesSiblings(notes, note) : [],
+                backlinks: cfg.markdown.include.backlinks ? backlinksOf(notes, note) : [],
+                related: cfg.markdown.include.relatedNotes ? relatedOf(notes, note) : [],
+              },
+              cfg.markdown,
+              ctx,
+            )
+            bodies.set(`${locale}/${note.slug}`, doc)
+            await fs.writeFile(path.join(outDir, `${note.slug}.md`), doc, 'utf-8')
+          }),
         )
-        bodies.set(`${locale}/${note.slug}`, doc)
-        await fs.writeFile(path.join(outDir, `${note.slug}.md`), doc, 'utf-8')
-      }),
-    )
-  }
+      }
 
-  collected.set(locale, { notes, bodies })
+      return { locale: locale as string, notes, bodies }
+    }),
+  )
+
+  const withNotes = perLocale.filter((l) => l.notes.length > 0)
 
   if (cfg.llmsTxt.enabled) {
-    const locales: Array<{ locale: string; notes: Note[] }> = []
     const allBodies = new Map<string, string>()
-    for (const [loc, data] of collected) {
-      locales.push({ locale: loc, notes: data.notes })
-      for (const [key, body] of data.bodies) allBodies.set(key, body)
-    }
-    locales.sort((a, b) => a.locale.localeCompare(b.locale))
+    for (const l of perLocale) for (const [k, v] of l.bodies) allBodies.set(k, v)
 
     const llmsCtx = {
       siteName: siteConfig.owner.name,
@@ -183,23 +184,70 @@ export async function emitAgentArtifacts(
 
     await fs.writeFile(
       path.join(PUBLIC_ROOT, 'llms.txt'),
-      buildLlmsTxt(locales, llmsCtx),
+      buildLlmsTxt(withNotes, llmsCtx),
       'utf-8',
     )
     if (cfg.llmsTxt.full) {
       await fs.writeFile(
         path.join(PUBLIC_ROOT, 'llms-full.txt'),
-        buildLlmsFullTxt(locales, allBodies, llmsCtx),
+        buildLlmsFullTxt(withNotes, allBodies, llmsCtx),
         'utf-8',
       )
     }
   }
 
   if (cfg.discovery.emitHeadersFile) {
-    await fs.writeFile(
-      path.join(PUBLIC_ROOT, '_headers'),
-      buildHeadersFile(Array.from(collected.keys()).sort()),
-      'utf-8',
-    )
+    await writeHeadersFile(withNotes.map((l) => l.locale))
   }
+}
+
+/**
+ * Merge our rules into `public/_headers` instead of writing it.
+ *
+ * `_headers` is a file sites already own — it typically carries CSP, HSTS and
+ * cache-control policy — so clobbering it would silently strip a site's
+ * security headers. Our block is fenced by markers and rewritten in place, so
+ * repeat builds stay idempotent and hand-written rules either side survive.
+ */
+async function writeHeadersFile(locales: string[]): Promise<void> {
+  const target = path.join(PUBLIC_ROOT, '_headers')
+  const basePath = path.join(PUBLIC_ROOT, HEADERS_BASE)
+
+  const read = async (p: string) => {
+    try {
+      return await fs.readFile(p, 'utf-8')
+    } catch {
+      return null
+    }
+  }
+
+  const current = await read(target)
+  // The markers carry `(generated, do not edit)`, so they must be escaped —
+  // unescaped, those parentheses become a capture group, the fence never
+  // matches, and every build appends another block instead of replacing one.
+  const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const fence = new RegExp(
+    `\\n*${escape(HEADERS_BEGIN)}[\\s\\S]*?${escape(HEADERS_END)}\\n*`,
+    'g',
+  )
+
+  // Never append to our own output. Page generation runs across worker
+  // processes, and read-then-append let two of them both observe a
+  // fence-free file and each add a block. Instead the site's own rules are
+  // captured once as a base and the file is rebuilt from it every time, so
+  // concurrent workers write byte-identical content and duplication is not
+  // representable.
+  let base: string
+  if (current === null) {
+    base = ''
+  } else if (fence.test(current)) {
+    fence.lastIndex = 0
+    base = (await read(basePath)) ?? current.replace(fence, '\n').trimEnd()
+  } else {
+    base = current.trimEnd()
+    await fs.writeFile(basePath, base, 'utf-8')
+  }
+
+  const block = `${HEADERS_BEGIN}\n${buildHeadersFile(locales).trimEnd()}\n${HEADERS_END}`
+  await fs.writeFile(target, base ? `${base}\n\n${block}\n` : `${block}\n`, 'utf-8')
 }

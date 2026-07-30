@@ -24,9 +24,11 @@ export default async function NotesLayout({
   if (process.env.ONVU_MODE !== 'server' && process.env.NODE_ENV === 'production') {
     await emitStaticData(repo, locale)
   }
-  // Agent-facing artifacts (markdown mirrors, llms.txt). No-ops unless
+  // Agent-facing artifacts (markdown mirrors, llms.txt). Covers every locale
+  // in one pass rather than accumulating across calls — Next's page workers
+  // are separate processes and would each see only a slice. No-ops unless
   // `agents.*` opts in, and self-gated to the build phase.
-  await emitAgentArtifacts(repo, locale)
+  await emitAgentArtifacts()
 
   const noteList = allNotes.map((n) => ({
     slug: n.slug,
