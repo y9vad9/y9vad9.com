@@ -6,15 +6,19 @@ vi.mock('geist/font/sans', () => ({ GeistSans: { variable: '' } }))
 vi.mock('geist/font/mono', () => ({ GeistMono: { variable: '' } }))
 
 describe('root viewport', () => {
-  it('pins the scale so the garden shell behaves like an app, not a document', async () => {
+  it('is the plain responsive viewport', async () => {
     const { viewport } = await import('../../src/app/layout')
-    expect(viewport).toMatchObject({
-      width: 'device-width',
-      initialScale: 1,
-      minimumScale: 1,
-      maximumScale: 1,
-      userScalable: false,
-    })
+    expect(viewport).toMatchObject({ width: 'device-width', initialScale: 1 })
+  })
+
+  it('never restricts zoom', async () => {
+    // This used to pin the scale so the panel layout could not be pinched out
+    // of alignment. Magnification is how a low-vision reader reads the page at
+    // all, so the layout does not get to win that trade — and iOS ignored the
+    // restriction anyway, making it inconsistent as well as harmful.
+    const { viewport } = await import('../../src/app/layout')
+    expect(viewport.userScalable ?? true).toBe(true)
+    expect(viewport.maximumScale ?? Infinity).toBeGreaterThanOrEqual(5)
   })
 
   it('declares a colour scheme so the pre-stylesheet canvas is not white', async () => {

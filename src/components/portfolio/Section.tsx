@@ -49,14 +49,21 @@ export function SectionHeading({
     </>
   )
 
+  // Always an `h2`, linked or not. The linked variant used to render a bare
+  // `<Link>`: it looked like a section heading and read as one, but carried
+  // no heading semantics, so a screen reader could not jump to it and the
+  // cards beneath it — `h3` — followed the page `h1` with nothing between.
+  // The link goes inside the heading rather than replacing it.
   if (href) {
     return (
-      <Link
-        href={href}
-        className="inline-flex items-center gap-2 text-2xl font-bold mb-6 group hover:text-primary transition-colors"
-      >
-        {inner}
-      </Link>
+      <h2 className="text-2xl font-bold mb-6">
+        <Link
+          href={href}
+          className="inline-flex items-center gap-2 group hover:text-primary transition-colors"
+        >
+          {inner}
+        </Link>
+      </h2>
     )
   }
   return (

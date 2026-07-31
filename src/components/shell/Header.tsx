@@ -9,13 +9,11 @@ import Image from 'next/image'
 import {
   Search,
   Globe,
-  Palette,
   Menu,
   X,
   ChevronDown,
 } from 'lucide-react'
-import * as LucideIcons from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { themeIconFor } from '@lib/themeIcon'
 import { useThemeStore, THEMES, THEME_OPTIONS } from '@store/themeStore'
 import { useSearchStore } from '@store/searchStore'
 import { useOnClickOutside } from '@hooks/useOnClickOutside'
@@ -45,12 +43,8 @@ function themeLabel(
 }
 
 function themeIcon(option: ThemeOption | undefined, size = 16): React.ReactNode {
-  const name = option?.icon
-  if (name) {
-    const Icon = (LucideIcons as unknown as Record<string, LucideIcon | undefined>)[name]
-    if (Icon) return <Icon size={size} />
-  }
-  return <Palette size={size} />
+  const Icon = themeIconFor(option?.icon)
+  return <Icon size={size} />
 }
 
 function BrandMark() {

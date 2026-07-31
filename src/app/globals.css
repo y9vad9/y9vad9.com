@@ -164,14 +164,12 @@
   box-sizing: border-box;
 }
 
-/* `manipulation` drops double-tap-to-zoom (and its 300ms click delay) while
-   leaving panning and scrolling alone. Ancestors constrain descendants, so
-   this covers the whole document — the graph canvas declares the stricter
-   `none` above and keeps its own pinch handling. Pinch-zoom itself is
-   cancelled in JS by `ZoomLock`, since iOS ignores the viewport meta. */
-body {
-  touch-action: manipulation;
-}
+/* Page zoom is deliberately left alone — see the `viewport` export in
+   `app/layout.tsx`. `touch-action: manipulation` used to sit here to drop
+   double-tap-to-zoom, but double-tap is a zoom affordance in its own right
+   and suppressing it works against the same readers the viewport change was
+   made for. The graph canvas still declares the stricter `none` above, since
+   it runs its own d3-zoom on the content rather than zooming the page. */
 
 html {
   -webkit-font-smoothing: antialiased;

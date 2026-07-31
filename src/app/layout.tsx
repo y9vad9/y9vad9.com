@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { themeBootstrapScript, META_COLOR_SCHEME } from '@lib/theme'
-import { ZoomLock } from '@components/shell/ZoomLock'
 import './globals.css'
 import '../../content/theme.css'
 
@@ -12,20 +11,21 @@ export const metadata: Metadata = {
 }
 
 /**
- * The garden is a fixed app shell rather than a scrolling document, so page
- * zoom fights the layout instead of helping — pinching mostly just knocks the
- * panels out of alignment. Pinning the scale keeps it behaving like an app.
+ * The plain responsive viewport, with zoom left alone.
  *
- * Note this is advisory on iOS: Safari has ignored `user-scalable=no` since
- * iOS 10 and clamps `maximumScale` so readers can always magnify. Android
- * Chrome honours it.
+ * This did pin the scale (`maximum-scale=1, user-scalable=no`), on the
+ * reasoning that the garden is an app shell and pinching knocks its panels
+ * out of alignment. That trade isn't worth making: magnification is how
+ * someone with low vision reads the page at all, and taking it away to tidy
+ * up a layout puts a cosmetic concern above their ability to read.
+ *
+ * It was also only half-working. Safari has ignored `user-scalable=no` and
+ * clamped `maximum-scale` since iOS 10, so the restriction only ever bound
+ * Android and desktop — inconsistent as well as harmful.
  */
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  minimumScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   // Colours the canvas the browser paints before the stylesheet loads.
   // See META_COLOR_SCHEME for why a meta tag and not the bootstrap script.
   colorScheme: META_COLOR_SCHEME,
@@ -65,7 +65,6 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
       </head>
       <body className="bg-bg text-fg">
-        <ZoomLock />
         {children}
       </body>
     </html>
