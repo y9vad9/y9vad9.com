@@ -129,13 +129,14 @@ export const config: SiteConfig = {
       citations: true,
       knowsAbout: true,
     },
-    // Everything allowed, stated explicitly. This matches what robots.txt
-    // already did with a blanket `Allow: /` — the value is that the intent is
-    // now on the record. Flip `training` to 'block' to keep the writing out
-    // of model training while staying citable in AI answers; that switch
-    // costs nothing in Google Search, since Google-Extended is a robots.txt
-    // token rather than a crawler.
-    crawlers: { training: 'allow', aiSearch: 'allow', userTriggered: 'allow' },
+    // Crawling is fine; training is not. The training group is turned away
+    // while the crawlers that put this site into AI answers are allowed
+    // through, so the writing stays findable and quotable without feeding
+    // the next model. This costs nothing in Google Search: Google-Extended
+    // is a robots.txt control token rather than a crawler, and Googlebot is
+    // untouched. `training: 'block'` is also onvu's default now — spelled
+    // out here so the intent is on the record rather than inherited.
+    crawlers: { training: 'block', aiSearch: 'allow', userTriggered: 'allow' },
   },
   // comments: {
   //   provider: 'giscus',
