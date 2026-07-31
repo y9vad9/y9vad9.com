@@ -53,4 +53,38 @@
 
 /llms-full.txt
   Content-Type: text/plain; charset=utf-8
+
+# The site index, discoverable from any page without parsing HTML.
+# Scoped per locale rather than `/*` so it stays off static assets.
+
+/en/*
+  Link: </llms.txt>; rel="index"; type="text/plain"
+
+/de/*
+  Link: </llms.txt>; rel="index"; type="text/plain"
+
+/uk/*
+  Link: </llms.txt>; rel="index"; type="text/plain"
+
+# Each note page points at its own markdown mirror.
+
+/en/notes/:slug/
+  Link: </en/notes/:slug.md>; rel="alternate"; type="text/markdown"
+
+/de/notes/:slug/
+  Link: </de/notes/:slug.md>; rel="alternate"; type="text/markdown"
+
+/uk/notes/:slug/
+  Link: </uk/notes/:slug.md>; rel="alternate"; type="text/markdown"
+
+# Pages under /notes/ that are not notes: no mirror to point at.
+
+/en/notes/graph/
+  ! Link
+
+/de/notes/graph/
+  ! Link
+
+/uk/notes/graph/
+  ! Link
 # --- onvu:agents end ---

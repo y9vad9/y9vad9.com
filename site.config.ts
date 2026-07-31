@@ -106,6 +106,9 @@ export const config: SiteConfig = {
       resolveWikilinks: true,
       include: {
         frontmatter: true,
+        // Frontmatter names parents but an agent can't follow a name; this
+        // resolves them to the same URLs the breadcrumb links.
+        parents: true,
         series: true,
         backlinks: true,
         outgoing: true,
@@ -137,6 +140,12 @@ export const config: SiteConfig = {
     // untouched. `training: 'block'` is also onvu's default now — spelled
     // out here so the intent is on the record rather than inherited.
     crawlers: { training: 'block', aiSearch: 'allow', userTriggered: 'allow' },
+    // The same position on the other axis. `crawlers` above says who may
+    // fetch; this says what may be done with the result, and it binds
+    // fetchers that read robots.txt without being named in any group. Saying
+    // yes to ai-input is the deliberate counterpart to allowing the AI-answer
+    // crawlers — being cited is the point; being training data is not.
+    contentSignals: { search: true, aiInput: true, aiTrain: false },
   },
   // comments: {
   //   provider: 'giscus',
