@@ -5,6 +5,7 @@ import { usePanelStore } from '@store/panelStore'
 import { usePanelResize } from '@hooks/usePanelResize'
 import { useIsMobile } from '@hooks/useMediaQuery'
 import { useHydrated } from '@hooks/useHydrated'
+import { useBodyScrollLock } from '@hooks/useBodyScrollLock'
 import { ExplorerPanel } from './ExplorerPanel'
 import { ToolsPanel } from './ToolsPanel'
 
@@ -26,8 +27,12 @@ const STICKY_FRAME = 'sticky top-11 self-start h-[calc(100dvh-2.75rem-0.5rem)]'
 // against the panel/header background. It owns ALL borders in the layout —
 // the header and side panels themselves are border-less. Scroll happens
 // inside it so the rounded corners stay visible.
+// `overscroll-contain`: without it, scrolling past either end of the article
+// chains to the document, which has no overflow constraint of its own — the
+// page rubber-bands and carries the header off with it, since `NotesHeader`
+// is sticky against the non-scrolling shell rather than against the document.
 const BODY_FRAME_BASE =
-  `bg-bg border border-border rounded-2xl overflow-x-hidden ${STICKY_FRAME}`
+  `bg-bg border border-border rounded-2xl overflow-x-hidden overscroll-contain ${STICKY_FRAME}`
 const BODY_FRAME = `${BODY_FRAME_BASE} overflow-y-auto`
 
 // The garden scrolls inside `#notes-scroll`, not on the document, so the
@@ -94,6 +99,20 @@ export function PanelWrapper({
   }, [mounted, isMobile])
 
   const anyPanelOpen = leftOpen || rightOpen
+
+  // Locking `#notes-scroll` stops the article moving, but it does not stop the
+  // *document* moving, and `html`/`body` carry no overflow constraint — so a
+  // swipe that no longer scrolls the article reaches the document instead and
+  // rubber-bands it, taking mobile Chrome's toolbar with it.
+  //
+  // `NotesHeader` cannot ride that out: it is `sticky top-0`, but its nearest
+  // scroll container is the shell's `overflow-hidden` div, which never
+  // scrolls — so sticky is inert here and the header travels with the page.
+  // That is why the bar still slid away after the article stopped scrolling.
+  //
+  // Pinning the body is the same fix the landing drawer already uses; here
+  // the page is never scrolled to begin with, so the offset it restores is 0.
+  useBodyScrollLock(isMobile && anyPanelOpen)
 
   if (!mounted) {
     return (

@@ -63,6 +63,32 @@ describe('PanelWrapper — mobile drawers', () => {
     expect(scroller.className).toContain('overflow-y-auto')
   })
 
+  it('pins the document while a drawer is open, so the header cannot slide away', () => {
+    mockViewport(true)
+    const { rerender } = render(<PanelWrapper noteList={NOTES}>body</PanelWrapper>)
+    expect(document.body.style.position).not.toBe('fixed')
+
+    usePanelStore.setState({ leftOpen: true })
+    rerender(<PanelWrapper noteList={NOTES}>body</PanelWrapper>)
+
+    // Locking `#notes-scroll` alone left the swipe to reach the document,
+    // which rubber-bands and carries `NotesHeader` with it — the header is
+    // sticky against the shell's non-scrolling `overflow-hidden` div, so it
+    // has nothing to stick to when the page itself moves.
+    expect(document.body.style.position).toBe('fixed')
+
+    usePanelStore.setState({ leftOpen: false })
+    rerender(<PanelWrapper noteList={NOTES}>body</PanelWrapper>)
+    expect(document.body.style.position).not.toBe('fixed')
+  })
+
+  it('does not pin the document on desktop, where panels are inline', () => {
+    mockViewport(false)
+    usePanelStore.setState({ leftOpen: true })
+    render(<PanelWrapper noteList={NOTES}>body</PanelWrapper>)
+    expect(document.body.style.position).not.toBe('fixed')
+  })
+
   it('does not force panels closed on desktop', () => {
     mockViewport(false)
     usePanelStore.setState({ leftOpen: true, rightOpen: true })

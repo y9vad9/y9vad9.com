@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useThemeStore } from '@store/themeStore'
 import type { MentionGraph } from '@core/graph/MentionGraph'
+import { hitRadius, pickNodeAt } from '@lib/graph/nodeHitTest'
 
 // react-force-graph-2d ships strict generics that fight our domain types.
 // The component is fundamentally a canvas renderer with object accessors —
@@ -59,7 +60,15 @@ interface ForceGraphInstance {
   /** Fits the camera to the bounding box of all nodes.
    *  `ms` = animation duration, `px` = padding pixels around the box. */
   zoomToFit: (ms?: number, px?: number) => void
+  /** Canvas-relative pixels → simulation coordinates. Used to work out
+   *  which node sits under a touch, since touch produces no hover. */
+  screen2GraphCoords: (x: number, y: number) => { x: number; y: number }
 }
+
+/** Hold time before a press counts as "label this node" rather than a tap. */
+const LONG_PRESS_MS = 450
+/** Finger drift allowed during the hold; beyond this it's a pan, not a press. */
+const LONG_PRESS_SLOP_PX = 10
 
 /**
  * Push the charge + link-distance values into the live d3 simulation.
@@ -102,7 +111,14 @@ export function ForceGraph({
   const theme = useThemeStore((s) => s.theme)
   const colors = useMemo(() => {
     if (typeof window === 'undefined') {
-      return { primary: '#6366f1', muted: '#9ca3af', border: '#e5e7eb', dim: 'rgba(0,0,0,0.05)' }
+      return {
+        primary: '#6366f1',
+        muted: '#9ca3af',
+        border: '#e5e7eb',
+        dim: 'rgba(0,0,0,0.05)',
+        bg: '#ffffff',
+        fg: '#111827',
+      }
     }
     const cs = getComputedStyle(document.documentElement)
     const read = (name: string, fallback: string) => {
@@ -114,6 +130,10 @@ export function ForceGraph({
       muted: read('--muted', '#9ca3af'),
       border: read('--border', '#e5e7eb'),
       dim: read('--border', 'rgba(0,0,0,0.05)'),
+      // For the long-press label chip: canvas can't read CSS variables, so
+      // the card/foreground pair is resolved here alongside the rest.
+      bg: read('--card', read('--bg', '#ffffff')),
+      fg: read('--fg', '#111827'),
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme])
@@ -149,8 +169,82 @@ export function ForceGraph({
     [graph],
   )
 
+  // ── Long-press labels (touch only) ──────────────────────────────────────
+  //
+  // `nodeLabel` renders a tooltip on hover, which a touch device never
+  // produces — so on a phone the graph is a field of anonymous dots with no
+  // way to tell what any of them are short of navigating to one. A press-and-
+  // hold names the node under the finger, and the label stays put afterwards
+  // so it's readable once the finger that was covering it lifts.
+  //
+  // Gated on `pointerType === 'touch'` rather than a viewport width: the
+  // thing that's actually missing is hover, not screen size. A mouse user at
+  // any width keeps the tooltip and never triggers this; a tablet, which a
+  // width check would have left broken, gets the fix.
+  const [labelNodeId, setLabelNodeId] = useState<string | null>(null)
+  const pressTimer = useRef<number | null>(null)
+  const pressOrigin = useRef<{ x: number; y: number } | null>(null)
+  // Set when a hold completes, so the `click` that follows the release
+  // doesn't also navigate — labelling and opening are different intents.
+  const suppressClick = useRef(false)
+
+  const cancelPress = useCallback(() => {
+    if (pressTimer.current !== null) {
+      window.clearTimeout(pressTimer.current)
+      pressTimer.current = null
+    }
+    pressOrigin.current = null
+  }, [])
+
+  const dataRef = useRef(data)
+  useEffect(() => { dataRef.current = data }, [data])
+
+  /** Nearest node whose hitbox contains the given viewport point, if any. */
+  const nodeAtPoint = useCallback((clientX: number, clientY: number) => {
+    const el = containerRef.current
+    const fg = fgRef.current
+    if (!el || !fg) return null
+    const rect = el.getBoundingClientRect()
+    const pos = fg.screen2GraphCoords(clientX - rect.left, clientY - rect.top)
+    return pickNodeAt(dataRef.current.nodes, pos.x, pos.y)
+  }, [])
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (e.pointerType !== 'touch') return
+      cancelPress()
+      suppressClick.current = false
+      const { clientX, clientY } = e
+      pressOrigin.current = { x: clientX, y: clientY }
+      pressTimer.current = window.setTimeout(() => {
+        pressTimer.current = null
+        const node = nodeAtPoint(clientX, clientY)
+        if (!node) return
+        setLabelNodeId(node.id)
+        suppressClick.current = true
+      }, LONG_PRESS_MS)
+    },
+    [cancelPress, nodeAtPoint],
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      const origin = pressOrigin.current
+      if (!origin) return
+      // Drifting means the user is panning the canvas, not holding a node.
+      if (Math.hypot(e.clientX - origin.x, e.clientY - origin.y) > LONG_PRESS_SLOP_PX) {
+        cancelPress()
+      }
+    },
+    [cancelPress],
+  )
+
   const handleNodeClick = useCallback(
     (node: GraphNodeData) => {
+      if (suppressClick.current) {
+        suppressClick.current = false
+        return
+      }
       if (typeof onNodeClickAction === 'function') {
         onNodeClickAction(node.id)
       } else if (onNodeClickAction === 'navigate') {
@@ -217,8 +311,6 @@ export function ForceGraph({
   // Keyed on the singleton slug only so a fresh data identity doesn't re-zoom.
   const singleMatch =
     highlightSlugs.size === 1 ? [...highlightSlugs][0] : undefined
-  const dataRef = useRef(data)
-  useEffect(() => { dataRef.current = data }, [data])
   useEffect(() => {
     // Never on an auto-fitting graph: "frame everything" and "zoom 3x onto
     // one node" are contradictory camera instructions. This exists for the
@@ -263,6 +355,13 @@ export function ForceGraph({
   return (
     <div
       ref={containerRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={cancelPress}
+      onPointerCancel={cancelPress}
+      // A long press on a canvas otherwise raises the platform's own
+      // selection callout / context menu on top of the label.
+      onContextMenu={(e) => e.preventDefault()}
       style={{
         width: width ?? '100%',
         height: height ?? '100%',
@@ -270,6 +369,9 @@ export function ForceGraph({
         // self-set this per-region, so we toggle on the container based on
         // the current hover state.
         cursor: hoverId ? 'pointer' : 'default',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
       }}
     >
       {dims && (
@@ -314,7 +416,43 @@ export function ForceGraph({
             return highlightedEdges.has(key) ? colors.primary : colors.dim
           }}
           onNodeClick={handleNodeClick}
+          onBackgroundClick={() => setLabelNodeId(null)}
           onNodeHover={(node: GraphNodeData | null) => setHoverId(node?.id ?? null)}
+          // `after` keeps the library's own node painting — the colour rules
+          // above stay in one place and this only adds the label on top.
+          nodeCanvasObjectMode={() => 'after'}
+          nodeCanvasObject={(
+            n: GraphNodeData,
+            ctx: CanvasRenderingContext2D,
+            globalScale: number,
+          ) => {
+            if (n.id !== labelNodeId) return
+            const { x, y } = n
+            if (typeof x !== 'number' || typeof y !== 'number') return
+            // Sizes divide by the zoom so the chip stays legible at any scale
+            // rather than growing and shrinking with the canvas.
+            const fontSize = 12 / globalScale
+            const padX = 5 / globalScale
+            const padY = 3 / globalScale
+            const gap = 4 / globalScale
+            ctx.font = `${fontSize}px ui-sans-serif, system-ui, sans-serif`
+            const textWidth = ctx.measureText(n.name).width
+            const boxW = textWidth + padX * 2
+            const boxH = fontSize + padY * 2
+            const boxX = x - boxW / 2
+            const boxY = y - hitRadius(n.val) - gap - boxH
+            ctx.fillStyle = colors.bg
+            ctx.strokeStyle = colors.border
+            ctx.lineWidth = 1 / globalScale
+            ctx.beginPath()
+            ctx.roundRect(boxX, boxY, boxW, boxH, 4 / globalScale)
+            ctx.fill()
+            ctx.stroke()
+            ctx.fillStyle = colors.fg
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(n.name, x, boxY + boxH / 2)
+          }}
           warmupTicks={warmupTicks}
           // Re-fit on every rendered tick, not just at engine stop. Warmup
           // gets the layout close, but the residual ticks still drift the
