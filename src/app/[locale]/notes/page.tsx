@@ -180,11 +180,26 @@ export default async function GardenHubPage({
   )
 }
 
+/**
+ * Three of these sit in a `grid-cols-3` that never collapses, so on a phone
+ * each card gets roughly 70px of content width. At `text-3xl` a value like
+ * "189 min" wrapped onto two lines while "32" did not, and the labels wrapped
+ * to three lines against one — same font size throughout, but the ragged
+ * wrapping made the middle card read as a different size entirely.
+ *
+ * The value scales down on small screens and is pinned to a single line, so
+ * the three cards stay visually identical whatever they contain. `tabular-nums`
+ * keeps the digits from shifting width between locales.
+ */
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="text-center p-4 rounded-xl border border-border">
-      <p className="text-3xl font-bold text-primary">{value}</p>
-      <p className="text-xs text-muted uppercase tracking-wide mt-1">{label}</p>
+    <div className="text-center p-2 sm:p-4 rounded-xl border border-border">
+      <p className="text-lg sm:text-2xl md:text-3xl font-bold text-primary whitespace-nowrap tabular-nums">
+        {value}
+      </p>
+      <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wide mt-1 text-balance">
+        {label}
+      </p>
     </div>
   )
 }

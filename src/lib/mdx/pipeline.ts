@@ -99,6 +99,30 @@ function rehypeExtractAllOutgoingLinks(out: OutgoingLink[]) {
 }
 
 /**
+ * Defer embedded iframes until they scroll into view.
+ *
+ * A pasted YouTube embed is the most expensive thing most notes contain. The
+ * iframe boots a near-complete video player whether or not anyone presses
+ * play — measured on one note here: 13 requests, ~1 MB, and 531 ms of main
+ * thread, more than the entire application's own JavaScript. `loading="lazy"`
+ * holds all of that back until the reader actually scrolls to the video,
+ * which keeps it off the critical path without changing what happens when
+ * they get there.
+ *
+ * An author-supplied `loading` is left alone — writing `loading="eager"` on a
+ * specific embed is a deliberate choice.
+ */
+function rehypeLazyIframes() {
+  return () => (tree: HastRoot) => {
+    visit(tree, 'element', (node: Element) => {
+      if (node.tagName !== 'iframe') return
+      if (node.properties?.loading !== undefined) return
+      node.properties = { ...(node.properties ?? {}), loading: 'lazy' }
+    })
+  }
+}
+
+/**
  * Unwrap `[![](x.png)](x.png)` — an image linked to itself.
  *
  * Editors that export image galleries (Obsidian among them) emit this
@@ -589,6 +613,7 @@ export async function processMarkdown(
     .use(rehypeExtractAllOutgoingLinks(outgoingLinks))
     .use(rehypeExternalLinks())
     .use(rehypeKatex)
+    .use(rehypeLazyIframes())
     .use(rehypeImageCarousel())
     .use(rehypeCaptureRawText((t) => { rawText = t }))
     // Pull mermaid blocks out of the highlighting path — they're rendered
