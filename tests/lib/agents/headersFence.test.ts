@@ -21,7 +21,14 @@ function fenceRegex() {
 
 function merge(existing: string | null, locales: string[]): string {
   const base = existing === null ? '' : existing.replace(fenceRegex(), '\n').trimEnd()
-  const block = `${BEGIN}\n${buildHeadersFile(locales).trimEnd()}\n${END}`
+  const generated = buildHeadersFile({
+    locales,
+    mirrors: true,
+    llmsTxt: true,
+    llmsFull: false,
+    nonNoteRoutes: ['graph'],
+  })
+  const block = `${BEGIN}\n${generated.trimEnd()}\n${END}`
   return base ? `${base}\n\n${block}\n` : `${block}\n`
 }
 

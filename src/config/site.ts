@@ -146,11 +146,50 @@ export interface AgentsConfig {
   discovery?: AgentDiscoveryConfig
   schema?: AgentSchemaConfig
   /**
-   * Per-group robots.txt policy for AI crawlers. Omit and robots.txt is
-   * unchanged. See `@lib/agents/crawlers` for the groups and why the
-   * distinction between them matters.
+   * Per-group robots.txt policy for AI crawlers.
+   *
+   * Unlike everything else in this block, this one has a default: the
+   * `training` group is blocked unless you say otherwise, so a fresh onvu
+   * site is crawlable and citable but stays out of training corpora. Set
+   * `training: 'allow'` to opt back in. See `@lib/agents/crawlers` for the
+   * groups, why the distinction between them matters, and why blocking the
+   * training group costs nothing in search.
    */
   crawlers?: import('@lib/agents/crawlers').CrawlerPolicyConfig
+  /**
+   * `Content-Signal` directives in robots.txt: what may be *done* with your
+   * content once fetched, as opposed to `crawlers`, which governs whether it
+   * may be fetched.
+   *
+   * Defaults to `search=yes, ai-train=no`, matching the crawler default on
+   * the other axis. Omit a single signal and you state no preference on that
+   * use — the policy treats absence as neither granting nor restricting, so
+   * it is never silently written as `no`. See `@lib/agents/contentSignals`.
+   */
+  contentSignals?: import('@lib/agents/contentSignals').ContentSignalsConfig
+  webmcp?: WebMcpConfig
+}
+
+/**
+ * WebMCP: expose search/read tools to an AI agent running *inside the
+ * browser*, via `document.modelContext`.
+ *
+ * Worth understanding what this adds before enabling it, because for a
+ * reading-only site the answer may be "not much". Every capability it
+ * exposes — search the notes, list them, read one — is already available to
+ * any agent over plain HTTP through `llms.txt` and the markdown mirrors, with
+ * no browser and no flag involved. WebMCP earns its keep on sites with
+ * *actions* an agent cannot perform by fetching: adding to a cart, filtering
+ * a table, submitting a form. A digital garden has none of those.
+ *
+ * It is also a moving target: `provideContext()` was removed in March 2026
+ * and the entry point moved from `navigator` to `document` in Chrome 150.
+ * Nothing breaks when it moves again — registration probes and no-ops — but
+ * you are opting into churn for a modest gain. Off by default.
+ */
+export interface WebMcpConfig {
+  /** Register `search_notes`, `list_notes` and `get_note` on every page. */
+  enabled?: boolean
 }
 
 export interface MarkdownMirrorConfig {
@@ -167,6 +206,11 @@ export interface MarkdownMirrorConfig {
   include?: {
     /** YAML block with title, dates, tags and the canonical HTML URL. */
     frontmatter?: boolean
+    /**
+     * The note's parents, linked. Frontmatter carries parent *names*, which
+     * an agent can't follow — this resolves them to URLs.
+     */
+    parents?: boolean
     /** "Part N of <series>" plus links to the sibling notes. */
     series?: boolean
     /** Notes that link *to* this one. */

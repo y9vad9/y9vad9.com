@@ -183,6 +183,21 @@ export function ForceGraph({
   const cooldownTicks = Math.min(800, Math.max(150, nodeCount * 4))
   const cooldownTimeMs = Math.min(30_000, Math.max(8_000, nodeCount * 80))
 
+  // Auto-fitting graphs settle before their first painted frame rather than
+  // after. `warmupTicks` dry-runs the layout during ingestion, so by the time
+  // anything is drawn the nodes already sit roughly where they'll end up and
+  // a zero-duration fit reads as "it was always framed" instead of a camera
+  // move the reader has to sit through. Only the side-panel local graph opts
+  // in — it's a handful of nodes, so the dry run is cheap, and it's an
+  // overview the reader glances at rather than a canvas they explore.
+  const warmupTicks = autoFit ? Math.min(300, Math.max(60, nodeCount * 20)) : 0
+
+  // 40px padding keeps node circles + labels off the canvas edge. Duration 0
+  // throughout: any easing here is the "weird" zoom-out we're removing.
+  const fitToViewport = useCallback(() => {
+    fgRef.current?.zoomToFit(0, 40)
+  }, [])
+
   const setFgRef = useCallback(
     (el: unknown) => {
       const inst = (el as ForceGraphInstance) ?? null
@@ -205,6 +220,12 @@ export function ForceGraph({
   const dataRef = useRef(data)
   useEffect(() => { dataRef.current = data }, [data])
   useEffect(() => {
+    // Never on an auto-fitting graph: "frame everything" and "zoom 3x onto
+    // one node" are contradictory camera instructions. This exists for the
+    // global graph's search box, but `LocalGraph` marks its centre note with
+    // a single highlight slug too — so the side panel was zooming in to 3x
+    // and then visibly zooming back out once the layout settled.
+    if (autoFit) return
     if (!singleMatch) return
     const fg = fgRef.current
     if (!fg) return
@@ -216,7 +237,7 @@ export function ForceGraph({
       }
     }, 50)
     return () => window.clearTimeout(id)
-  }, [singleMatch])
+  }, [singleMatch, autoFit])
 
   // Hover highlights the direct neighbourhood only — every node one edge
   // away from the hovered node, in either direction. The previous version
@@ -294,16 +315,13 @@ export function ForceGraph({
           }}
           onNodeClick={handleNodeClick}
           onNodeHover={(node: GraphNodeData | null) => setHoverId(node?.id ?? null)}
-          onEngineStop={
-            autoFit
-              ? () => {
-                  // Fit-to-viewport once layout settles. 40px padding
-                  // keeps node circles + labels away from the canvas
-                  // edge; 400ms feels considered without lagging.
-                  fgRef.current?.zoomToFit(400, 40)
-                }
-              : undefined
-          }
+          warmupTicks={warmupTicks}
+          // Re-fit on every rendered tick, not just at engine stop. Warmup
+          // gets the layout close, but the residual ticks still drift the
+          // bounding box — fitting continuously keeps the graph framed the
+          // whole time instead of snapping into place at the end.
+          onEngineTick={autoFit ? fitToViewport : undefined}
+          onEngineStop={autoFit ? fitToViewport : undefined}
           d3AlphaDecay={0.02}
           d3VelocityDecay={0.3}
           cooldownTime={cooldownTimeMs}

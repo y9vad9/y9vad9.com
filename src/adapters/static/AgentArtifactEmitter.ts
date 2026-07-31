@@ -8,7 +8,16 @@ import { config as siteConfig } from '~/site.config'
 import { noteUrl, absoluteUrl } from '@lib/seo/url'
 import { resolveAgentsConfig, markdownMirrorPath } from '@lib/agents/config'
 import { buildNoteMarkdown, type LinkResolver, type MirrorContext } from '@lib/agents/markdown'
-import { buildLlmsTxt, buildLlmsFullTxt, buildHeadersFile } from '@lib/agents/llmsTxt'
+import {
+  buildLlmsTxt,
+  buildLlmsFullTxt,
+  buildHeadersFile,
+  resolveConfigHref,
+  type HeadersFileOptions,
+  type SiteProfile,
+} from '@lib/agents/llmsTxt'
+import { loadSiteConfig } from '@lib/config/loadConfig'
+import type { Locale } from '@config/site'
 
 const PUBLIC_ROOT = path.join(process.cwd(), 'public')
 const NOTES_ROOT = path.join(process.cwd(), 'content', 'notes')
@@ -18,6 +27,14 @@ const HEADERS_BEGIN = '# --- onvu:agents begin (generated, do not edit) ---'
 const HEADERS_END = '# --- onvu:agents end ---'
 /** Snapshot of the site's own `_headers`, so ours is never appended twice. */
 const HEADERS_BASE = '.onvu-headers-base'
+
+/**
+ * Framework routes that sit directly under `/<locale>/notes/` without being
+ * notes. They share the URL shape of a note page, so the generated per-note
+ * `Link` header would otherwise point them at a mirror that does not exist.
+ * Kept beside the route tree it mirrors: `src/app/[locale]/notes/*`.
+ */
+const NON_NOTE_ROUTES = ['graph']
 
 /** Mirrors `normaliseKey` in FileSystemNoteRepository. */
 function normaliseKey(s: string): string {
@@ -63,6 +80,22 @@ async function readRawBody(locale: string, slug: string): Promise<string | null>
   }
 }
 
+/**
+ * Resolve `note.parents` (frontmatter *names*) to note slugs.
+ *
+ * Same case-insensitive title match the note page uses, so a mirror links
+ * exactly what the rendered breadcrumb links. A parent with no note behind it
+ * keeps its name and gets no link, rather than being dropped or pointed at a
+ * URL that 404s.
+ */
+function parentsOf(all: Note[], note: Note): Array<{ title: string; slug: string | null }> {
+  const byTitle = new Map(all.map((n) => [n.title.toLowerCase(), n.slug]))
+  return note.parents.map((name) => ({
+    title: name,
+    slug: byTitle.get(name.toLowerCase()) ?? null,
+  }))
+}
+
 function seriesSiblings(notes: Note[], note: Note): Note[] {
   if (!note.series) return []
   return notes
@@ -76,6 +109,67 @@ function backlinksOf(notes: Note[], note: Note): Note[] {
       n.slug !== note.slug &&
       n.outgoingLinks.some((l) => l.kind === 'internal' && l.slug === note.slug),
   )
+}
+
+/**
+ * The landing page, as data an agent can read.
+ *
+ * Built from `site.config.ts` rather than parsed out of `content/landing.tsx`
+ * — the JSX is user-owned and can be rewritten freely, but the entries it
+ * renders come from config either way, so config is the stable source.
+ *
+ * Localised via `loadSiteConfig`, which merges `site.<locale>.config.ts` over
+ * the base: a translated job title or project description is picked up here
+ * without any extra wiring.
+ */
+async function buildProfile(
+  locale: Locale,
+  hrefCtx: Parameters<typeof resolveConfigHref>[1],
+): Promise<SiteProfile> {
+  const cfg = await loadSiteConfig(locale)
+  const href = (raw: string | undefined) => resolveConfigHref(raw, hrefCtx)
+  const noteHref = (slug: string | undefined) =>
+    slug ? href(`notes/${slug}`) : undefined
+
+  return {
+    name: cfg.owner.name,
+    bio: cfg.owner.bio,
+    socials: cfg.owner.socials.map((s) => ({ label: s.platform, url: s.url })),
+    groups: [
+      {
+        heading: 'Summary',
+        noteHref: noteHref(cfg.navigation.summaryNote),
+        items: [],
+      },
+      {
+        heading: 'Work Experience',
+        noteHref: noteHref(cfg.navigation.workExperienceNote),
+        items: cfg.home.workExperience.map((e) => ({
+          title: e.role,
+          meta: [e.company, e.period].filter(Boolean).join(', '),
+          href: href(e.url),
+        })),
+      },
+      {
+        heading: 'Projects',
+        noteHref: noteHref(cfg.navigation.projectsNote),
+        items: cfg.home.projects.map((e) => ({
+          title: e.name,
+          description: e.description,
+          href: href(e.url),
+        })),
+      },
+      {
+        heading: 'Education',
+        noteHref: noteHref(cfg.navigation.educationNote),
+        items: cfg.home.education.map((e) => ({
+          title: e.degree,
+          meta: [e.institution, e.period].filter(Boolean).join(', '),
+          href: href(e.url),
+        })),
+      },
+    ],
+  }
 }
 
 /** Same heuristic as `getRelatedNotes`: shared parents, most overlap first. */
@@ -151,6 +245,7 @@ export async function emitAgentArtifacts(): Promise<void> {
               note,
               rawBody,
               {
+                parents: cfg.markdown.include.parents ? parentsOf(all, note) : [],
                 series: cfg.markdown.include.series ? seriesSiblings(notes, note) : [],
                 backlinks: cfg.markdown.include.backlinks ? backlinksOf(notes, note) : [],
                 related: cfg.markdown.include.relatedNotes ? relatedOf(notes, note) : [],
@@ -182,22 +277,38 @@ export async function emitAgentArtifacts(): Promise<void> {
       hasMirrors: cfg.markdown.enabled,
     }
 
+    // One profile block, from the primary locale. llms.txt is a single
+    // site-wide index; repeating the same three sections once per locale
+    // would triple its length to restate the same jobs and degrees. The
+    // localised wording still reaches agents through the note mirrors.
+    const profile = await buildProfile(siteConfig.locales.primary, {
+      ...llmsCtx,
+      locale: siteConfig.locales.primary,
+      absoluteUrl,
+    })
+
     await fs.writeFile(
       path.join(PUBLIC_ROOT, 'llms.txt'),
-      buildLlmsTxt(withNotes, llmsCtx),
+      buildLlmsTxt(withNotes, llmsCtx, profile),
       'utf-8',
     )
     if (cfg.llmsTxt.full) {
       await fs.writeFile(
         path.join(PUBLIC_ROOT, 'llms-full.txt'),
-        buildLlmsFullTxt(withNotes, allBodies, llmsCtx),
+        buildLlmsFullTxt(withNotes, allBodies, llmsCtx, profile),
         'utf-8',
       )
     }
   }
 
   if (cfg.discovery.emitHeadersFile) {
-    await writeHeadersFile(withNotes.map((l) => l.locale))
+    await writeHeadersFile({
+      locales: withNotes.map((l) => l.locale),
+      mirrors: cfg.markdown.enabled,
+      llmsTxt: cfg.llmsTxt.enabled,
+      llmsFull: cfg.llmsTxt.enabled && cfg.llmsTxt.full,
+      nonNoteRoutes: NON_NOTE_ROUTES,
+    })
   }
 }
 
@@ -209,7 +320,7 @@ export async function emitAgentArtifacts(): Promise<void> {
  * security headers. Our block is fenced by markers and rewritten in place, so
  * repeat builds stay idempotent and hand-written rules either side survive.
  */
-async function writeHeadersFile(locales: string[]): Promise<void> {
+async function writeHeadersFile(opts: HeadersFileOptions): Promise<void> {
   const target = path.join(PUBLIC_ROOT, '_headers')
   const basePath = path.join(PUBLIC_ROOT, HEADERS_BASE)
 
@@ -248,6 +359,6 @@ async function writeHeadersFile(locales: string[]): Promise<void> {
     await fs.writeFile(basePath, base, 'utf-8')
   }
 
-  const block = `${HEADERS_BEGIN}\n${buildHeadersFile(locales).trimEnd()}\n${HEADERS_END}`
+  const block = `${HEADERS_BEGIN}\n${buildHeadersFile(opts).trimEnd()}\n${HEADERS_END}`
   await fs.writeFile(target, base ? `${base}\n\n${block}\n` : `${block}\n`, 'utf-8')
 }

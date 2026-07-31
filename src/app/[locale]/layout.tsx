@@ -16,6 +16,8 @@ import { loadSiteConfig } from '@lib/config/loadConfig'
 import { SiteConfigProvider } from '@lib/config/SiteConfigProvider'
 import { createRepository } from '@adapters/createRepositories'
 import { listAllNotes } from '@core/ListNotes'
+import { resolveAgentsConfig } from '@lib/agents/config'
+import { WebMcpTools } from '@components/agents/WebMcpTools'
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
@@ -54,11 +56,16 @@ export default async function LocaleLayout({
   // and they can't drift out of date. Off unless `agents.schema.knowsAbout`.
   const topics = Array.from(new Set(notes.flatMap((n) => n.tags))).sort()
 
+  const agents = resolveAgentsConfig()
+
   return (
     <NextIntlClientProvider messages={messages}>
       <SiteConfigProvider value={siteConfig}>
         <ClientProviders>
           <JsonLd data={[websiteJsonLd(locale), organizationJsonLd() ?? personJsonLd(topics)]} />
+          {agents.webmcp.enabled && (
+            <WebMcpTools locale={locale} hasMirrors={agents.markdown.enabled} />
+          )}
           {children}
         </ClientProviders>
       </SiteConfigProvider>

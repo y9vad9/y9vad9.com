@@ -13,6 +13,7 @@ export interface ResolvedAgentsConfig {
     resolveWikilinks: boolean
     include: {
       frontmatter: boolean
+      parents: boolean
       series: boolean
       backlinks: boolean
       outgoing: boolean
@@ -32,6 +33,7 @@ export interface ResolvedAgentsConfig {
     citations: boolean
     knowsAbout: boolean
   }
+  webmcp: { enabled: boolean }
 }
 
 export function resolveAgentsConfig(): ResolvedAgentsConfig {
@@ -43,6 +45,7 @@ export function resolveAgentsConfig(): ResolvedAgentsConfig {
   const llms = a.llmsTxt ?? {}
 
   const markdownEnabled = md.enabled === true
+  const llmsEnabled = llms.enabled === true
 
   return {
     markdown: {
@@ -52,6 +55,7 @@ export function resolveAgentsConfig(): ResolvedAgentsConfig {
       resolveWikilinks: md.resolveWikilinks !== false,
       include: {
         frontmatter: include.frontmatter !== false,
+        parents: include.parents === true,
         series: include.series === true,
         backlinks: include.backlinks === true,
         outgoing: include.outgoing === true,
@@ -59,7 +63,7 @@ export function resolveAgentsConfig(): ResolvedAgentsConfig {
       },
     },
     llmsTxt: {
-      enabled: llms.enabled === true,
+      enabled: llmsEnabled,
       full: llms.full === true,
     },
     discovery: {
@@ -67,7 +71,10 @@ export function resolveAgentsConfig(): ResolvedAgentsConfig {
       // both discovery hooks are gated on the mirrors themselves.
       linkAlternate: markdownEnabled && discovery.linkAlternate !== false,
       jsonLdEncoding: markdownEnabled && discovery.jsonLdEncoding !== false,
-      emitHeadersFile: markdownEnabled && discovery.emitHeadersFile === true,
+      // `_headers` serves both features — a content type for the mirrors, a
+      // content type and a `Link` pointer for llms.txt — so either one alone
+      // is reason enough to write it.
+      emitHeadersFile: (markdownEnabled || llmsEnabled) && discovery.emitHeadersFile === true,
     },
     schema: {
       series: schema.series === true,
@@ -76,6 +83,7 @@ export function resolveAgentsConfig(): ResolvedAgentsConfig {
       citations: schema.citations === true,
       knowsAbout: schema.knowsAbout === true,
     },
+    webmcp: { enabled: (a.webmcp ?? {}).enabled === true },
   }
 }
 

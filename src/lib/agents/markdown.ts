@@ -152,6 +152,12 @@ function linkList(items: Array<{ title: string; url: string }>): string {
 }
 
 export interface MirrorSections {
+  /**
+   * The note's parents. `slug` is null when the frontmatter names a parent
+   * with no note behind it — the name is still worth stating, it just isn't
+   * a link.
+   */
+  parents: Array<{ title: string; slug: string | null }>
   /** Siblings in the same series, in reading order. */
   series: Note[]
   /** Notes linking to this one. */
@@ -181,6 +187,17 @@ export function buildNoteMarkdown(
   if (cfg.include.frontmatter) parts.push(frontmatterBlock(note, ctx))
   parts.push(`# ${note.title}`)
   parts.push(body.trim())
+
+  // Parents first: where the note sits in the hierarchy is the most
+  // structural thing about it, and the frontmatter above only names them.
+  if (cfg.include.parents && sections.parents.length > 0) {
+    parts.push(
+      '## Parent notes\n\n' +
+        sections.parents
+          .map((p) => (p.slug ? `- [${p.title}](${ctx.noteUrl(p.slug)})` : `- ${p.title}`))
+          .join('\n'),
+    )
+  }
 
   if (cfg.include.series && note.series && sections.series.length > 0) {
     const position = note.order !== null ? ` (part ${note.order})` : ''

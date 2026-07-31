@@ -134,7 +134,36 @@ export function buildCrawlerRules(
   return rules
 }
 
-/** The configured policy, or undefined when the author hasn't set one. */
-export function crawlerPolicy(): CrawlerPolicyConfig | undefined {
-  return siteConfig.agents?.crawlers
+/**
+ * The effective policy: what the site configured, over onvu's defaults.
+ *
+ * **`training` defaults to `block`.** This is the one place onvu takes a
+ * position rather than staying neutral, so it deserves a justification.
+ *
+ * Blocking the training group costs a site nothing it would otherwise have.
+ * Every token in that group exists to collect training corpora, and none of
+ * them is a search crawler: `Google-Extended` is a robots.txt control token
+ * that Google states "does not impact a site's inclusion in Google Search nor
+ * is it used as a ranking signal", and OpenAI and Anthropic each run separate
+ * search crawlers (`OAI-SearchBot`, `Claude-SearchBot`) that this policy still
+ * lets through. So the default is "crawl me, cite me, don't train on me" —
+ * you stay findable and quotable in AI answers, and your writing stays out of
+ * the next model.
+ *
+ * It is one line to opt back in:
+ *
+ *     agents: { crawlers: { training: 'allow' } }
+ *
+ * The other two groups have no default. Blocking `aiSearch` is what removes
+ * you from AI answers, and `userTriggered` fetches largely ignore robots.txt
+ * anyway — neither is a call onvu should make for you.
+ */
+export function crawlerPolicy(): CrawlerPolicyConfig {
+  const configured = siteConfig.agents?.crawlers ?? {}
+  return {
+    training: configured.training ?? 'block',
+    aiSearch: configured.aiSearch,
+    userTriggered: configured.userTriggered,
+    overrides: configured.overrides,
+  }
 }

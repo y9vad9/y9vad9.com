@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildCrawlerRules, AI_CRAWLERS } from '@lib/agents/crawlers'
+import { buildCrawlerRules, crawlerPolicy, AI_CRAWLERS } from '@lib/agents/crawlers'
 
 const SITE_DISALLOW = ['/notes/graph', '/private']
 
@@ -109,5 +109,40 @@ describe('AI_CRAWLERS registry', () => {
     ]) {
       expect(verified).toContain(token)
     }
+  })
+})
+
+describe('crawlerPolicy — defaults', () => {
+  // These read the repo's own `site.config.ts`, which leaves `agents`
+  // commented out, so they pin what a fresh onvu site does out of the box.
+  it('blocks AI training even with no agents config at all', () => {
+    expect(crawlerPolicy().training).toBe('block')
+  })
+
+  it('takes no position on the other two groups', () => {
+    // Blocking aiSearch is what removes you from AI answers, and
+    // userTriggered fetches largely ignore robots.txt anyway. Neither is
+    // onvu's call to make.
+    expect(crawlerPolicy().aiSearch).toBeUndefined()
+    expect(crawlerPolicy().userTriggered).toBeUndefined()
+  })
+
+  it('produces a crawlable, citable, untrainable site by default', () => {
+    const rules = buildCrawlerRules(crawlerPolicy(), SITE_DISALLOW)
+    const byToken = new Map(rules.map((r) => [r.userAgent, r]))
+    // Training crawlers turned away...
+    expect(byToken.get('GPTBot')?.disallow).toBe('/')
+    expect(byToken.get('ClaudeBot')?.disallow).toBe('/')
+    expect(byToken.get('Google-Extended')?.disallow).toBe('/')
+    // ...while the crawlers that put you in AI answers get no rule at all,
+    // so they fall through to `User-agent: *` and are allowed.
+    expect(byToken.has('OAI-SearchBot')).toBe(false)
+    expect(byToken.has('PerplexityBot')).toBe(false)
+  })
+
+  it('leaves ordinary search engines entirely alone', () => {
+    const tokenList = tokens(buildCrawlerRules(crawlerPolicy(), SITE_DISALLOW))
+    expect(tokenList).not.toContain('Googlebot')
+    expect(tokenList).not.toContain('Bingbot')
   })
 })

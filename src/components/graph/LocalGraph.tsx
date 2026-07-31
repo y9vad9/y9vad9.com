@@ -7,6 +7,7 @@ import { ArrowRight } from 'lucide-react'
 import { ForceGraph } from './ForceGraph'
 import { GraphLoading } from './GraphLoading'
 import type { MentionGraph } from '@core/graph/MentionGraph'
+import { buildLocalGraph, hasRelations } from '@core/graph/BuildLocalGraph'
 import { RouteLink } from '@components/garden/RouteLink'
 import { GRAPH_TAB_SLUG } from '@store/tabStore'
 
@@ -27,32 +28,13 @@ export function LocalGraph({ slug }: { slug: string }) {
     return () => { aborted = true }
   }, [params.locale])
 
-  // Memoize the 1-hop subgraph so unrelated re-renders (key presses, theme
-  // changes, panel state) don't rebuild the graph object and reheat the
-  // physics simulation downstream.
-  //
-  // The shape mirrors what the global graph highlights when you hover the
-  // same note: the centre node + its direct neighbours + only the edges
-  // that physically touch the centre. We deliberately drop edges between
-  // two neighbours that don't involve the slug — those make the side panel
-  // look like a clump and tell the reader nothing about THIS note's
-  // outgoing/incoming relationships, which is the whole point of the
-  // local view.
-  const localGraph: MentionGraph | null = useMemo(() => {
-    if (!fullGraph) return null
-    const neighbors = new Set<string>([slug])
-    const edges = fullGraph.edges.filter(
-      (e) => e.source === slug || e.target === slug,
-    )
-    for (const edge of edges) {
-      neighbors.add(edge.source)
-      neighbors.add(edge.target)
-    }
-    return {
-      nodes: fullGraph.nodes.filter((n) => neighbors.has(n.slug)),
-      edges,
-    }
-  }, [fullGraph, slug])
+  // Memoized so unrelated re-renders (key presses, theme changes, panel
+  // state) don't rebuild the graph object and reheat the physics simulation
+  // downstream. The subgraph rule itself lives in core — see `buildLocalGraph`.
+  const localGraph: MentionGraph | null = useMemo(
+    () => (fullGraph ? buildLocalGraph(fullGraph, slug) : null),
+    [fullGraph, slug],
+  )
 
   const highlightSet = useMemo<ReadonlySet<string>>(() => new Set([slug]), [slug])
 
@@ -61,7 +43,17 @@ export function LocalGraph({ slug }: { slug: string }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 min-h-[300px]">
-        <ForceGraph graph={localGraph} highlightSlugs={highlightSet} autoFit />
+        {hasRelations(localGraph) ? (
+          <ForceGraph graph={localGraph} highlightSlugs={highlightSet} autoFit />
+        ) : (
+          // A note with nothing linked to it would otherwise render as one
+          // dot alone in the panel, which reads as a broken or half-loaded
+          // graph. Say it in words instead. The full-graph link stays put —
+          // there's still somewhere to go from here.
+          <p className="h-full flex items-center justify-center px-6 py-10 text-xs text-muted italic text-center">
+            {t('noRelations')}
+          </p>
+        )}
       </div>
       <RouteLink
         href={`/${params.locale}/notes/graph`}

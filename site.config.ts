@@ -146,8 +146,17 @@ export const config: SiteConfig = {
   //   categoryId: 'DIC_xxxx',
   // },
 
-  // Machine-readable surfaces for AI agents. Entirely opt-in — leave this
-  // block commented out and nothing below is generated or advertised.
+  // Machine-readable surfaces for AI agents. Leave this block commented out
+  // and nothing below is generated or advertised.
+  //
+  // One exception, and it is deliberate: robots.txt refuses AI *training* out
+  // of the box (`Content-Signal: search=yes, ai-train=no`, plus a blocked
+  // group for each training crawler). Search and AI-answer crawlers are still
+  // allowed, and Google-Extended is a robots.txt token rather than a crawler,
+  // so this costs nothing in Google Search — you stay findable and quotable,
+  // your writing stays out of the next model. To opt back in:
+  //
+  //   agents: { crawlers: { training: 'allow' } }
   //
   // Set expectations first: Google states you "don't need to create new
   // machine readable files, AI text files, markup, or Markdown to appear in
@@ -168,6 +177,7 @@ export const config: SiteConfig = {
   //     resolveWikilinks: true,
   //     include: {
   //       frontmatter: true,    // title, dates, tags, canonical URL
+  //       parents: true,        // parent notes, resolved to links
   //       series: true,         // "part N of X" + sibling links
   //       backlinks: true,      // notes linking here
   //       outgoing: true,       // links out of this note
@@ -178,7 +188,12 @@ export const config: SiteConfig = {
   //   discovery: {
   //     linkAlternate: true,    // <link rel="alternate" type="text/markdown">
   //     jsonLdEncoding: true,   // schema.org `encoding` → the mirror
-  //     emitHeadersFile: false, // Netlify/Cloudflare Pages `_headers`
+  //     // Netlify/Cloudflare Pages `_headers`. Serves mirrors as
+  //     // text/markdown, and adds RFC 8288 `Link` headers so an agent can
+  //     // discover llms.txt and a page's mirror from a HEAD request, without
+  //     // parsing HTML. Merged into an existing `_headers` behind a fence, so
+  //     // your own CSP/HSTS/cache rules are left alone.
+  //     emitHeadersFile: false,
   //   },
   //   schema: {
   //     series: true,           // isPartOf CreativeWorkSeries + position
@@ -204,12 +219,32 @@ export const config: SiteConfig = {
   //   //                   largely ignore robots.txt, so treat a rule here as
   //   //                   a stated preference rather than a control.
   //   //
-  //   // The common ask — "don't train on me, but do cite me" — is:
+  //   // The common ask — "don't train on me, but do cite me" — is also the
+  //   // default; `training: 'block'` is spelled out here only for clarity.
   //   crawlers: {
   //     training: 'block',
   //     aiSearch: 'allow',
   //     // Per-token escape hatch; keys need not be crawlers onvu knows about.
   //     // overrides: { CCBot: 'allow', 'SomeNewBot': 'block' },
   //   },
+  //
+  //   // `Content-Signal` in robots.txt — a different axis from `crawlers`.
+  //   // `crawlers` says who may *fetch*; this says what may be *done* with
+  //   // the content afterwards, which is why it isn't derived from the above.
+  //   // Defaults to `search=yes, ai-train=no`; `ai-input` is left unset,
+  //   // since the policy treats an absent signal as neither granting nor
+  //   // restricting and that is a genuine choice to make rather than assume.
+  //   // https://contentsignals.org
+  //   contentSignals: {
+  //     search: true,     // index it, link it, quote a snippet
+  //     aiInput: true,    // ground an AI answer in it
+  //     aiTrain: false,   // do not train on it
+  //   },
+  //
+  //   // Tools for an AI agent running inside the reader's browser. Read the
+  //   // note on `WebMcpConfig` before enabling: for a reading-only site this
+  //   // duplicates what llms.txt and the mirrors already give every agent
+  //   // over plain HTTP, and the spec is still moving.
+  //   webmcp: { enabled: false },
   // },
 }

@@ -54,12 +54,13 @@ function note(overrides: Partial<Note> = {}): Note {
   } as Note
 }
 
-const EMPTY = { series: [], backlinks: [], related: [] }
+const EMPTY = { parents: [], series: [], backlinks: [], related: [] }
 const CFG = {
   enabled: true,
   resolveWikilinks: true,
   include: {
     frontmatter: false,
+    parents: false,
     series: false,
     backlinks: false,
     outgoing: false,
@@ -238,6 +239,7 @@ describe('buildNoteMarkdown', () => {
       ...CFG,
       include: {
         frontmatter: false,
+        parents: true,
         series: true,
         backlinks: true,
         outgoing: true,
@@ -248,5 +250,64 @@ describe('buildNoteMarkdown', () => {
     expect(out).not.toContain('## Backlinks')
     expect(out).not.toContain('## Related notes')
     expect(out).not.toContain('## Links from this note')
+  })
+})
+
+describe('buildNoteMarkdown — parent notes', () => {
+  const cfg = { ...CFG, include: { ...CFG.include, parents: true } }
+
+  it('links parents that resolve to a note', () => {
+    const out = buildNoteMarkdown(
+      note({ parents: ['Software Design'] }),
+      'Body.',
+      { ...EMPTY, parents: [{ title: 'Software Design', slug: 'software-design' }] },
+      cfg,
+      ctx,
+    )
+    expect(out).toContain('## Parent notes')
+    expect(out).toContain('- [Software Design](https://example.com/en/notes/software-design)')
+  })
+
+  it('keeps an unresolved parent as plain text rather than a 404 link', () => {
+    const out = buildNoteMarkdown(
+      note({ parents: ['Nothing Here'] }),
+      'Body.',
+      { ...EMPTY, parents: [{ title: 'Nothing Here', slug: null }] },
+      cfg,
+      ctx,
+    )
+    expect(out).toContain('- Nothing Here')
+    expect(out).not.toContain('](https://example.com/en/notes/nothing-here)')
+  })
+
+  it('places parents before the other relation sections', () => {
+    const out = buildNoteMarkdown(
+      note({ parents: ['Software Design'] }),
+      'Body.',
+      {
+        parents: [{ title: 'Software Design', slug: 'software-design' }],
+        series: [],
+        backlinks: [note({ slug: 'semantic-typing', title: 'Semantic Typing' })],
+        related: [],
+      },
+      { ...cfg, include: { ...cfg.include, backlinks: true } },
+      ctx,
+    )
+    expect(out.indexOf('## Parent notes')).toBeLessThan(out.indexOf('## Backlinks'))
+  })
+
+  it('omits the section when the flag is off', () => {
+    const out = buildNoteMarkdown(
+      note({ parents: ['Software Design'] }),
+      'Body.',
+      { ...EMPTY, parents: [{ title: 'Software Design', slug: 'software-design' }] },
+      CFG,
+      ctx,
+    )
+    expect(out).not.toContain('## Parent notes')
+  })
+
+  it('omits the section for a note with no parents', () => {
+    expect(buildNoteMarkdown(note(), 'Body.', EMPTY, cfg, ctx)).not.toContain('## Parent notes')
   })
 })

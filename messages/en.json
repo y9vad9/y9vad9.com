@@ -91,7 +91,8 @@
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen",
     "viewFullGraph": "View Full Graph",
-    "loading": "Loading graph…"
+    "loading": "Loading graph…",
+    "noRelations": "This note has no relations yet."
   },
   "search": {
     "placeholder": "Search notes, pages, themes…",
