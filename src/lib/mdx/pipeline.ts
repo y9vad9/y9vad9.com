@@ -476,7 +476,11 @@ function rehypeExternalLinks() {
         ...(node.properties ?? {}),
         className: [...new Set([...existingClasses, 'external-link'])],
         target: '_blank',
-        rel: 'noopener noreferrer',
+        // `rel` is a space-separated list, and hast models those as arrays —
+        // the serializer joins them back into `rel="noopener noreferrer"`.
+        // A single string typechecked under the older @types/hast but was
+        // always the wrong shape.
+        rel: ['noopener', 'noreferrer'],
       }
     })
   }

@@ -15,6 +15,20 @@ import { config as siteConfig } from '~/site.config'
  * icon with no work. Replace this file with a static `icon.png` / `icon.svg`
  * (same directory, same name) to use real artwork instead — the metadata
  * convention picks either up.
+ *
+ * One wrinkle if you deploy `ONVU_MODE=static`: Next writes this route to
+ * `out/icon` with **no file extension**, and a static host types files by
+ * extension — so it is served as `application/octet-stream` rather than
+ * `image/png`. Browsers generally sniff a favicon and render it anyway, but
+ * the header is wrong and audits notice. Declare it in whatever your host
+ * uses; for Netlify / Cloudflare Pages `_headers` that is:
+ *
+ *     /icon
+ *       Content-Type: image/png
+ *
+ * Server mode is unaffected — Next sets the header itself there. A static
+ * `icon.svg` or `icon.png` also sidesteps it, since the name carries the
+ * extension the host needs.
  */
 export const dynamic = 'force-static'
 export const runtime = 'nodejs'

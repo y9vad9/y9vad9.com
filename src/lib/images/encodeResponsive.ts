@@ -2,6 +2,9 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import sharp from 'sharp'
+// sharp 0.35 stopped shipping its types as a namespace beside the default
+// export, so `sharp.Metadata` no longer resolves — they are named exports now.
+import type { Metadata } from 'sharp'
 
 /**
  * Shared responsive WebP encoder. Both `processNoteImage` (relative refs
@@ -76,7 +79,7 @@ export async function encodeResponsive(
   if (cached) return cached
 
   const buffer = await fs.readFile(sourcePath)
-  let meta: sharp.Metadata
+  let meta: Metadata
   try {
     meta = await sharp(buffer).metadata()
   } catch {
