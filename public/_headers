@@ -28,10 +28,6 @@
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Favicon (fast updates)
-/favicon.ico
-  Cache-Control: public, max-age=3600
-
 # The generated icon route (src/app/icon.tsx). Under a static export Next
 # writes it to `out/icon` with no file extension, so Pages types it by
 # extension and falls back to application/octet-stream — declare it here.
