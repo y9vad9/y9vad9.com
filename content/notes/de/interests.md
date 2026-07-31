@@ -23,5 +23,7 @@ mit [Godot](https://godotengine.org/) und [Korge](https://korge.org) unternommen
 
 Einige Handyspiele, die ich spiele, sind Brawl Stars und manchmal Genshin Impact. 😄
 
+Falls dich interessiert, wie schlecht ich spiele: Mein Brawl-Stars-Profil ist auf [Brawlify](https://brawlify.com/player/9V8LCUC0G) einsehbar.
+
 ## Tennis
 In letzter Zeit habe ich viel Spaß am Tennis, besonders seit wir einen Tennistisch im Büro meiner jetzigen Firma haben (ich liebe es absolut)!

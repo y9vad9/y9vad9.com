@@ -22,5 +22,7 @@ with [Godot](https://godotengine.org/) and [Korge](https://korge.org).
 
 Some mobile games that I play include Brawl Stars and sometimes Genshin Impact. 😄
 
+If you're curious how badly I'm doing, my Brawl Stars profile is on [Brawlify](https://brawlify.com/player/9V8LCUC0G).
+
 ## Tennis
 Lately I've been enjoying Tennis a lot, especially since we got a tennis table at my current company's office (absolutely love it)!
