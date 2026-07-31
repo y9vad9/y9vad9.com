@@ -87,6 +87,9 @@ export default defineConfig({
             'tests/store/**/*.test.ts',
             'tests/app/**/*.test.ts',
             'tests/content/**/*.test.ts',
+            // Cloudflare Pages functions. Pure helpers only — the middleware
+            // itself is exercised against the real runtime via `wrangler`.
+            'tests/functions/**/*.test.ts',
           ],
         },
       },

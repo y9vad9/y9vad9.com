@@ -61,3 +61,6 @@ public/_headers
 
 # onvu agent surfaces
 public/.onvu-headers-base
+
+# Local wrangler / miniflare state (pages dev)
+.wrangler/

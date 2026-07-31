@@ -178,6 +178,14 @@ export const config: SiteConfig = {
   // chrome and get nothing from it; a markdown mirror is far cheaper to read.
   // See https://developers.google.com/search/docs/fundamentals/ai-optimization-guide
   //
+  // One related switch lives outside this file. `functions/[locale]/notes/`
+  // is a Cloudflare Pages middleware that answers `Accept: text/markdown`
+  // with the mirror instead of the HTML — the one thing a static export
+  // cannot do by itself, since negotiation is per request rather than per
+  // URL. Its presence is the switch: delete the directory to serve note
+  // pages straight from the edge. It is inert on other hosts and needs no
+  // configuration, falling back to HTML whenever no mirror exists.
+  //
   // agents: {
   //   markdown: {
   //     enabled: true,
