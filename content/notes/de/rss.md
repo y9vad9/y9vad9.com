@@ -17,3 +17,7 @@ Ich biete separate Feeds für jede Sprache an. Sie können die unten stehenden L
 ## Wie benutzt man das?
 
 Die meisten modernen RSS-Reader (wie Feedly, Inoreader oder NetNewsWire) erkennen diese Links automatisch, wenn Sie sie in das Feld "Inhalt hinzufügen" oder "Abonnieren" einfügen.
+
+## Telegram
+
+Nicht alles, was teilenswert ist, wird zu einer Notiz. Ich habe außerdem einen öffentlichen Telegram-Kanal, [@vadymlog](https://t.me/vadymlog) — ein persönlicher Kanal über Programmierung, mein Leben und Dinge, die ich für teilenswert halte. Ankündigungen landen ebenfalls dort.
