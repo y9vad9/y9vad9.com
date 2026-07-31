@@ -10,73 +10,56 @@ parents: ["Persönlich"]
 > mich Widerstandsfähigkeit und Einfallsreichtum.
 
 ## Screenshots
-|                                                                                                         |                                                                                                                 |                                                                                                         |
-|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| [![](attachments/sketchcode-posts-screen.png)](attachments/sketchcode-posts-screen.png)       | [![](attachments/sketchcode-comments-screen.png)](attachments/sketchcode-comments-screen.png)         | [![](attachments/sketchcode-more-page.png)](attachments/sketchcode-more-page.png)             |
-| [![](attachments/sketchcode-project-manager.png)](attachments/sketchcode-project-manager.png) | [![](attachments/sketchcode-tutorials-screen.png)](attachments/sketchcode-tutorials-screen.png)       | [![](attachments/sketchcode-code-screen.png)](attachments/sketchcode-code-screen.png)         |
-| [![](attachments/sketchcode-chat-screen.jpeg)](attachments/sketchcode-chat-screen.jpeg)       | [![](attachments/sketchcode-pub-project-screen.jpeg)](attachments/sketchcode-pub-project-screen.jpeg) | [![](attachments/sketchcode-project-market.jpeg)](attachments/sketchcode-project-market.jpeg) |
+|  |  |  |
+| --- | --- | --- |
+| ![](attachments/sketchcode-posts-screen.png) | ![](attachments/sketchcode-comments-screen.png) | ![](attachments/sketchcode-more-page.png) |
+| ![](attachments/sketchcode-project-manager.png) | ![](attachments/sketchcode-tutorials-screen.png) | ![](attachments/sketchcode-code-screen.png) |
+| ![](attachments/sketchcode-chat-screen.jpeg) | ![](attachments/sketchcode-pub-project-screen.jpeg) | ![](attachments/sketchcode-project-market.jpeg) |
 > Hinweis: Leider habe ich nicht viele Screenshots (einschließlich der Veränderungen der App), daher stelle ich nur die zur Verfügung, die
 > ich gefunden habe.
 
 ## Geschichte
 
-Diese Seite ist der Geschichte von Sketchcode gewidmet, meinem allerersten Projekt, das als App
-für [Sketchware](https://sketchware-docs.vercel.app/) begann und
-mit Sketchware selbst erstellt wurde. Es war eine Herzensarbeit, die weit über die Grenzen der No-Code-Entwicklung
-hinausging und schließlich in Android Studio und Java mündete, was den Beginn meiner Programmiererlaufbahn markierte.
+Sketchcode war mein erstes Projekt — eine App für [Sketchware](https://sketchware-docs.vercel.app/), ursprünglich *in* Sketchware selbst gebaut. Ziemlich schnell stieß sie an die Grenzen von No-Code, also bin ich zu Android Studio und Java gewechselt. So habe ich mit dem Programmieren angefangen.
 
-### Erste Schritte: Globaler Feed und benutzerdefinierte Blöcke
+### Erste große Version (globaler Feed und Custom Blocks)
 
-Die erste Version von Sketchcode führte mehrere Kernfunktionen ein, die für die Sketchware-Community entwickelt wurden:
+Im ersten Release gab es drei Dinge:
 
-- Einen globalen Feed, in dem Benutzer Inhalte entdecken und teilen konnten.
-- Benutzerdefinierte Blöcke, die Sketchware-Benutzer einfach in ihre Projekte integrieren konnten.
-- Code-Snippets, die fortgeschrittenen Benutzern die Möglichkeit gaben, rohen Java-Code über einen dedizierten Baustein einzufügen.
+- Einen globalen Feed zum Teilen und Entdecken von Inhalten.
+- Custom Blocks, die man in eigene Projekte einbauen konnte.
+- Code-Snippets, damit fortgeschrittene Nutzer über einen eigenen Block reines Java einfügen konnten.
 
-Diese Funktionen bildeten die Grundlage von Sketchcode und machten es zu einem unverzichtbaren Werkzeug für Sketchware-Benutzer, die ihre Kreativität erweitern wollten.
+### Zweite große Version (Community und Tutorials)
 
-### Zweite Hauptversion: Community und Tutorials
+Hier konnten die Nutzer endlich selbst etwas beisteuern:
 
-Die zweite Hauptversion brachte die App auf die nächste Stufe, indem sie der Community ermöglichte, ihre eigenen Kreationen zu teilen:
+- Teilen von Custom Blocks und Snippets.
+- Ein Tutorial-Bereich — die ersten Guides habe ich selbst geschrieben.
+- Ein UI-Builder, mit dem Nutzer eigene Tutorials schreiben und veröffentlichen konnten.
 
-- Eine Funktion zum Teilen von benutzerdefinierten Blöcken und Snippets, die die Zusammenarbeit für Benutzer erleichterte.
-- Einen neuen Tutorial-Bereich mit von mir verfassten Anleitungen, um Benutzern den Einstieg zu erleichtern.
-- Einen UI-Builder für Tutorials, damit Benutzer ihre eigenen Lehrinhalte erstellen und teilen konnten.
+> Hinweis: Aus dieser Version habe ich keine Screenshots mehr, außer dem unten.
 
-> Hinweis: Leider habe ich keine Screenshots von dieser Version, daher stelle ich nur den einen zur Verfügung, den
-> ich gefunden habe.
+### Dritte große Version (Projekte und private Backups)
 
-Diese Version verwandelte Sketchcode in einen kollaborativen Raum, der das Lernen und die Kreativität förderte.
+- Nutzer konnten ihre Posts und ganze Sketchware-Projekte teilen.
+- Private Projekte — für alle, die einfach nur ein Backup wollten.
 
-### Dritte Hauptversion: Projekte und private Backups
+### Vierte Version (neues UI und Social Features)
 
-Die dritte Hauptversion führte wichtige neue Funktionen ein, um Benutzerprojekte zu unterstützen und zu präsentieren:
+- Ein überarbeitetes Interface.
+- Kommentare, Likes und andere Social Features im Projects Market.
 
-- Eine neue Funktion, die es Benutzern ermöglicht, ihre Beiträge und Sketchware-Projekte mit der Community zu teilen.
-- Eine Funktion für private Projekte für diejenigen, die eine sichere Sicherung ihrer Arbeit wünschten.
+Am schwierigsten war das Hosting der Projekte. Über 60 GB Serverspeicher, keine Monetarisierung, für alle kostenlos — ich habe viel Zeit damit verbracht, die Dateistruktur umzubauen und Uploads zu komprimieren, damit es bezahlbar blieb.
 
-Dieses Update etablierte Sketchcode als Drehscheibe für Sketchware-Benutzer, um sich zu verbinden, zusammenzuarbeiten und ihre Arbeit zu speichern.
+### Höhepunkt
 
-### Vierte Hauptversion: Große UI-Änderungen und Engagement-Funktionen
+Auf dem Höhepunkt hatte Sketchcode 3.000–4.000 Nutzer und über 10 Millionen Requests pro Monat. Ich habe eine Menge Nächte daran gesessen.
 
-Bei der vierten Hauptversion ging es darum, die Benutzerbindung zu verbessern und das Erlebnis zu optimieren:
+### Letztes großes Feature (Chat)
 
-- Eine überarbeitete Benutzeroberfläche, die der App ein modernes Aussehen und eine bessere Benutzerfreundlichkeit verlieh.
-- Verbesserungen am Projektmarkt, einschließlich Kommentaren, Likes und anderen sozialen Funktionen.
+Ein einfacher Chat mit Bildern und Stickern, damit die Leute sich direkt in der App unterhalten konnten. Wie das aussah, ist oben im Bilder-Karussell zu sehen.
 
-Die Unterstützung der Projekte-Funktion war eine große Herausforderung. Mit über 60 GB Serverspeicher und einem nicht monetarisierten, kostenlosen Ansatz verbrachte ich unzählige Stunden damit, Dateistrukturen zu optimieren und freigegebene Projekte zu komprimieren, um den Dienst reibungslos am Laufen zu halten.
+### Rückblick
 
-### Der Höhepunkt: 3-4 Tausend Benutzer
-
-Auf seinem Höhepunkt hatte Sketchcode 3.000–4.000 Benutzer, die über 10 Millionen Anfragen pro Monat generierten. Es war eine
-aufregende, anstrengende und zutiefst lohnende Zeit. Ich arbeitete oft die ganze Nacht durch, angetrieben von der Spannung des Bauens und
-Verbesserns von etwas, das die Leute wirklich gerne benutzten.
-
-### Letzte große Funktion: Chat-System
-
-Die letzte große Funktion, die ich eingeführt habe, war eine einfache Chat-Funktionalität mit Unterstützung für Bilder und Sticker. Dies
-gab den Benutzern eine Möglichkeit, sich in Echtzeit zu verbinden, was das Gemeinschaftsgefühl in der App weiter verbesserte.
-
-### Reflexionen
-
-Rückblickend war Sketchcode mehr als nur eine App. Es war mein Tor zum Programmieren und ein Projekt, das mich auf eine Weise wachsen ließ, die ich mir nie hätte vorstellen können. Von bescheidenen Anfängen in Sketchware bis zum Aufbau einer robusten, funktionsreichen Plattform bleibt es ein prägender Moment auf meinem Weg als Entwickler.
+Bei Sketchcode habe ich programmieren gelernt. Aus einer Sache, die ich in einer No-Code-App gebaut habe, wurde eine Plattform, die Leute wirklich genutzt haben — und das meiste, was ich heute kann, hat dort angefangen.

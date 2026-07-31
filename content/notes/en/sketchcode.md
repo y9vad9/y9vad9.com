@@ -10,79 +10,56 @@ parents: ["Personal"]
 > me resilience and resourcefulness.
 
 ## Screenshots
-|                                                                                                         |                                                                                                                 |                                                                                                         |
-|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| [![](attachments/sketchcode-posts-screen.png)](attachments/sketchcode-posts-screen.png)       | [![](attachments/sketchcode-comments-screen.png)](attachments/sketchcode-comments-screen.png)         | [![](attachments/sketchcode-more-page.png)](attachments/sketchcode-more-page.png)             |
-| [![](attachments/sketchcode-project-manager.png)](attachments/sketchcode-project-manager.png) | [![](attachments/sketchcode-tutorials-screen.png)](attachments/sketchcode-tutorials-screen.png)       | [![](attachments/sketchcode-code-screen.png)](attachments/sketchcode-code-screen.png)         |
-| [![](attachments/sketchcode-chat-screen.jpeg)](attachments/sketchcode-chat-screen.jpeg)       | [![](attachments/sketchcode-pub-project-screen.jpeg)](attachments/sketchcode-pub-project-screen.jpeg) | [![](attachments/sketchcode-project-market.jpeg)](attachments/sketchcode-project-market.jpeg) |
+|  |  |  |
+| --- | --- | --- |
+| ![](attachments/sketchcode-posts-screen.png) | ![](attachments/sketchcode-comments-screen.png) | ![](attachments/sketchcode-more-page.png) |
+| ![](attachments/sketchcode-project-manager.png) | ![](attachments/sketchcode-tutorials-screen.png) | ![](attachments/sketchcode-code-screen.png) |
+| ![](attachments/sketchcode-chat-screen.jpeg) | ![](attachments/sketchcode-pub-project-screen.jpeg) | ![](attachments/sketchcode-project-market.jpeg) |
 > Note: Unfortunately, I don't have much screenshots (including how app changed), so I provide the only those
 > I found out.
 
 ## History
 
-This page is dedicated to telling the story of Sketchcode, my very first project, which began as an app
-for [Sketchware](https://sketchware-docs.vercel.app/),
-built using Sketchware itself. It was the labor of love that evolved far beyond the limits of no-code
-development, eventually moving into Android Studio and Java, marking the start of my programming journey.
+Sketchcode was my first project — an app for [Sketchware](https://sketchware-docs.vercel.app/), originally built *in* Sketchware. It outgrew what no-code could do pretty quickly, so I moved it to Android Studio and Java. That's how I started programming.
 
-### First Steps: Global feed and custom blocks
+### First major version (global feed and custom blocks)
 
-The first release of Sketchcode introduced several core features designed for the Sketchware community:
+The first release had three things:
 
-- A global feed where users could discover and share content.
-- Custom blocks that Sketchware users could easily integrate into their projects.
-- Code snippets, enabling more advanced users to include raw Java code via a dedicated building block.
+- A global feed for sharing and discovering content.
+- Custom blocks users could drop into their own projects.
+- Code snippets, so more advanced users could insert raw Java through a dedicated block.
 
-These features gave Sketchcode its foundation and made it an indispensable tool for Sketchware users looking to expand
-their creativity.
+### Second major version (community and tutorials)
 
-### Second major version: Community and Tutorials
+This one opened things up so people could share their own stuff:
 
-The second major release took the app to the next level by making able the community to share their custom
-creations:
+- Sharing for custom blocks and snippets.
+- A tutorials section, with the first guides written by me.
+- A UI builder so users could write and publish their own tutorials.
 
-- A custom block and snippet sharing feature, making it easier for users to collaborate.
-- A new tutorials section, featuring guides written by me to help users get started.
-- A UI builder for tutorials, so users could create and share their own instructional content.
+> Note: I don't have screenshots from this version, apart from the one below.
 
-> Note: Unfortunately, I don't have screenshots from that version, so I provide the only one
-> I found out.
+### Third major version (projects and private backups)
 
-This version transformed Sketchcode into a collaborative space, fostering learning and creativity.
+- Users could share their posts and full Sketchware projects.
+- Private projects, for anyone who just wanted a backup.
 
-### Third major version: Projects and Private Backups
+### Fourth version (new UI and social features)
 
-The third major version introduced key new features to support and showcase user projects:
+- A redesigned UI.
+- Comments, likes and other social features in the Projects Market.
 
-- New feature, allowing users to share their posts and Sketchware projects with the community.
-- A private projects feature for those who wanted a secure backup of their work.
+Hosting the projects feature was the hard part. Over 60GB of server storage, no monetization, free for everyone — I spent a lot of time reorganizing file structures and compressing uploads to keep it affordable.
 
-This update cemented Sketchcode as a hub for Sketchware users to connect, collaborate, and store their work.
+### Peak
 
-### Fourth major version: Big UI Changes and Engagement Features
+At its peak Sketchcode had 3,000 — 4,000 users and over 10 million requests a month. I worked on it through a lot of nights.
 
-The fourth major release was all about improving user engagement and optimizing the experience:
+### Last major feature (chat)
 
-- A revamped UI, giving the app a modern look and better usability.
-- Enhancements to the Projects Market, including comments, likes, and other social features.
+A simple chat with image and sticker support, so people could talk to each other directly in the app. You can find how it looked like above in the image carousel.
 
-Supporting the projects feature was a significant challenge. With over 60GB of server storage and a non-monetized,
-free-for-all approach, I spent countless hours optimizing file structures and compressing shared projects to keep the
-service running smoothly.
+### Looking back
 
-### The Peak: 3-4K Users
-
-At its peak, Sketchcode had 3,000–4,000 users, generating over 10 million requests per month. It was an
-exciting, exhausting, and deeply rewarding time. I often worked through the night, driven by the thrill of building and
-improving something people genuinely loved to use.
-
-### Final major feature: Chat System
-
-The last major feature I introduced was simple chat functionality with support for images and stickers. This
-gave users a way to connect in real-time, further enhancing the sense of community within the app.
-
-### Reflections
-
-Looking back, Sketchcode was more than just an app. It was my gateway into programming and a project that pushed me to
-grow in ways I never imagined. From humble beginnings in Sketchware to building a robust, feature-rich platform, it
-remains a defining moment in my journey as a developer.
+Sketchcode is where I learned to program. It went from something I built inside a no-code app to a platform people actually relied on, and most of what I know now started there.

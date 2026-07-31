@@ -1,6 +1,6 @@
 ---
 title: Task Manager
-preview: "Journey back to the Task Manager, an archived mobile app focused on boosting device performance. Discover its features for managing startup apps, processes, and RAM, and learn about its notable success metrics in mobile optimization."
+preview: "One of mine early projects targeting Android to manage device's RAM, focusing on applications that start on device boot time."
 coverImage: ""
 parents: ["Personal"]
 ---
@@ -11,10 +11,9 @@ parents: ["Personal"]
 
 ## Features
 
-- **Startup Application Management**: Enable or disable applications that start when the phone boots.
-- **Process Management**: View and terminate running processes to free up system resources.
-- **RAM Cleaning**: Optimize memory usage for better performance.
-- **User-Friendly Interface**: Simple and intuitive UI for easy navigation.
+- Enable or disable applications that start when the phone boots.
+- View and terminate running processes to free up system resources.
+- ptimize memory usage for better performance using automatic cleanup.
 
 ## Achievements
 
@@ -23,11 +22,7 @@ parents: ["Personal"]
 
 ## Screenshots
 
-|                                                                                     |                                                                                 |                                                                                            |
-|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| [![](attachments/task-manager-processes.jpeg)](attachments/task-manager-processes.jpeg) | [![](attachments/task-manager-startup.jpeg)](attachments/task-manager-startup.jpeg) | [![](attachments/task-manager-startup_management.jpeg)](attachments/task-manager-startup_management.jpeg) |
+|  |  |  |
+| --- | --- | --- |
+| ![](attachments/task-manager-processes.jpeg) | ![](attachments/task-manager-startup.jpeg) | ![](attachments/task-manager-startup_management.jpeg) |
 
-## Conclusion
-
-Task Manager was a widely used tool for mobile optimization, helping users keep their devices running smoothly. While
-the project is no longer active, its impact and success remain notable.
