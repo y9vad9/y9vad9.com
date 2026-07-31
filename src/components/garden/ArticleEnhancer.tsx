@@ -115,8 +115,9 @@ export function ArticleEnhancer({
     function update() {
       const scrollTop = scroller!.scrollTop
       const docHeight = scroller!.scrollHeight - scroller!.clientHeight
-      const pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0
-      bar!.style.width = `${pct}%`
+      const ratio = docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0
+      // scaleX rather than width — see `#reading-progress` in globals.css.
+      bar!.style.transform = `scaleX(${ratio})`
     }
     scroller.addEventListener('scroll', update, { passive: true })
     update()

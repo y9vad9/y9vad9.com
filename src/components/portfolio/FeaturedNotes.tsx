@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Calendar, Clock } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDateShort } from '@lib/formatDate'
 import type { Note } from '@core/Note'
 
 /**
@@ -74,7 +74,7 @@ export function NoteCardLarge({
           {note.date && (
             <span className="flex items-center gap-1">
               <Calendar size={12} />
-              {format(note.date, 'MMM d, yyyy')}
+              {formatDateShort(note.date, locale)}
             </span>
           )}
           <span className="flex items-center gap-1">

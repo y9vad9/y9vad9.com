@@ -98,6 +98,43 @@ describe('processMarkdown', () => {
       expect(result.html).not.toContain('class="carousel"')
     })
 
+    it('sizes carousel images by their rendered width, not the body width', async () => {
+      // `.prose .carousel img` pins height to 220px with `width: auto`, so a
+      // 3144x4192 portrait renders 165px wide. Body images are told they are
+      // full-bleed; believing that here made the browser fetch an 800w
+      // variant to paint 165 CSS px.
+      const resolveImage = async (ref: string) => ({
+        src: `/notes-assets/${ref}-800.webp`,
+        srcset: `/notes-assets/${ref}-512.webp 512w, /notes-assets/${ref}-800.webp 800w`,
+        width: 3144,
+        height: 4192,
+      })
+      const md = `
+| Col1 | Col2 |
+|------|------|
+| ![a](./a.jpg) | ![b](./b.jpg) |
+`
+      const result = await processMarkdown(md, { resolveImage })
+      expect(result.html).toContain('class="carousel"')
+      // 220 * 3144/4192 = 165
+      expect(result.html).toContain('sizes="165px"')
+      expect(result.html).not.toContain('calc(100vw - 80px)')
+    })
+
+    it('leaves body images on the full-width sizes declaration', async () => {
+      // Guards the inverse: the carousel fix must not leak onto ordinary
+      // images, which really do render full-bleed.
+      const resolveImage = async (ref: string) => ({
+        src: `/notes-assets/${ref}-800.webp`,
+        srcset: `/notes-assets/${ref}-512.webp 512w, /notes-assets/${ref}-800.webp 800w`,
+        width: 3144,
+        height: 4192,
+      })
+      const result = await processMarkdown('![a](./a.jpg)\n', { resolveImage })
+      expect(result.html).toContain('calc(100vw - 80px)')
+      expect(result.html).not.toContain('sizes="165px"')
+    })
+
     it('builds a carousel from self-linked images, the shape editors export', async () => {
       // Obsidian and friends write galleries as `[![](x)](x)`. The anchor hid
       // the image from the detector, so a gallery stayed a table.

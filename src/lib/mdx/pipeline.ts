@@ -244,6 +244,34 @@ function rehypeInlineImages() {
   }
 }
 
+/**
+ * Rendered height of a carousel image, mirroring `.prose .carousel img` in
+ * `globals.css`. The carousel is a horizontal flex strip where images are
+ * pinned to this height with `width: auto`, so an image's rendered *width* is
+ * purely a function of its aspect ratio — which the build knows exactly.
+ *
+ * Keep in sync with globals.css; `carousel.test.ts` asserts the two agree.
+ */
+const CAROUSEL_IMAGE_HEIGHT_PX = 220
+
+/**
+ * Per-image `sizes` for a carousel entry.
+ *
+ * Body images are handed `(min-width: 768px) 720px, calc(100vw - 80px)`,
+ * which for a carousel is a lie: these render ~165px wide, not full-bleed.
+ * The browser believed the declaration and pulled the 800w variant for a
+ * 165px slot — 85 KB to paint 165 CSS px, which Lighthouse scored as 96%
+ * wasted on the single heaviest gallery image.
+ *
+ * A carousel image's width is `height × aspect`, and both are known here, so
+ * `sizes` can state the real number instead of approximating it.
+ */
+function carouselSizes(width: unknown, height: unknown): string | null {
+  if (typeof width !== 'number' || typeof height !== 'number') return null
+  if (!(width > 0) || !(height > 0)) return null
+  return `${Math.round(CAROUSEL_IMAGE_HEIGHT_PX * (width / height))}px`
+}
+
 function rehypeImageCarousel() {
   return () => (tree: HastRoot) => {
     visit(tree, 'element', (node: Element) => {
@@ -268,6 +296,15 @@ function rehypeImageCarousel() {
       for (const cell of dataCells) {
         for (const child of cell.children) {
           if (child.type === 'element' && child.tagName === 'img') {
+            // Only now is it known this image renders in a carousel rather
+            // than as a body image, so this is where its `sizes` gets
+            // corrected — `rehypeNoteImages` ran long before the table was
+            // recognised as a gallery.
+            const props = child.properties
+            if (props?.srcset) {
+              const sizes = carouselSizes(props.width, props.height)
+              if (sizes) props.sizes = sizes
+            }
             images.push(child)
           }
         }

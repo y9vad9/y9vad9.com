@@ -22,29 +22,29 @@ afterEach(() => {
 describe('useReadingProgress', () => {
   it('initialises the bar to 0% width', () => {
     renderHook(() => useReadingProgress())
-    expect((document.getElementById('reading-progress') as HTMLElement).style.width).toBe('0%')
+    expect((document.getElementById('reading-progress') as HTMLElement).style.transform).toBe('scaleX(0)')
   })
 
-  it('updates the bar width on scroll', () => {
+  it('updates the bar scale on scroll', () => {
     renderHook(() => useReadingProgress())
     act(() => {
       ;(window as unknown as { scrollY: number }).scrollY = 500
       window.dispatchEvent(new Event('scroll'))
     })
-    // (500 / (2000 - 1000)) * 100 = 50
-    expect((document.getElementById('reading-progress') as HTMLElement).style.width).toBe('50%')
+    // 500 / (2000 - 1000) = 0.5
+    expect((document.getElementById('reading-progress') as HTMLElement).style.transform).toBe('scaleX(0.5)')
   })
 
-  it('caps at 100% when scrolled past the bottom', () => {
+  it('caps at full scale when scrolled past the bottom', () => {
     renderHook(() => useReadingProgress())
     act(() => {
       ;(window as unknown as { scrollY: number }).scrollY = 9000
       window.dispatchEvent(new Event('scroll'))
     })
-    expect((document.getElementById('reading-progress') as HTMLElement).style.width).toBe('100%')
+    expect((document.getElementById('reading-progress') as HTMLElement).style.transform).toBe('scaleX(1)')
   })
 
-  it('shows 0% when there is no scrollable content (docHeight = 0)', () => {
+  it('stays at zero scale when there is no scrollable content (docHeight = 0)', () => {
     Object.defineProperty(document.documentElement, 'scrollHeight', {
       value: 800,
       configurable: true,
@@ -54,7 +54,7 @@ describe('useReadingProgress', () => {
       configurable: true,
     })
     renderHook(() => useReadingProgress())
-    expect((document.getElementById('reading-progress') as HTMLElement).style.width).toBe('0%')
+    expect((document.getElementById('reading-progress') as HTMLElement).style.transform).toBe('scaleX(0)')
   })
 
   it('is a no-op when #reading-progress is absent', () => {

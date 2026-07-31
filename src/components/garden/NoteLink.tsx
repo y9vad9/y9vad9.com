@@ -21,6 +21,7 @@ export const NoteLink = forwardRef<HTMLAnchorElement, NoteLinkProps>(
     const handleTabClick = useNoteLinkClick(slug, title)
     return (
       <Link
+        prefetch={false}
         {...rest}
         ref={ref}
         onClick={(e) => {

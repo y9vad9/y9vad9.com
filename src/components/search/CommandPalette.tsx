@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, X, FileText, Globe, Palette, Navigation } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
-import Fuse from 'fuse.js'
+// Type-only: erased at build. The constructor itself is pulled in on demand
+// (see the loader below) so the fuzzy-search engine doesn't ship in the
+// initial bundle of every page for a palette most visits never open.
+import type Fuse from 'fuse.js'
 import {
   parsePaletteQuery,
   mergeFuseResults,
@@ -48,6 +51,9 @@ export function CommandPalette() {
   const { theme, setTheme } = useThemeStore()
   const inputRef = useRef<HTMLInputElement>(null)
   const [index, setIndex] = useState<SearchIndexEntry[]>([])
+  // `useState` treats a bare function as a lazy initialiser, so the
+  // constructor has to be stored wrapped — hence `setFuseCtor(() => ctor)`.
+  const [FuseCtor, setFuseCtor] = useState<typeof Fuse | null>(null)
   const [highlightedIdx, setHighlightedIdx] = useState(0)
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
@@ -74,6 +80,20 @@ export function CommandPalette() {
     }
   }, [isOpen, index.length, locale])
 
+  // Load the search engine on the same trigger as the index. Both are useless
+  // until the palette is open, and the index fetch already gates the first
+  // query, so this adds no latency the user can perceive.
+  useEffect(() => {
+    if (!isOpen || FuseCtor) return
+    let cancelled = false
+    void import('fuse.js').then((mod) => {
+      if (!cancelled) setFuseCtor(() => mod.default)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, FuseCtor])
+
   // Focus input
   useEffect(() => {
     if (isOpen) setTimeout(() => inputRef.current?.focus(), 0)
@@ -99,17 +119,19 @@ export function CommandPalette() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [])
 
-  const fuse = useMemo(() => new Fuse(index, {
-    keys: [
-      { name: 'title', weight: 0.6 },
-      { name: 'preview', weight: 0.25 },
-      { name: 'parents', weight: 0.15 },
-    ],
-    threshold: 0.4,
-    ignoreLocation: true,
-    minMatchCharLength: 2,
-    includeScore: true,
-  }), [index])
+  const fuse = useMemo(() => (FuseCtor
+    ? new FuseCtor(index, {
+        keys: [
+          { name: 'title', weight: 0.6 },
+          { name: 'preview', weight: 0.25 },
+          { name: 'parents', weight: 0.15 },
+        ],
+        threshold: 0.4,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+        includeScore: true,
+      })
+    : null), [FuseCtor, index])
 
   // Split parent:foo filters out of the visible query (see paletteQuery.ts).
   const { cleanQuery, parentFilters } = useMemo(
@@ -119,7 +141,11 @@ export function CommandPalette() {
 
   const noteResults = useMemo(() => {
     if (!cleanQuery && parentFilters.length === 0) return index.slice(0, 5)
-    const fuseResults = cleanQuery ? mergeFuseResults(cleanQuery, fuse) : index
+    // `fuse` is null for the moment between opening the palette and the
+    // engine arriving. Falling back to the unfiltered index keeps the list
+    // populated instead of flashing "no results"; the index fetch it shares a
+    // trigger with means this window is rarely visible at all.
+    const fuseResults = cleanQuery && fuse ? mergeFuseResults(cleanQuery, fuse) : index
     return applyParentFilters(fuseResults, parentFilters).slice(0, 8)
   }, [cleanQuery, parentFilters, fuse, index])
 

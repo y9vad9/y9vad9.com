@@ -122,6 +122,7 @@ export function NotesHeader() {
 
       {/* Primary navigation */}
       <Link
+        prefetch={false}
         href={`/${locale}`}
         className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
         title={tNav('home')}

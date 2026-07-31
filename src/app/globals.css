@@ -7,6 +7,24 @@
    layout files (landing.tsx, footer.tsx) that author Tailwind classes. */
 @source '../../content';
 
+/* GeistMono, declared here rather than through `next/font`.
+ *
+ * `next/font` emits a preload on every route that references the font, and
+ * the reference would live in the root layout — so notes with no code paid
+ * 70 KB for a face they never paint. Owning the @font-face fixes the URL,
+ * which is what lets a note page preload it only when it has code. The file
+ * is copied out of the `geist` package at build time by `ensureMonoFont`.
+ *
+ * `swap` matters: without a preload, a code-bearing note paints its code in
+ * the fallback face and swaps when this arrives, rather than blocking. */
+@font-face {
+  font-family: 'GeistMono';
+  src: url('/fonts/geist-mono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* `@theme` is Tailwind 4's CSS-first replacement for the old JS
    `theme.extend` block in `tailwind.config.ts`. Each `--*-NAME` token
    becomes a utility (`bg-bg`, `text-fg`, `font-sans`, `rounded`, etc.)
@@ -24,7 +42,17 @@
   --color-card-hover: var(--card-hover);
 
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  /* Was supplied by `next/font`'s generated `.variable` class on <html>;
+   * now points at the @font-face declared above. */
+  --font-geist-mono: 'GeistMono';
+  /* Tailwind's `font-mono` utility — UI chrome only (the `/` search hint,
+   * header badges, graph labels). Deliberately a system stack rather than
+   * GeistMono: those badges render on every page, so pointing them at the
+   * webfont would force the 70 KB download everywhere and defeat the
+   * per-page preload. At 10-12px the difference is not perceptible.
+   * Prose code opts into the real face via `--font-geist-mono` below. */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 
   --radius-sm: 0.25rem;
   --radius: 0.5rem;
@@ -620,16 +648,31 @@ body {
 }
 
 /* ── Reading progress bar ────────────────────────────────────────────── */
+/* Driven by `transform: scaleX()`, not `width`.
+ *
+ * Animating `width` is not compositable — Lighthouse flagged this element
+ * with `unsupportedProperties: ['width']` — so every scroll frame forced
+ * layout, paint and composite on an element pinned above the whole page.
+ * A transform runs on the compositor and touches none of that.
+ *
+ * The visible difference: the gradient is now painted at full width and
+ * scaled, so the colour ramp is revealed progressively instead of being
+ * compressed into the filled portion. Keeping the old look would mean
+ * keeping the layout thrash, since only a real width change re-flows a
+ * gradient. */
 #reading-progress {
   position: fixed;
   top: 0;
   left: 0;
   height: 4px;
-  width: 0%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
   background: linear-gradient(to right, #4ade80, var(--primary));
   z-index: 9999;
-  transition: width 0.1s linear;
+  transition: transform 0.1s linear;
   pointer-events: none;
+  will-change: transform;
 }
 
 /* Hide the scrollbar on the notes body so the rounded card reads clean. */

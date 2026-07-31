@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { createRepository } from '@adapters/createRepositories'
 import { getNote } from '@core/GetNote'
+import { preload } from 'react-dom'
+import { MONO_FONT_URL, needsMonoFont } from '@lib/fonts/monoFont'
 import { listAllNotes } from '@core/ListNotes'
 import { getSeriesNavigation } from '@core/GetSeriesNavigation'
 import { getMentions } from '@core/GetMentions'
@@ -166,6 +168,20 @@ export default async function NotePage({
     : null
 
   const tGarden = await getTranslations({ locale, namespace: 'garden' })
+
+  // GeistMono is not preloaded globally — most notes never paint it, and the
+  // 70 KB cost 300ms of LCP on those. A note that actually contains code asks
+  // for it here, so code-bearing pages keep the head start they had while the
+  // rest stop paying for it.
+  //
+  // `preload()` rather than a rendered <link>: React hoists a JSX preload into
+  // <head> but leaves the original in the body too, emitting the tag twice.
+  // This API dedupes. `crossOrigin` is required even same-origin, because
+  // fonts are always fetched in CORS mode — without it the preload is
+  // discarded and the font fetched a second time.
+  if (needsMonoFont(note.body)) {
+    preload(MONO_FONT_URL, { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' })
+  }
 
   return (
     <>

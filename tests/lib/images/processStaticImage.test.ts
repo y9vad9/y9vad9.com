@@ -53,7 +53,7 @@ describe('processStaticImage — bucket resolution', () => {
     const result = await processStaticImage('/images/hero.png')
     expect(result).not.toBeNull()
     expect(result!.src).toMatch(/^\/notes-assets\/hero-[a-f0-9]{10}-\d+\.webp$/)
-    expect(result!.srcset).toMatch(/480w/)
+    expect(result!.srcset).toMatch(/512w/)
     expect(result!.width).toBe(1200)
     expect(result!.height).toBe(800)
   }, 15000)
@@ -200,7 +200,7 @@ describe('processStaticImage — cache + determinism', () => {
 })
 
 describe('processStaticImage — formats', () => {
-  it('GIFs are copied verbatim with no srcset', async () => {
+  it('GIFs go through the WebP encoder like any other still', async () => {
     const { processStaticImage } = await import('@lib/images/processStaticImage')
     const gif = await sharp({
       create: { width: 32, height: 32, channels: 4, background: '#fff' },
@@ -211,11 +211,12 @@ describe('processStaticImage — formats', () => {
 
     const result = await processStaticImage('/images/tiny.gif')
     expect(result).not.toBeNull()
-    expect(result!.src).toMatch(/\.gif$/)
-    expect(result!.srcset).toBe('')
-    const written = await fs.readFile(
-      path.join(tmpRoot, 'public', result!.src),
-    )
-    expect(written.equals(gif)).toBe(true)
+    // GIFs used to be copied byte-for-byte to protect animation. That spared
+    // still GIFs the encoder for no reason, and let a 440 KB animated one
+    // ship untouched; animation is now preserved by encoding to animated
+    // WebP instead of by opting out of encoding.
+    expect(result!.src).toMatch(/\.webp$/)
+    expect(result!.width).toBe(32)
+    expect(result!.height).toBe(32)
   }, 15000)
 })

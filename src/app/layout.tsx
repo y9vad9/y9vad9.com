@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
+// Mono is self-hosted rather than handled by `next/font` so its preload can be
+// decided per page — see `ensureMonoFont` for the measurements behind that.
+import { ensureMonoFont } from '@lib/fonts/monoFont'
 import { themeBootstrapScript, META_COLOR_SCHEME } from '@lib/theme'
 import './globals.css'
 import '../../content/theme.css'
@@ -31,16 +33,20 @@ export const viewport: Viewport = {
   colorScheme: META_COLOR_SCHEME,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Emits public/fonts/geist-mono.woff2 before the export step copies
+  // `public/`. Awaited here, in the one layout every route renders through,
+  // so no page can reference the file before it exists.
+  await ensureMonoFont()
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={GeistSans.variable}
     >
       <head>
         {/* Runs before React hydration.

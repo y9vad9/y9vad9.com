@@ -1,6 +1,6 @@
 import './note-article.css'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { formatDateLong, formatDateShort } from '@lib/formatDate'
 import { Calendar, Clock, Archive, History } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import type { Note } from '@core/Note'
@@ -67,13 +67,13 @@ export async function NoteArticle({
             {note.date && (
               <span className="flex items-center gap-1">
                 <Calendar size={13} />
-                {format(note.date, 'MMMM d, yyyy')}
+                {formatDateLong(note.date, locale)}
               </span>
             )}
             {note.updated && (
-              <span className="flex items-center gap-1" title={format(note.updated, 'MMMM d, yyyy')}>
+              <span className="flex items-center gap-1" title={formatDateLong(note.updated, locale)}>
                 <History size={13} />
-                {t('updated', { date: format(note.updated, 'MMM d, yyyy') })}
+                {t('updated', { date: formatDateShort(note.updated, locale) })}
               </span>
             )}
             <span className="flex items-center gap-1">
@@ -140,6 +140,7 @@ function ParentTag({
   }
   return (
     <Link
+      prefetch={false}
       href={`/${locale}/notes/${parent.slug}`}
       className="text-muted hover:text-primary underline-offset-4 hover:underline transition-colors"
     >

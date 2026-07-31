@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { format } from 'date-fns'
+import { formatDateShort } from '@lib/formatDate'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { NoteLink } from './NoteLink'
@@ -67,7 +67,7 @@ export function RelatedNotes({ notes }: { notes: RelatedNote[] }) {
               </p>
               {note.date && (
                 <p className="text-xs text-muted mt-1">
-                  {format(new Date(note.date), 'MMM d, yyyy')}
+                  {formatDateShort(note.date, params.locale)}
                 </p>
               )}
             </div>

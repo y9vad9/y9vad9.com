@@ -31,6 +31,9 @@ export const RouteLink = forwardRef<HTMLAnchorElement, RouteLinkProps>(
     const router = useRouter()
     return (
       <Link
+        // Default rather than override — `{...rest}` follows, so a caller
+        // that genuinely wants a route warmed can still pass `prefetch`.
+        prefetch={false}
         {...rest}
         ref={ref}
         onClick={(e) => {

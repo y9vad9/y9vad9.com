@@ -67,7 +67,7 @@ describe('FileSystemNoteRepository — cover image optimisation', () => {
     const note = await repo.getBySlug('a')
     expect(note).not.toBeNull()
     expect(note!.coverImage).toMatch(/^\/notes-assets\/banner-[a-f0-9]{10}-\d+\.webp$/)
-    expect(note!.coverImageSrcSet).toMatch(/480w/)
+    expect(note!.coverImageSrcSet).toMatch(/512w/)
     expect(note!.coverImageWidth).toBe(1200)
     expect(note!.coverImageHeight).toBe(675)
   }, 20000)
@@ -88,7 +88,7 @@ describe('FileSystemNoteRepository — cover image optimisation', () => {
     const repo = new FileSystemNoteRepository('en')
     const note = await repo.getBySlug('b')
     expect(note!.coverImage).toMatch(/^\/notes-assets\/cover-[a-f0-9]{10}-\d+\.webp$/)
-    expect(note!.coverImageSrcSet).toMatch(/480w/)
+    expect(note!.coverImageSrcSet).toMatch(/512w/)
   }, 20000)
 
   it('keeps relative coverImage refs working (no regression)', async () => {

@@ -26,8 +26,22 @@ const STICKY_FRAME = 'sticky top-11 self-start h-[calc(100dvh-2.75rem-0.5rem)]'
 // against the panel/header background. It owns ALL borders in the layout —
 // the header and side panels themselves are border-less. Scroll happens
 // inside it so the rounded corners stay visible.
-const BODY_FRAME =
-  `bg-bg border border-border rounded-2xl overflow-y-auto overflow-x-hidden ${STICKY_FRAME}`
+const BODY_FRAME_BASE =
+  `bg-bg border border-border rounded-2xl overflow-x-hidden ${STICKY_FRAME}`
+const BODY_FRAME = `${BODY_FRAME_BASE} overflow-y-auto`
+
+// The garden scrolls inside `#notes-scroll`, not on the document, so the
+// body-pinning trick the landing page uses does nothing here — a mobile
+// drawer overlaid the article and the article kept scrolling underneath it.
+// Taking the overflow away is enough to stop that, and unlike a fixed body it
+// preserves `scrollTop`, so the reader's position is exactly where they left
+// it when the drawer closes.
+const BODY_FRAME_LOCKED = `${BODY_FRAME_BASE} overflow-y-hidden`
+
+// Drawers hang below the h-11 header. `bottom-0` would resolve against the
+// large viewport and tuck the last entries behind mobile Chrome's retractable
+// toolbar, so the height is expressed in `dvh` instead.
+const MOBILE_DRAWER = 'fixed top-11 z-40 w-72 h-[calc(100dvh-2.75rem)] bg-shell flex flex-col overflow-hidden'
 
 export function PanelWrapper({
   noteList,
@@ -65,6 +79,22 @@ export function PanelWrapper({
     usePanelStore.setState({ leftOpen: true, rightOpen: true })
   }, [mounted, isMobile])
 
+  // `leftOpen`/`rightOpen` are persisted so a desktop reader keeps the layout
+  // they arranged. On mobile the same panels are modal drawers, and restoring
+  // a modal open is a bug rather than a preference: opening a note from the
+  // landing page dropped the reader straight into the file explorer, because
+  // some earlier visit had left `leftOpen: true` in localStorage.
+  //
+  // Closing whenever the mobile layout takes over — on mount, or on a resize
+  // across the breakpoint — costs nothing, since a drawer the reader opened
+  // during this visit doesn't re-run this effect.
+  useEffect(() => {
+    if (!mounted || !isMobile) return
+    usePanelStore.setState({ leftOpen: false, rightOpen: false })
+  }, [mounted, isMobile])
+
+  const anyPanelOpen = leftOpen || rightOpen
+
   if (!mounted) {
     return (
       <div className="flex flex-1 items-stretch gap-2 px-2 pb-2">
@@ -85,12 +115,15 @@ export function PanelWrapper({
               onClick={toggleLeft}
               aria-hidden="true"
             />
-            <aside className="fixed top-11 bottom-0 left-0 z-40 w-72 bg-shell flex flex-col overflow-hidden">
+            <aside className={`${MOBILE_DRAWER} left-0`}>
               <ExplorerPanel notes={noteList} />
             </aside>
           </>
         )}
-        <main id="notes-scroll" className={`flex-1 min-w-0 ${BODY_FRAME}`}>
+        <main
+          id="notes-scroll"
+          className={`flex-1 min-w-0 ${anyPanelOpen ? BODY_FRAME_LOCKED : BODY_FRAME}`}
+        >
           {children}
         </main>
         {rightOpen && (
@@ -100,7 +133,7 @@ export function PanelWrapper({
               onClick={toggleRight}
               aria-hidden="true"
             />
-            <aside className="fixed top-11 bottom-0 right-0 z-40 w-72 bg-shell flex flex-col overflow-hidden">
+            <aside className={`${MOBILE_DRAWER} right-0`}>
               <ToolsPanel />
             </aside>
           </>

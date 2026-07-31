@@ -34,6 +34,8 @@ next-env.d.ts
 # dynamically generated assets & static content (build-time optimized)
 public/notes-assets/
 public/_static/
+# copied out of the `geist` package by `ensureMonoFont` at build time
+public/fonts/
 
 # testing (vitest & coverage)
 coverage/
