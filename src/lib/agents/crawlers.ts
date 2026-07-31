@@ -158,12 +158,19 @@ export function buildCrawlerRules(
  * you from AI answers, and `userTriggered` fetches largely ignore robots.txt
  * anyway — neither is a call onvu should make for you.
  */
-export function crawlerPolicy(): CrawlerPolicyConfig {
-  const configured = siteConfig.agents?.crawlers ?? {}
+export function resolveCrawlerPolicy(
+  configured: CrawlerPolicyConfig | undefined,
+): CrawlerPolicyConfig {
+  const cfg = configured ?? {}
   return {
-    training: configured.training ?? 'block',
-    aiSearch: configured.aiSearch,
-    userTriggered: configured.userTriggered,
-    overrides: configured.overrides,
+    training: cfg.training ?? 'block',
+    aiSearch: cfg.aiSearch,
+    userTriggered: cfg.userTriggered,
+    overrides: cfg.overrides,
   }
+}
+
+/** `resolveCrawlerPolicy` applied to this site's config. */
+export function crawlerPolicy(): CrawlerPolicyConfig {
+  return resolveCrawlerPolicy(siteConfig.agents?.crawlers)
 }

@@ -73,11 +73,18 @@ export function buildContentSignal(cfg: ContentSignalsConfig | undefined): strin
  * the policy treats an absent signal as neither granting nor restricting.
  * Set `aiInput` explicitly to say either way.
  */
-export function contentSignals(): ContentSignalsConfig {
-  const configured = siteConfig.agents?.contentSignals ?? {}
+export function resolveContentSignals(
+  configured: ContentSignalsConfig | undefined,
+): ContentSignalsConfig {
+  const cfg = configured ?? {}
   return {
-    search: configured.search ?? true,
-    aiInput: configured.aiInput,
-    aiTrain: configured.aiTrain ?? false,
+    search: cfg.search ?? true,
+    aiInput: cfg.aiInput,
+    aiTrain: cfg.aiTrain ?? false,
   }
+}
+
+/** `resolveContentSignals` applied to this site's config. */
+export function contentSignals(): ContentSignalsConfig {
+  return resolveContentSignals(siteConfig.agents?.contentSignals)
 }

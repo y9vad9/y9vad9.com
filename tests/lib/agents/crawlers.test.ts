@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { buildCrawlerRules, crawlerPolicy, AI_CRAWLERS } from '@lib/agents/crawlers'
+import {
+  buildCrawlerRules,
+  crawlerPolicy,
+  resolveCrawlerPolicy,
+  AI_CRAWLERS,
+} from '@lib/agents/crawlers'
 
 const SITE_DISALLOW = ['/notes/graph', '/private']
 
@@ -112,23 +117,36 @@ describe('AI_CRAWLERS registry', () => {
   })
 })
 
-describe('crawlerPolicy — defaults', () => {
-  // These read the repo's own `site.config.ts`, which leaves `agents`
-  // commented out, so they pin what a fresh onvu site does out of the box.
-  it('blocks AI training even with no agents config at all', () => {
-    expect(crawlerPolicy().training).toBe('block')
+describe('resolveCrawlerPolicy — defaults', () => {
+  // Takes the configured value as an argument rather than reading
+  // `site.config.ts`, so these assert onvu's defaults on any fork. Reading
+  // the ambient config here would make the suite fail for every site that
+  // configures a policy — which is exactly how the earlier robots test broke.
+  it('blocks AI training when the site says nothing', () => {
+    expect(resolveCrawlerPolicy(undefined).training).toBe('block')
+    expect(resolveCrawlerPolicy({}).training).toBe('block')
   })
 
   it('takes no position on the other two groups', () => {
     // Blocking aiSearch is what removes you from AI answers, and
     // userTriggered fetches largely ignore robots.txt anyway. Neither is
     // onvu's call to make.
-    expect(crawlerPolicy().aiSearch).toBeUndefined()
-    expect(crawlerPolicy().userTriggered).toBeUndefined()
+    expect(resolveCrawlerPolicy(undefined).aiSearch).toBeUndefined()
+    expect(resolveCrawlerPolicy(undefined).userTriggered).toBeUndefined()
+  })
+
+  it('lets a site opt back into training with one key', () => {
+    expect(resolveCrawlerPolicy({ training: 'allow' }).training).toBe('allow')
+  })
+
+  it('preserves the other keys it does not default', () => {
+    const policy = resolveCrawlerPolicy({ aiSearch: 'allow', overrides: { CCBot: 'allow' } })
+    expect(policy.aiSearch).toBe('allow')
+    expect(policy.overrides).toEqual({ CCBot: 'allow' })
   })
 
   it('produces a crawlable, citable, untrainable site by default', () => {
-    const rules = buildCrawlerRules(crawlerPolicy(), SITE_DISALLOW)
+    const rules = buildCrawlerRules(resolveCrawlerPolicy(undefined), SITE_DISALLOW)
     const byToken = new Map(rules.map((r) => [r.userAgent, r]))
     // Training crawlers turned away...
     expect(byToken.get('GPTBot')?.disallow).toBe('/')
@@ -140,9 +158,17 @@ describe('crawlerPolicy — defaults', () => {
     expect(byToken.has('PerplexityBot')).toBe(false)
   })
 
-  it('leaves ordinary search engines entirely alone', () => {
-    const tokenList = tokens(buildCrawlerRules(crawlerPolicy(), SITE_DISALLOW))
-    expect(tokenList).not.toContain('Googlebot')
-    expect(tokenList).not.toContain('Bingbot')
+  it('never names an ordinary search engine, whatever the config', () => {
+    for (const policy of [undefined, { training: 'block' as const }, { aiSearch: 'block' as const }]) {
+      const tokenList = tokens(buildCrawlerRules(resolveCrawlerPolicy(policy), SITE_DISALLOW))
+      expect(tokenList).not.toContain('Googlebot')
+      expect(tokenList).not.toContain('Bingbot')
+    }
+  })
+
+  it('is what this site actually ships', () => {
+    // The one ambient-config assertion worth keeping: whatever the fork sets,
+    // the resolver is the thing producing it.
+    expect(crawlerPolicy()).toEqual(resolveCrawlerPolicy(crawlerPolicy()))
   })
 })

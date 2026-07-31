@@ -54,40 +54,33 @@ describe('buildRobots', () => {
   })
 })
 
-describe('buildRobots — out-of-the-box stance', () => {
-  // onvu ships "crawl me, cite me, don't train on me". These assert the
-  // whole file says that, not just one directive of it.
+describe('buildRobots — stance', () => {
+  // Invariants that hold whatever a fork configures. The defaults themselves
+  // are asserted against the pure resolvers in the crawlers/contentSignals
+  // suites, which take the config as an argument instead of reading it.
   const text = () => renderRobotsTxt(buildRobots())
 
-  it('turns the training crawlers away', () => {
-    expect(text()).toContain('User-Agent: GPTBot\nContent-Signal: ')
-    for (const token of ['GPTBot', 'ClaudeBot', 'Google-Extended']) {
-      const group = groups().find((g) => g.userAgent === token)
-      expect(group?.disallow, `${token} should be blocked by default`).toEqual(['/'])
-      expect(group?.allow).toBeUndefined()
-    }
-  })
-
   it('never blocks an ordinary search engine', () => {
-    // Blocking these would delist the site from search entirely.
+    // Blocking these would delist the site from search entirely, so no
+    // configuration should be able to produce a group for them.
     const named = groups().map((g) => g.userAgent)
     expect(named).not.toContain('Googlebot')
     expect(named).not.toContain('Bingbot')
   })
 
-  it('leaves the AI-answer crawlers to fall through to the wildcard allow', () => {
-    const named = groups().map((g) => g.userAgent)
-    expect(named).not.toContain('OAI-SearchBot')
-    expect(named).not.toContain('PerplexityBot')
+  it('keeps a wildcard group that still allows everything not named', () => {
     expect(wildcard().allow).toBe('/')
   })
 
-  it('states the matching use preference in every group', () => {
+  it('states the use preference once in every group, never missing one', () => {
     const out = text()
-    expect(out).toContain('Content-Signal: search=yes, ai-train=no')
-    // One per group, plus none missed.
-    const groupCount = groups().length
-    expect(out.match(/^Content-Signal: /gm) ?? []).toHaveLength(groupCount)
+    expect(out).toMatch(/^Content-Signal: .+$/m)
+    expect(out.match(/^Content-Signal: /gm) ?? []).toHaveLength(groups().length)
+  })
+
+  it('always says something about training, either way', () => {
+    // The signal defaults on, so robots.txt is never silent on the question.
+    expect(text()).toMatch(/^Content-Signal: .*ai-train=(yes|no)/m)
   })
 
   it('explains itself to whoever opens the file', () => {

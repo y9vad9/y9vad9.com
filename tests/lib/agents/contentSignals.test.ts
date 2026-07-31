@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { buildContentSignal, contentSignals } from '@lib/agents/contentSignals'
+import {
+  buildContentSignal,
+  contentSignals,
+  resolveContentSignals,
+} from '@lib/agents/contentSignals'
 
 describe('buildContentSignal', () => {
   it('returns null when nothing is configured, leaving robots.txt untouched', () => {
@@ -38,22 +42,32 @@ describe('buildContentSignal', () => {
   })
 })
 
-describe('contentSignals — defaults', () => {
-  // Reads the repo's own `site.config.ts`, which leaves `agents` commented
-  // out, so this pins what a fresh onvu site declares out of the box.
+describe('resolveContentSignals — defaults', () => {
+  // Argument-taking rather than config-reading, so these hold on any fork.
   it('refuses training and permits search without being configured', () => {
-    expect(buildContentSignal(contentSignals())).toBe('search=yes, ai-train=no')
+    expect(buildContentSignal(resolveContentSignals(undefined))).toBe('search=yes, ai-train=no')
+    expect(buildContentSignal(resolveContentSignals({}))).toBe('search=yes, ai-train=no')
   })
 
   it('states no preference on ai-input rather than guessing one', () => {
-    expect(contentSignals().aiInput).toBeUndefined()
-    expect(buildContentSignal(contentSignals())).not.toContain('ai-input')
+    expect(resolveContentSignals(undefined).aiInput).toBeUndefined()
+    expect(buildContentSignal(resolveContentSignals(undefined))).not.toContain('ai-input')
   })
 
   it('agrees with the crawler default — both axes say the same thing', () => {
     // `crawlers.training` defaults to 'block' (access) and `ai-train`
     // defaults to no (use). A site that said one but not the other would be
     // sending a mixed message to anything reading robots.txt.
-    expect(contentSignals().aiTrain).toBe(false)
+    expect(resolveContentSignals(undefined).aiTrain).toBe(false)
+  })
+
+  it('lets a site override every default, including back to permissive', () => {
+    expect(
+      buildContentSignal(resolveContentSignals({ search: false, aiInput: true, aiTrain: true })),
+    ).toBe('search=no, ai-input=yes, ai-train=yes')
+  })
+
+  it('always states something, so robots.txt is never silent on use', () => {
+    expect(buildContentSignal(contentSignals())).not.toBeNull()
   })
 })
