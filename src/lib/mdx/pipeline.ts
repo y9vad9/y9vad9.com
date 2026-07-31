@@ -113,11 +113,28 @@ function rehypeExtractAllOutgoingLinks(out: OutgoingLink[]) {
  * specific embed is a deliberate choice.
  */
 function rehypeLazyIframes() {
+  // `<iframe` that does not already carry a `loading` attribute. The embeds
+  // this targets arrive as raw HTML, so there is no parsed node to edit.
+  const BARE_IFRAME = /<iframe\b(?![^>]*\bloading\s*=)([^>]*?)(\/?)>/gi
+
   return () => (tree: HastRoot) => {
-    visit(tree, 'element', (node: Element) => {
-      if (node.tagName !== 'iframe') return
-      if (node.properties?.loading !== undefined) return
-      node.properties = { ...(node.properties ?? {}), loading: 'lazy' }
+    visit(tree, (node) => {
+      // An author pastes YouTube's snippet as literal HTML, and with
+      // `allowDangerousHtml` that survives to the output as a `raw` node —
+      // a string, never an `element`. Matching only on `element` silently did
+      // nothing to precisely the embeds this exists for.
+      if (node.type === 'raw') {
+        const raw = node as unknown as { value?: unknown }
+        if (typeof raw.value === 'string' && raw.value.includes('<iframe')) {
+          raw.value = raw.value.replace(BARE_IFRAME, '<iframe loading="lazy"$1$2>')
+        }
+        return
+      }
+      if (node.type !== 'element') return
+      const el = node as Element
+      if (el.tagName !== 'iframe') return
+      if (el.properties?.loading !== undefined) return
+      el.properties = { ...(el.properties ?? {}), loading: 'lazy' }
     })
   }
 }

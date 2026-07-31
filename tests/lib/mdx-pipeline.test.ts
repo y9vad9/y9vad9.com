@@ -281,3 +281,39 @@ describe('processMarkdown', () => {
     })
   })
 })
+
+describe('lazy iframes', () => {
+  const IFRAME = '<iframe src="https://www.youtube-nocookie.com/embed/abc" title="YouTube video player"></iframe>'
+
+  it('defers a pasted embed, which arrives as raw HTML rather than an element', async () => {
+    // The regression this guards: matching only on parsed `element` nodes did
+    // nothing here, because `allowDangerousHtml` keeps author HTML as a raw
+    // string all the way to the output.
+    const result = await processMarkdown(IFRAME)
+    expect(result.html).toContain('loading="lazy"')
+    expect(result.html).toContain('youtube-nocookie.com/embed/abc')
+  })
+
+  it('does not override an explicit loading choice', async () => {
+    const eager = IFRAME.replace('<iframe ', '<iframe loading="eager" ')
+    const result = await processMarkdown(eager)
+    expect(result.html).toContain('loading="eager"')
+    expect(result.html).not.toContain('loading="lazy"')
+  })
+
+  it('adds the attribute exactly once', async () => {
+    const result = await processMarkdown(`${IFRAME}\n\n${IFRAME}`)
+    expect((result.html.match(/loading="lazy"/g) ?? []).length).toBe(2)
+  })
+
+  it('handles a self-closing tag', async () => {
+    const result = await processMarkdown('<iframe src="https://example.com/e" />')
+    expect(result.html).toContain('loading="lazy"')
+    expect(result.html).not.toContain('loading="lazy"/loading')
+  })
+
+  it('leaves other markup alone', async () => {
+    const result = await processMarkdown('Just **text** and a [link](https://example.org).')
+    expect(result.html).not.toContain('loading="lazy"')
+  })
+})
