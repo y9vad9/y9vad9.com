@@ -49,5 +49,10 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # `wranglerVersion` has no default: left unset, the action resolves
+          # whatever Wrangler is current at deploy time, so the tool that
+          # publishes the site could change under you between two runs of the
+          # same commit. Pinned for the same reason package.json is.
+          wranglerVersion: '4.116.0'
           command: pages deploy out --project-name=y9vad9-site
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
