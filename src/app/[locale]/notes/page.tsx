@@ -60,6 +60,7 @@ export default async function GardenHubPage({
     preview: n.preview,
     date: n.date?.toISOString() ?? null,
     coverImage: n.coverImage,
+    coverImageSrcSet: n.coverImageSrcSet,
     parents: n.parents,
     series: n.series,
     order: n.order,
@@ -146,6 +147,7 @@ export default async function GardenHubPage({
                 preview: note.preview,
                 date: note.date?.toISOString() ?? null,
                 coverImage: note.coverImage,
+                coverImageSrcSet: note.coverImageSrcSet,
                 isArchived: note.isArchived,
                 isSeries: !!note.series,
               }}

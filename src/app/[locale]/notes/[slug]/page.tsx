@@ -154,6 +154,7 @@ export default async function NotePage({
     title: n.title,
     date: n.date?.toISOString() ?? null,
     coverImage: n.coverImage,
+    coverImageSrcSet: n.coverImageSrcSet,
   }))
 
   const seriesNavData = seriesNav

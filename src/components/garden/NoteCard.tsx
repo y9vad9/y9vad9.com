@@ -12,6 +12,12 @@ export interface NoteCardData {
   preview: string
   date: string | null
   coverImage: string | null
+  /**
+   * The pipeline's responsive ladder for the cover, when it has one.
+   * Optional so a fork rendering this card from its own data keeps building;
+   * without it the card falls back to `next/image`.
+   */
+  coverImageSrcSet?: string | null
   isArchived?: boolean
   isSeries?: boolean
 }
@@ -37,13 +43,30 @@ export function NoteCard({
     >
       {note.coverImage && (
         <div className="relative w-28 aspect-video rounded-lg overflow-hidden bg-bg flex-shrink-0">
-          <Image
-            src={note.coverImage}
-            alt={note.title}
-            fill
-            sizes="112px"
-            className="object-cover group-hover:scale-105 transition-transform"
-          />
+          {/* Under `ONVU_MODE=static` `next/image` is `unoptimized`, so it
+              emits no srcset and the browser takes the source-width file —
+              often ~1700px and 55 KiB — for this 112px thumbnail. Where the
+              pipeline built a ladder, use it. See `NoteCoverImage`. */}
+          {note.coverImageSrcSet ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={note.coverImage}
+              srcSet={note.coverImageSrcSet}
+              sizes="112px"
+              alt={note.title}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
+          ) : (
+            <Image
+              src={note.coverImage}
+              alt={note.title}
+              fill
+              sizes="112px"
+              className="object-cover group-hover:scale-105 transition-transform"
+            />
+          )}
         </div>
       )}
       <div className="flex-1 min-w-0">

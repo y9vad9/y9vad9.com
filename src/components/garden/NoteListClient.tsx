@@ -11,6 +11,7 @@ interface NoteItem {
   preview: string
   date: string | null
   coverImage: string | null
+  coverImageSrcSet: string | null
   parents: string[]
   series: string | null
   order: number | null
@@ -24,6 +25,7 @@ interface DisplayCard {
   preview: string
   date: string | null
   coverImage: string | null
+  coverImageSrcSet: string | null
   parents: string[]
   series: string | null
   isArchived: boolean
@@ -66,6 +68,7 @@ function toCard(note: NoteItem, useSeriesTitle: boolean): DisplayCard {
     preview: note.preview,
     date: note.date,
     coverImage: note.coverImage,
+    coverImageSrcSet: note.coverImageSrcSet,
     parents: note.parents,
     series: note.series,
     isArchived: note.isArchived,
@@ -184,6 +187,7 @@ export function NoteListClient({
                 preview: note.preview,
                 date: note.date,
                 coverImage: note.coverImage,
+                coverImageSrcSet: note.coverImageSrcSet,
                 isArchived: note.isArchived,
                 isSeries: !!note.series,
               }}

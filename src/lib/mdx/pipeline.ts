@@ -98,6 +98,68 @@ function rehypeExtractAllOutgoingLinks(out: OutgoingLink[]) {
   }
 }
 
+/**
+ * Unwrap `[![](x.png)](x.png)` — an image linked to itself.
+ *
+ * Editors that export image galleries (Obsidian among them) emit this
+ * constantly, and on a site that processes its images it is actively broken.
+ * The `<img src>` gets rewritten to the generated `/notes-assets/…webp`, but
+ * the `<a href>` is left as the author wrote it, so the anchor points at a
+ * raw attachment path that the build never publishes — a guaranteed 404 on
+ * every click. The wrapper also suppresses two behaviours the image should
+ * have had: it hides the image from the carousel detector, which looks for a
+ * cell containing exactly one `<img>`, and it swallows the click that would
+ * otherwise open the lightbox.
+ *
+ * Only self-links are unwrapped. `[![](thumb.png)](https://example.com)` is a
+ * deliberate link and is left alone, which is why the comparison is against
+ * the image's own `src` rather than "does this anchor contain an image".
+ *
+ * Must run before `rehypeNoteImages` — afterwards the `src` has been
+ * rewritten and no longer resembles the `href` it was written to match. It
+ * also runs before `rehypeInlineImages`, which strips `?inline` from the
+ * `src` but cannot strip it from the `href`.
+ */
+function rehypeUnwrapSelfLinkedImages() {
+  const normalise = (value: string): string => {
+    let out = value.trim()
+    try {
+      out = decodeURI(out)
+    } catch {
+      // A malformed escape is not a match candidate; compare it raw.
+    }
+    return out.replace(/^\.\//, '')
+  }
+
+  return () => (tree: HastRoot) => {
+    visit(tree, 'element', (node: Element) => {
+      if (node.tagName !== 'a') return
+      const href = typeof node.properties?.href === 'string' ? node.properties.href : ''
+      if (!href) return
+
+      // Anchor text alongside the image means the link is doing something of
+      // its own; only a bare image wrapper is safe to remove.
+      const hasText = node.children.some(
+        (child) => child.type === 'text' && child.value.trim() !== '',
+      )
+      if (hasText) return
+
+      const elements = node.children.filter(
+        (child): child is Element => child.type === 'element',
+      )
+      if (elements.length !== 1 || elements[0].tagName !== 'img') return
+
+      const img = elements[0]
+      const src = typeof img.properties?.src === 'string' ? img.properties.src : ''
+      if (!src || normalise(href) !== normalise(src)) return
+
+      node.tagName = img.tagName
+      node.properties = img.properties
+      node.children = img.children
+    })
+  }
+}
+
 // Detects the `?inline` marker on image URLs and turns the image into an
 // inline emoji-sized element. Authors write `![alt](/path/img.gif?inline)`
 // and we (a) strip the marker so the browser fetches the real file, (b)
@@ -494,6 +556,9 @@ export async function processMarkdown(
   }
   const rehypeChain = chain
     .use(remarkRehype, { allowDangerousHtml: true })
+    // Before every image plugin: it compares `href` against the *authored*
+    // `src`, which later stages rewrite.
+    .use(rehypeUnwrapSelfLinkedImages())
   // Inline-image detection runs BEFORE the note-image resolver so the
   // resolver sees a cleaned src (no `?inline` suffix) and so the inline
   // marker is in place — `rehypeNoteImages` skips srcset/width/height on

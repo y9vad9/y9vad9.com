@@ -97,6 +97,63 @@ describe('processMarkdown', () => {
       expect(result.html).toContain('<table>')
       expect(result.html).not.toContain('class="carousel"')
     })
+
+    it('builds a carousel from self-linked images, the shape editors export', async () => {
+      // Obsidian and friends write galleries as `[![](x)](x)`. The anchor hid
+      // the image from the detector, so a gallery stayed a table.
+      const md = `
+| Col1 | Col2 |
+|------|------|
+| [![](/a.jpg)](/a.jpg) | [![](/b.jpg)](/b.jpg) |
+`
+      const result = await processMarkdown(md)
+      expect(result.html).toContain('class="carousel"')
+      expect(result.html).not.toContain('<table>')
+    })
+  })
+
+  describe('self-linked images', () => {
+    it('unwraps an image linked to itself', async () => {
+      // The anchor is worse than redundant: `src` gets rewritten to the
+      // generated asset while `href` keeps the authored path, so the link
+      // 404s. It also swallowed the click that opens the lightbox.
+      const result = await processMarkdown('[![alt](/a.jpg)](/a.jpg)')
+      expect(result.html).toContain('<img')
+      expect(result.html).toContain('src="/a.jpg"')
+      expect(result.html).not.toContain('<a')
+    })
+
+    it('normalises a leading ./ on either side', async () => {
+      const result = await processMarkdown('[![alt](./a.jpg)](a.jpg)')
+      expect(result.html).toContain('<img')
+      expect(result.html).not.toContain('<a')
+    })
+
+    it('matches through percent-encoding', async () => {
+      // `<>` around the destination is what lets it hold a space at all —
+      // a bare `(my shot.jpg)` is not a link in CommonMark, so a test
+      // written that way would pass without proving anything.
+      const result = await processMarkdown('[![alt](my%20shot.jpg)](<my shot.jpg>)')
+      expect(result.html).toContain('<img')
+      expect(result.html).not.toContain('<a')
+    })
+
+    it('keeps an image that links somewhere else', async () => {
+      // A real link — removing it would delete something the author meant.
+      const result = await processMarkdown(`[![](/thumb.jpg)](https://example.com)`)
+      expect(result.html).toContain('href="https://example.com"')
+      expect(result.html).toContain('<img')
+    })
+
+    it('keeps an anchor that also carries text', async () => {
+      const result = await processMarkdown(`[![](/a.jpg) caption](/a.jpg)`)
+      expect(result.html).toContain('<a')
+    })
+
+    it('leaves ordinary links alone', async () => {
+      const result = await processMarkdown(`[docs](https://example.org)`)
+      expect(result.html).toContain('href="https://example.org"')
+    })
   })
 
   describe('rawText extraction', () => {
