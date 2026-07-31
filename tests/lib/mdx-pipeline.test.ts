@@ -317,3 +317,46 @@ describe('lazy iframes', () => {
     expect(result.html).not.toContain('loading="lazy"')
   })
 })
+
+describe('note videos', () => {
+  // The video plugin is only registered when a resolver is supplied, so a
+  // bare `processMarkdown` call leaves the `<img>` untouched — passing one is
+  // what makes these tests exercise anything at all.
+  const resolveVideo = async () => ({
+    src: '/notes-assets/clip-abc123.webm',
+    mimeType: 'video/webm',
+  })
+
+  it('does not preload a resolved video, so a page view costs no bytes', async () => {
+    // A metadata preload is two connections and ~94 KB in Chrome, spent on a
+    // page where most readers never press play. `.note-video` pins the aspect
+    // ratio in CSS, so nothing shifts by deferring it.
+    const result = await processMarkdown('![clip](./a.webm)', { resolveVideo })
+    expect(result.html).toContain('<video')
+    expect(result.html).toContain('preload="none"')
+    expect(result.html).not.toContain('preload="metadata"')
+  })
+
+  it('does not preload an external video either', async () => {
+    const result = await processMarkdown('![clip](https://example.com/a.webm)', {
+      resolveVideo,
+    })
+    expect(result.html).toContain('<video')
+    expect(result.html).toContain('preload="none"')
+  })
+
+  it('keeps controls so there is still something to press', async () => {
+    const result = await processMarkdown('![clip](./a.webm)', { resolveVideo })
+    expect(result.html).toContain('controls')
+  })
+
+  it('declares the source type so the browser need not sniff', async () => {
+    const result = await processMarkdown('![clip](./a.webm)', { resolveVideo })
+    expect(result.html).toContain('type="video/webm"')
+  })
+
+  it('leaves ordinary images alone', async () => {
+    const result = await processMarkdown('![pic](./a.png)', { resolveVideo })
+    expect(result.html).not.toContain('<video')
+  })
+})
