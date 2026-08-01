@@ -17,6 +17,7 @@ import { useSearchStore } from '@store/searchStore'
 import { usePanelStore } from '@store/panelStore'
 import { useShortcutsStore } from '@store/shortcutsStore'
 import { useShortcutsEnabled } from '@hooks/useShortcutsEnabled'
+import { useHasKeyboard } from '@hooks/useMediaQuery'
 import {
   GARDEN_SHORTCUTS,
   isMacPlatform,
@@ -54,6 +55,7 @@ export function CommandPalette() {
   const tNav = useTranslations('nav')
   const tCommands = useTranslations('commands')
   const shortcutsEnabled = useShortcutsEnabled()
+  const hasKeyboard = useHasKeyboard()
   const langLabel = useLocaleLabel()
   const { isOpen, query, close, setQuery } = useSearchStore()
   const locale = useLocale() as Locale
@@ -237,7 +239,9 @@ export function CommandPalette() {
           type: 'command',
           id: shortcut.id,
           label,
-          hint: shortcutsEnabled ? shortcutHint(shortcut, isMac) : undefined,
+          // A chord is worth printing only where it can be typed. The
+          // command itself stays — tapping it is the whole point on touch.
+          hint: shortcutsEnabled && hasKeyboard ? shortcutHint(shortcut, isMac) : undefined,
           onSelect: () => shortcut.run(commandActions),
         })
       }
@@ -250,7 +254,10 @@ export function CommandPalette() {
     const toggleLabel = shortcutsEnabled
       ? tCommands('disableShortcuts')
       : tCommands('enableShortcuts')
-    if (!q || toggleLabel.toLowerCase().includes(q) || 'shortcuts'.includes(q)) {
+    // Nothing to switch off on a device with no keys. Without this the
+    // landing page on a phone showed a Commands group whose only entry was
+    // an offer to disable shortcuts that cannot fire there anyway.
+    if (hasKeyboard && (!q || toggleLabel.toLowerCase().includes(q) || 'shortcuts'.includes(q))) {
       r.push({
         type: 'command',
         id: 'toggleShortcuts',
@@ -276,7 +283,8 @@ export function CommandPalette() {
 
     return r
   }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, pathname, router, langLabel,
-    tTheme, tNav, setTheme, gardenCommands, commandActions, shortcutsEnabled, tCommands])
+    tTheme, tNav, setTheme, gardenCommands, commandActions, shortcutsEnabled, hasKeyboard,
+    tCommands])
 
   function pickItem(
     item: (typeof allResults)[number],

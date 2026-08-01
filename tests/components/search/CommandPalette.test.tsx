@@ -10,6 +10,17 @@ import { SiteConfigProvider } from '@lib/config/SiteConfigProvider'
 import { config as baseConfig } from '~/site.config'
 import type { SiteConfig } from '@config/site'
 
+
+/** `true` = a fine pointer is available, which stands in for "has a keyboard". */
+function mockPointer(fine: boolean) {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: query.includes('any-pointer: fine') ? fine : false,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }))
+}
+
 const INDEX = [
   { slug: 'kotlin', title: 'Kotlin', preview: 'JVM lang', parents: ['Engineering'], rawText: '', date: null, coverImage: null },
   { slug: 'coroutines', title: 'Kotlin Coroutines', preview: 'Suspending', parents: ['Engineering'], rawText: '', date: null, coverImage: null },
@@ -20,6 +31,9 @@ beforeEach(() => {
   useSearchStore.setState({ isOpen: true, query: '' })
   useTabStore.setState({ tabs: [], activeSlug: null })
   useShortcutsStore.setState({ preference: null })
+  // Default the suite to a keyboard-capable device — `useHasKeyboard`
+  // reads `(any-pointer: fine)`, and jsdom ships no `matchMedia` at all.
+  mockPointer(true)
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
     ok: true,
     json: async () => INDEX,
@@ -41,6 +55,30 @@ function renderPalette(overrides: Partial<SiteConfig> = {}) {
 }
 
 describe('CommandPalette', () => {
+  describe('touch devices', () => {
+    it('drops the chord hints, which cannot be typed', async () => {
+      mockPointer(false)
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      // The commands themselves stay — tapping one is the whole point here.
+      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      expect(screen.queryByText(/^(⌘|Ctrl) \[$/)).not.toBeInTheDocument()
+      expect(screen.queryByText('G')).not.toBeInTheDocument()
+      state.pathname = '/en'
+    })
+
+    it('hides the shortcuts switch, since there is nothing to switch off', async () => {
+      // On the landing page this left a Commands group whose only row was an
+      // offer to disable keys the device does not have.
+      mockPointer(false)
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
+      expect(screen.queryByText('disableShortcuts')).not.toBeInTheDocument()
+      expect(screen.queryByText('enableShortcuts')).not.toBeInTheDocument()
+    })
+  })
+
   describe('user-side shortcut toggle', () => {
     it('offers the toggle everywhere, not just in the garden', async () => {
       // It governs the palette's own `/` too, so it has to be reachable from
@@ -72,6 +110,9 @@ describe('CommandPalette', () => {
 
     it('falls back to the site default when nothing is chosen', async () => {
       useShortcutsStore.setState({ preference: null })
+  // Default the suite to a keyboard-capable device — `useHasKeyboard`
+  // reads `(any-pointer: fine)`, and jsdom ships no `matchMedia` at all.
+  mockPointer(true)
       renderPalette({ shortcuts: { enabled: false } })
       await waitFor(() => expect(screen.getByText('enableShortcuts')).toBeInTheDocument())
     })

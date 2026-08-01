@@ -40,10 +40,20 @@ export function NoteCard({
       slug={note.slug}
       title={note.title}
       href={href}
-      className="group flex items-start gap-3 p-3 rounded-xl border border-border hover:border-primary hover:bg-card transition-all duration-300"
+      // `items-stretch`, not `items-start`. The thumbnail was a fixed
+      // 112x63 box while the card grows with its text: a title that wraps to
+      // two lines — routine at phone width — made the card 103px tall and
+      // left 40px of dead space under the image. Stretching ties the image to
+      // the card's own height, so every row reads as one block whatever the
+      // title does.
+      className="group flex items-stretch gap-3 p-3 rounded-xl border border-border hover:border-primary hover:bg-card transition-all duration-300"
     >
       {note.coverImage && (
-        <div className="relative w-28 aspect-video rounded-lg overflow-hidden bg-bg flex-shrink-0">
+        // No `aspect-video`: the height now comes from the stretch, and a
+        // fixed ratio would fight it. `object-cover` on the image below keeps
+        // the frame filled at whatever height the row settles on. `min-h-16`
+        // guards the degenerate case of a card with almost no text.
+        <div className="relative w-28 min-h-16 rounded-lg overflow-hidden bg-bg flex-shrink-0">
           {/* Under `ONVU_MODE=static` `next/image` is `unoptimized`, so it
               emits no srcset and the browser takes the source-width file —
               often ~1700px and 55 KiB — for this 112px thumbnail. Where the
