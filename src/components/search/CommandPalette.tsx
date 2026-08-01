@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { Search, X, FileText, Globe, Palette, Navigation } from 'lucide-react'
+import { Search, X, FileText, Globe, Palette, Navigation, Command } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 // Type-only: erased at build. The constructor itself is pulled in on demand
 // (see the loader below) so the fuzzy-search engine doesn't ship in the
@@ -14,6 +14,15 @@ import {
   applyParentFilters,
 } from '@lib/search/paletteQuery'
 import { useSearchStore } from '@store/searchStore'
+import { usePanelStore } from '@store/panelStore'
+import { useShortcutsStore } from '@store/shortcutsStore'
+import { useShortcutsEnabled } from '@hooks/useShortcutsEnabled'
+import {
+  GARDEN_SHORTCUTS,
+  isMacPlatform,
+  shortcutHint,
+  type ShortcutActions,
+} from '@lib/shortcuts/gardenShortcuts'
 import { useThemeStore, THEMES } from '@store/themeStore'
 import { useTabStore } from '@store/tabStore'
 import { useNoteContextStore } from '@store/noteContextStore'
@@ -43,6 +52,8 @@ export function CommandPalette() {
   const t = useTranslations('search')
   const tTheme = useTranslations('theme')
   const tNav = useTranslations('nav')
+  const tCommands = useTranslations('commands')
+  const shortcutsEnabled = useShortcutsEnabled()
   const langLabel = useLocaleLabel()
   const { isOpen, query, close, setQuery } = useSearchStore()
   const locale = useLocale() as Locale
@@ -99,8 +110,14 @@ export function CommandPalette() {
     if (isOpen) setTimeout(() => inputRef.current?.focus(), 0)
   }, [isOpen])
 
-  // Keyboard shortcut to open
+  // Keyboard shortcut to open.
+  //
+  // Governed by the same switch as everything else: "disable shortcuts" that
+  // left `/` and double-Shift live would not be disabling shortcuts. The way
+  // back is the search control in the header — always visible in the garden,
+  // and on the landing page above the `md` breakpoint.
   useEffect(() => {
+    if (!shortcutsEnabled) return
     let lastShift = 0
     function handleKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName
@@ -117,7 +134,7 @@ export function CommandPalette() {
     }
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [shortcutsEnabled])
 
   const fuse = useMemo(() => (FuseCtor
     ? new FuseCtor(index, {
@@ -152,8 +169,42 @@ export function CommandPalette() {
   const otherLocales = LOCALES.filter((l) => l !== locale)
   const otherThemes = THEMES.filter((th) => th !== theme)
 
+  // Commands are offered wherever the garden shell is mounted, since that is
+  // where they have an effect. Whether the *chord* is advertised depends on
+  // `shortcuts.enabled`: with bindings off the actions are still worth
+  // listing — the palette is the non-keyboard way to reach them, which is
+  // exactly what someone who turned the letter keys off needs — but printing
+  // a key that no longer fires would be a lie.
+  const gardenCommands = useMemo(
+    () => (pathname.startsWith(`/${locale}/notes`) ? GARDEN_SHORTCUTS : []),
+    [pathname, locale],
+  )
+
+  const commandActions = useMemo<ShortcutActions>(
+    () => ({
+      // Read through `getState()` rather than subscribing: the palette has no
+      // reason to re-render when a panel toggles behind it.
+      toggleLeft: () => usePanelStore.getState().toggleLeft(),
+      toggleRight: () => usePanelStore.getState().toggleRight(),
+      closeActiveTab: () => {
+        const { activeSlug, closeTab } = useTabStore.getState()
+        if (activeSlug) closeTab(activeSlug)
+      },
+      focusExplorer: (mode) => usePanelStore.getState().focusExplorer(mode),
+      focusTools: (mode) => usePanelStore.getState().focusTools(mode),
+    }),
+    [],
+  )
+
   const allResults = useMemo(() => {
-    const r: Array<{ type: string; id: string; label: string; onSelect: () => void }> = []
+    const r: Array<{
+      type: string
+      id: string
+      label: string
+      /** Keyboard chord, shown right-aligned. Commands only. */
+      hint?: string
+      onSelect: () => void
+    }> = []
 
     // Navigation. Match the user's typed query against the localised label
     // so e.g. typing "Гол" surfaces Головна on the uk locale; falling back
@@ -173,6 +224,41 @@ export function CommandPalette() {
       r.push({ type: 'nav', id: 'notes', label: gardenLabel, onSelect: () => router.push(`/${locale}/notes`) })
     }
 
+    // Garden commands. Listed only where they do something: the bindings are
+    // installed by the notes layout, so on the landing page these would be
+    // dead entries. Each carries its chord so the palette doubles as the
+    // place you learn the shortcuts exist.
+    if (gardenCommands.length > 0) {
+      const isMac = isMacPlatform()
+      for (const shortcut of gardenCommands) {
+        const label = tCommands(shortcut.id)
+        if (q && !label.toLowerCase().includes(q)) continue
+        r.push({
+          type: 'command',
+          id: shortcut.id,
+          label,
+          hint: shortcutsEnabled ? shortcutHint(shortcut, isMac) : undefined,
+          onSelect: () => shortcut.run(commandActions),
+        })
+      }
+    }
+
+    // The switch itself, listed everywhere rather than only in the garden:
+    // it governs the palette's own `/` and double-Shift too, so someone who
+    // turned shortcuts off needs to find it from wherever they are. It is
+    // also the only way back once the keyboard route is closed.
+    const toggleLabel = shortcutsEnabled
+      ? tCommands('disableShortcuts')
+      : tCommands('enableShortcuts')
+    if (!q || toggleLabel.toLowerCase().includes(q) || 'shortcuts'.includes(q)) {
+      r.push({
+        type: 'command',
+        id: 'toggleShortcuts',
+        label: toggleLabel,
+        onSelect: () => useShortcutsStore.getState().setPreference(!shortcutsEnabled),
+      })
+    }
+
     // Notes
     noteResults.forEach((n) =>
       r.push({ type: 'note', id: n.slug, label: n.title, onSelect: () => router.push(`/${locale}/notes/${n.slug}`) }),
@@ -189,7 +275,8 @@ export function CommandPalette() {
     )
 
     return r
-  }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, pathname, router, langLabel, tTheme, tNav, setTheme])
+  }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, pathname, router, langLabel,
+    tTheme, tNav, setTheme, gardenCommands, commandActions, shortcutsEnabled, tCommands])
 
   function pickItem(
     item: (typeof allResults)[number],
@@ -235,6 +322,7 @@ export function CommandPalette() {
     note: <FileText size={13} className="text-muted" />,
     lang: <Globe size={13} className="text-muted" />,
     theme: <Palette size={13} className="text-muted" />,
+    command: <Command size={13} className="text-muted" />,
   }
 
   const LABELS: Record<string, string> = {
@@ -242,6 +330,7 @@ export function CommandPalette() {
     note: t('notes'),
     lang: t('languages'),
     theme: t('themes'),
+    command: tCommands('heading'),
   }
 
   // Group results by type for rendering
@@ -314,7 +403,15 @@ export function CommandPalette() {
                   >
                     {ICONS[item.type]}
                     <span className="flex-1 truncate">{item.label}</span>
-                    {isHighlighted && (
+                    {/* The chord is the discoverability payload — it stays
+                        visible whether or not the row is highlighted, so
+                        scanning the list teaches the shortcuts. */}
+                    {item.hint && (
+                      <kbd className="text-xs px-1.5 py-0.5 rounded border border-border text-muted flex-shrink-0">
+                        {item.hint}
+                      </kbd>
+                    )}
+                    {isHighlighted && !item.hint && (
                       <span className="text-xs text-muted flex-shrink-0">{t('view')}</span>
                     )}
                   </button>

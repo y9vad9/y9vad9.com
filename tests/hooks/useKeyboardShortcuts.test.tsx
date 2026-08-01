@@ -28,6 +28,37 @@ function press(opts: Partial<KeyboardEventInit> & { key?: string; code?: string 
 }
 
 describe('useKeyboardShortcuts', () => {
+  describe('disabled via site config', () => {
+    it('binds nothing when disabled', () => {
+      // `shortcuts.enabled: false` exists for readers whose assistive tech
+      // sends bare letters to the document — those must reach the page
+      // untouched, not merely be ignored after preventDefault.
+      renderHook(() => useKeyboardShortcuts(false))
+      act(() => press({ key: '[', ctrlKey: true }))
+      expect(usePanelStore.getState().leftOpen).toBe(true)
+      act(() => press({ key: 'g', code: 'KeyG' }))
+      expect(usePanelStore.getState().toolsMode).toBe('toc')
+    })
+
+    it('does not consume the event when disabled', () => {
+      renderHook(() => useKeyboardShortcuts(false))
+      const event = new KeyboardEvent('keydown', { key: 'g', code: 'KeyG', bubbles: true, cancelable: true })
+      act(() => { document.dispatchEvent(event) })
+      expect(event.defaultPrevented).toBe(false)
+    })
+
+    it('binds again when re-enabled', () => {
+      const { rerender } = renderHook(({ on }) => useKeyboardShortcuts(on), {
+        initialProps: { on: false },
+      })
+      act(() => press({ key: '[', ctrlKey: true }))
+      expect(usePanelStore.getState().leftOpen).toBe(true)
+      rerender({ on: true })
+      act(() => press({ key: '[', ctrlKey: true }))
+      expect(usePanelStore.getState().leftOpen).toBe(false)
+    })
+  })
+
   it('toggles the left panel on Ctrl/Cmd+[', () => {
     renderHook(() => useKeyboardShortcuts())
     act(() => press({ key: '[', ctrlKey: true }))

@@ -329,8 +329,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                   onMouseEnter={() => filesNav.pointTo(idx)}
                   onClick={dismissDrawer}
                   className={`panel-item ${isCurrent ? 'is-active' : ''} ${isKbd ? 'is-kbd' : ''}`}
-                  role="option"
-                  aria-selected={isCurrent}
+                  aria-current={isCurrent ? 'page' : undefined}
                 >
                   <span className="truncate flex-1">{entry.displayTitle}</span>
                   {entry.isSeries && (
@@ -380,7 +379,6 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 onMouseEnter={() => searchNav.pointTo(idx)}
                 onClick={dismissDrawer}
                 className={`panel-item-block ${searchNav.kbdActive && idx === searchNav.idx ? 'is-active' : ''}`}
-                role="option"
               >
                 <p className="text-sm font-medium truncate">{entry.title}</p>
                 <p className="text-xs text-muted line-clamp-2 mt-0.5">

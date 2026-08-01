@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, fireEvent, screen, waitFor } from '@testing-library/react'
+import { render, fireEvent, screen, waitFor, act } from '@testing-library/react'
 import { CommandPalette } from '@components/search/CommandPalette'
 import { useSearchStore } from '@store/searchStore'
 import { useTabStore } from '@store/tabStore'
+import { usePanelStore } from '@store/panelStore'
+import { useShortcutsStore } from '@store/shortcutsStore'
 import { getRouterMock } from '../../utils/nextRouter'
+import { SiteConfigProvider } from '@lib/config/SiteConfigProvider'
+import { config as baseConfig } from '~/site.config'
+import type { SiteConfig } from '@config/site'
 
 const INDEX = [
   { slug: 'kotlin', title: 'Kotlin', preview: 'JVM lang', parents: ['Engineering'], rawText: '', date: null, coverImage: null },
@@ -14,22 +19,135 @@ const INDEX = [
 beforeEach(() => {
   useSearchStore.setState({ isOpen: true, query: '' })
   useTabStore.setState({ tabs: [], activeSlug: null })
+  useShortcutsStore.setState({ preference: null })
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
     ok: true,
     json: async () => INDEX,
   } as Response))
 })
 
+
+/**
+ * The palette reads `shortcuts.enabled` from site config to decide whether to
+ * advertise key chords, so it now needs the provider its production tree
+ * already gives it (`ClientProviders` sits inside `SiteConfigProvider`).
+ */
+function renderPalette(overrides: Partial<SiteConfig> = {}) {
+  return render(
+    <SiteConfigProvider value={{ ...baseConfig, ...overrides }}>
+      <CommandPalette />
+    </SiteConfigProvider>,
+  )
+}
+
 describe('CommandPalette', () => {
+  describe('user-side shortcut toggle', () => {
+    it('offers the toggle everywhere, not just in the garden', async () => {
+      // It governs the palette's own `/` too, so it has to be reachable from
+      // wherever the reader turned shortcuts off.
+      const { state } = await getRouterMock()
+      state.pathname = '/en'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('disableShortcuts')).toBeInTheDocument())
+      expect(screen.queryByText('toggleLeft')).not.toBeInTheDocument()
+    })
+
+    it('flips the stored preference and relabels itself', async () => {
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('disableShortcuts')).toBeInTheDocument())
+      fireEvent.click(screen.getByText('disableShortcuts'))
+      expect(useShortcutsStore.getState().preference).toBe(false)
+      // Selecting a command closes the palette, as every other command does,
+      // so the relabel is only visible on the next open.
+      act(() => useSearchStore.setState({ isOpen: true }))
+      await waitFor(() => expect(screen.getByText('enableShortcuts')).toBeInTheDocument())
+    })
+
+    it("the reader's choice overrides the site default", async () => {
+      // Site config says off; the reader turned them back on.
+      useShortcutsStore.setState({ preference: true })
+      renderPalette({ shortcuts: { enabled: false } })
+      await waitFor(() => expect(screen.getByText('disableShortcuts')).toBeInTheDocument())
+    })
+
+    it('falls back to the site default when nothing is chosen', async () => {
+      useShortcutsStore.setState({ preference: null })
+      renderPalette({ shortcuts: { enabled: false } })
+      await waitFor(() => expect(screen.getByText('enableShortcuts')).toBeInTheDocument())
+    })
+
+    it('stops the / key opening the palette once disabled', async () => {
+      useShortcutsStore.setState({ preference: false })
+      useSearchStore.setState({ isOpen: false, query: '' })
+      renderPalette()
+      fireEvent.keyDown(document, { key: '/' })
+      expect(useSearchStore.getState().isOpen).toBe(false)
+      // …and works again when re-enabled.
+      useShortcutsStore.setState({ preference: true })
+      await waitFor(() => {
+        fireEvent.keyDown(document, { key: '/' })
+        expect(useSearchStore.getState().isOpen).toBe(true)
+      })
+    })
+  })
+
+  describe('garden commands', () => {
+    it('lists the shortcuts with their chords on a garden route', async () => {
+      // The palette is where these shortcuts become discoverable at all —
+      // nothing else in the UI names them.
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      expect(screen.getByText('graph')).toBeInTheDocument()
+      // Chord rendered beside the row, platform-resolved.
+      expect(screen.getByText(/^(⌘|Ctrl) \[$/)).toBeInTheDocument()
+      expect(screen.getByText('G')).toBeInTheDocument()
+      state.pathname = '/en'
+    })
+
+    it('offers no commands outside the garden, where they would do nothing', async () => {
+      const { state } = await getRouterMock()
+      state.pathname = '/en'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
+      expect(screen.queryByText('toggleLeft')).not.toBeInTheDocument()
+    })
+
+    it('keeps the commands but drops the chords when shortcuts are disabled', async () => {
+      // Turning the keys off must not remove the actions: the palette is the
+      // non-keyboard way to reach them. It must also stop printing a key that
+      // no longer fires.
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette({ shortcuts: { enabled: false } })
+      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      expect(screen.queryByText(/^(⌘|Ctrl) \[$/)).not.toBeInTheDocument()
+      expect(screen.queryByText('G')).not.toBeInTheDocument()
+      state.pathname = '/en'
+    })
+
+    it('runs the action when a command is selected', async () => {
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      const before = usePanelStore.getState().leftOpen
+      fireEvent.click(screen.getByText('toggleLeft'))
+      expect(usePanelStore.getState().leftOpen).toBe(!before)
+      state.pathname = '/en'
+    })
+  })
+
   it('renders results once the index has loaded', async () => {
-    render(<CommandPalette />)
+    renderPalette()
     await waitFor(() => {
       expect(screen.getByText('Kotlin')).toBeInTheDocument()
     })
   })
 
   it('filters by parent:filter syntax', async () => {
-    render(<CommandPalette />)
+    renderPalette()
     await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
     fireEvent.change(screen.getByPlaceholderText('placeholder'), {
       target: { value: 'parent:Frontend' },
@@ -42,7 +160,7 @@ describe('CommandPalette', () => {
 
   it('Enter on a highlighted note navigates via router', async () => {
     const { router } = await getRouterMock()
-    render(<CommandPalette />)
+    renderPalette()
     await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
     const input = screen.getByPlaceholderText('placeholder')
     fireEvent.change(input, { target: { value: 'kotlin' } })
@@ -54,7 +172,7 @@ describe('CommandPalette', () => {
 
   it('Ctrl+Enter pins a note as a new tab and navigates', async () => {
     const { router } = await getRouterMock()
-    render(<CommandPalette />)
+    renderPalette()
     await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
     const input = screen.getByPlaceholderText('placeholder')
     fireEvent.change(input, { target: { value: 'kotlin' } })
@@ -65,7 +183,7 @@ describe('CommandPalette', () => {
   })
 
   it('Escape closes the palette', async () => {
-    render(<CommandPalette />)
+    renderPalette()
     await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
     fireEvent.keyDown(screen.getByPlaceholderText('placeholder'), { key: 'Escape' })
     expect(useSearchStore.getState().isOpen).toBe(false)

@@ -19,9 +19,10 @@ import { useSearchStore } from '@store/searchStore'
 import { useOnClickOutside } from '@hooks/useOnClickOutside'
 import { useBodyScrollLock } from '@hooks/useBodyScrollLock'
 import { useSiteConfig } from '@lib/config/SiteConfigProvider'
+import { useShortcutsEnabled } from '@hooks/useShortcutsEnabled'
 import { navigation } from '~/content/navigation'
 import type { NavGroup as NavGroupType, NavLink } from '@config/navigation'
-import { LOCALES } from '@i18n/routing'
+import { LOCALES, MULTILINGUAL } from '@i18n/routing'
 import type { Locale, ThemeOption } from '@config/site'
 
 /**
@@ -85,6 +86,7 @@ export function Header() {
   const pathname = usePathname()
   const { theme, cycleTheme } = useThemeStore()
   const openSearch = useSearchStore((s) => s.open)
+  const shortcutsEnabled = useShortcutsEnabled()
 
   const [isVisible, setIsVisible] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -157,14 +159,28 @@ export function Header() {
             <button
               onClick={() => openSearch()}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-sm text-muted hover:border-primary hover:text-fg transition-colors w-56"
-              aria-label={tHeader('searchHint')}
+              // No `aria-label` — see the note on the garden's search button.
+              // "Press / to search" did not contain the visible "Search…", and
+              // was wrong outright once the reader turned shortcuts off.
             >
-              <Search size={14} className="flex-shrink-0" />
+              <Search size={14} className="flex-shrink-0" aria-hidden="true" />
               <span className="text-xs flex-1 text-left truncate">{tHeader('searchPlaceholder')}</span>
-              <kbd className="text-xs px-1.5 py-0.5 rounded border border-border font-mono flex-shrink-0">/</kbd>
+              {shortcutsEnabled && (
+                <kbd
+                  aria-hidden="true"
+                  className="text-xs px-1.5 py-0.5 rounded border border-border font-mono flex-shrink-0"
+                >
+                  /
+                </kbd>
+              )}
             </button>
 
-            {/* Language */}
+            {/* Language. Hidden on a single-locale site: the control would
+                open a menu whose only entry is the language already in use.
+                Same reasoning in the drawer below, in `NotesHeader`, and in
+                the command palette — which gets it for free, since it lists
+                only locales other than the current one. */}
+            {MULTILINGUAL && (
             <div className="relative" ref={langRef}>
               <button
                 onClick={() => setLangOpen((v) => !v)}
@@ -187,6 +203,7 @@ export function Header() {
                 </div>
               )}
             </div>
+            )}
 
             {/* Theme */}
             <button
@@ -255,6 +272,7 @@ export function Header() {
                 between them they read as one wrapped group — the more so
                 because one row wraps to two lines and the other doesn't.
                 A labelled section each makes the split unambiguous. */}
+            {MULTILINGUAL && (
             <DrawerSection title={tHeader('language')}>
               {LOCALES.map((l) => (
                 <button
@@ -266,6 +284,7 @@ export function Header() {
                 </button>
               ))}
             </DrawerSection>
+            )}
 
             <DrawerSection title={tHeader('theme')}>
               {THEMES.map((th) => (

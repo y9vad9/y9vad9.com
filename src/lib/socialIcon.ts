@@ -69,6 +69,18 @@ function lookup(iconName: string): IconType | LucideIcon | undefined {
   return (LucideIcons as unknown as Record<string, LucideIcon | undefined>)[iconName]
 }
 
+/**
+ * Hidden from assistive tech on purpose.
+ *
+ * `react-icons` puts `role="img"` on the SVG it renders, which makes it an
+ * image that owes the tree a name — and it has none, so axe flagged every
+ * social link (`svg-img-alt`). The name belongs on the link, not the glyph:
+ * the one caller already sets `aria-label={platform}`, so naming the SVG too
+ * would have a screen reader read "GitHub GitHub". Marking the icon
+ * decorative fixes the failure and leaves exactly one name behind.
+ */
+const DECORATIVE = { 'aria-hidden': true, focusable: false } as const
+
 export function resolveSocialIcon(
   platform: string,
   iconName: string | undefined,
@@ -76,16 +88,17 @@ export function resolveSocialIcon(
 ): ReactNode {
   if (iconName) {
     const Icon = lookup(iconName)
-    if (Icon) return createElement(Icon, { size })
+    if (Icon) return createElement(Icon, { size, ...DECORATIVE })
   }
   const def = DEFAULTS[platform.toLowerCase()]
   if (def) {
     const Icon = lookup(def.name)
-    if (Icon) return createElement(Icon, { size })
+    if (Icon) return createElement(Icon, { size, ...DECORATIVE })
   }
+  // Initial-letter fallback: also decorative, for the same reason.
   return createElement(
     'span',
-    { className: 'text-base font-bold' },
+    { className: 'text-base font-bold', ...DECORATIVE },
     platform.charAt(0).toUpperCase(),
   )
 }

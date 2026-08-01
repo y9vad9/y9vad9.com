@@ -1,26 +1,48 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePanelStore, type ExplorerMode, type ToolsMode } from '@store/panelStore'
+import { usePanelStore } from '@store/panelStore'
 import { useTabStore } from '@store/tabStore'
+import {
+  GARDEN_SHORTCUTS,
+  isMacPlatform,
+  matchesShortcut,
+  type ShortcutActions,
+} from '@lib/shortcuts/gardenShortcuts'
 
 /**
- * Keyboard shortcuts for the garden. Single-letter shortcuts (`e`, `f`, `t`,
- * `s`, `l`, `g`) only fire when the user isn't typing in a field — this
- * avoids hijacking Cmd+F (browser find-in-page) and works around macOS's
+ * Binds the garden's keyboard shortcuts.
+ *
+ * The chords themselves live in `@lib/shortcuts/gardenShortcuts`, shared with
+ * the command palette so the keys that fire and the keys that are advertised
+ * cannot disagree.
+ *
+ * Single-letter shortcuts only fire when the reader isn't typing in a field —
+ * that avoids hijacking Cmd+F (browser find-in-page) and works around macOS's
  * Option-letter character substitution, which made the original Alt+letter
- * shortcuts produce special characters instead of the expected keys.
+ * bindings produce special characters instead of the expected keys.
+ *
+ * `enabled` comes from `shortcuts.enabled` in site config. When false the
+ * listener is never attached at all, rather than attached and ignoring
+ * everything.
  */
-export function useKeyboardShortcuts() {
-  const {
-    toggleLeft,
-    toggleRight,
-    focusExplorer,
-    focusTools,
-  } = usePanelStore()
+export function useKeyboardShortcuts(enabled = true) {
+  const { toggleLeft, toggleRight, focusExplorer, focusTools } = usePanelStore()
   const { tabs, activeSlug, closeTab } = useTabStore()
 
   useEffect(() => {
+    if (!enabled) return
+
+    const actions: ShortcutActions = {
+      toggleLeft,
+      toggleRight,
+      closeActiveTab: () => {
+        if (activeSlug) closeTab(activeSlug)
+      },
+      focusExplorer,
+      focusTools,
+    }
+
     function isTyping(target: EventTarget | null): boolean {
       const el = target as HTMLElement | null
       if (!el) return false
@@ -31,80 +53,34 @@ export function useKeyboardShortcuts() {
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-      const isMac = navigator.platform.includes('Mac')
-      const mod = isMac ? e.metaKey : e.ctrlKey
+      const mod = isMacPlatform() ? e.metaKey : e.ctrlKey
 
-      // ⌘[ — toggle left panel
-      if (mod && e.key === '[') {
-        e.preventDefault()
-        toggleLeft()
-        return
-      }
-
-      // ⌘] — toggle right panel
-      if (mod && e.key === ']') {
-        e.preventDefault()
-        toggleRight()
-        return
-      }
-
-      // ⌘\ — close current tab
-      if (mod && e.key === '\\') {
-        e.preventDefault()
-        if (activeSlug) closeTab(activeSlug)
-        return
-      }
-
-      // Alt+1–9 — jump to tab N. Digits aren't subject to macOS Option
-      // substitution, so this stays on Alt.
+      // Alt+1–9 — jump to tab N. Not in the shared list: nine positional
+      // bindings would bury the nine real commands in the palette, and
+      // "switch to tab 7" isn't an action worth listing. Digits aren't
+      // subject to macOS Option substitution, so this stays on Alt.
       if (e.altKey && !mod) {
         const num = parseInt(e.key, 10)
         if (num >= 1 && num <= 9) {
           e.preventDefault()
           const tab = tabs[num - 1]
           if (tab) useTabStore.getState().setActiveTab(tab.slug)
-          return
         }
+        return
       }
 
-      // Single-letter section shortcuts only fire outside text input. We
-      // match on `e.code` (KeyE, KeyF, …) so they work on macOS where
-      // Option-letter would otherwise be applied — but here there's no
-      // Option, so this is mostly belt-and-suspenders against future
-      // layout differences.
-      if (isTyping(e.target)) return
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (e.repeat) return
+      const typing = isTyping(e.target)
+      if (!mod && (typing || e.altKey || e.repeat)) return
 
-      switch (e.code) {
-        case 'KeyE':
-          e.preventDefault()
-          focusExplorer('files' as ExplorerMode)
-          return
-        case 'KeyF':
-          e.preventDefault()
-          focusExplorer('search' as ExplorerMode)
-          return
-        case 'KeyT':
-          e.preventDefault()
-          focusTools('toc' as ToolsMode)
-          return
-        case 'KeyS':
-          e.preventDefault()
-          focusTools('series' as ToolsMode)
-          return
-        case 'KeyL':
-          e.preventDefault()
-          focusTools('links' as ToolsMode)
-          return
-        case 'KeyG':
-          e.preventDefault()
-          focusTools('graph' as ToolsMode)
-          return
+      for (const shortcut of GARDEN_SHORTCUTS) {
+        if (!matchesShortcut(shortcut, e, mod)) continue
+        e.preventDefault()
+        shortcut.run(actions)
+        return
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [toggleLeft, toggleRight, focusExplorer, focusTools, tabs, activeSlug, closeTab])
+  }, [enabled, toggleLeft, toggleRight, focusExplorer, focusTools, tabs, activeSlug, closeTab])
 }

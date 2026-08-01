@@ -118,6 +118,22 @@ export interface SiteConfig {
   comments?: CommentsConfig
   seo?: SeoConfig
   agents?: AgentsConfig
+  shortcuts?: ShortcutsConfig
+}
+
+/**
+ * Keyboard shortcuts in the garden.
+ *
+ * The single-letter bindings (`e`, `f`, `t`, `s`, `l`, `g`) are convenient
+ * for a keyboard-first reader and a nuisance for anyone using a screen
+ * reader's browse mode or a switch device, where stray letter keys reach the
+ * document and start moving panels around. Turning them off also removes the
+ * command entries the palette advertises, so nothing promises a key that no
+ * longer works.
+ */
+export interface ShortcutsConfig {
+  /** Omit or set `true` to keep shortcuts bound. */
+  enabled?: boolean
 }
 
 /**

@@ -165,15 +165,24 @@ export function useListKeyboardNav({
     /**
      * Spread these onto the scrollable list container.
      *
-     * Intentionally no `role="listbox"`. The ARIA listbox pattern requires
-     * each child to carry `role="option"` and the container to expose an
-     * accessible name + `aria-activedescendant` — wiring that across
-     * heterogeneous panel items (links, headings, separators) is more
-     * intrusive than the role buys us. Lighthouse flagged both omissions
-     * as accessibility failures. The container stays focusable so the
-     * `onKeyDown` shortcut handlers still work; screen readers fall back
-     * to announcing each `<a>` / `<button>` child individually, which is
-     * what we want for navigation lists anyway.
+     * Intentionally no `role="listbox"`, and correspondingly no
+     * `role="option"` on the children. The listbox pattern needs the whole
+     * set — an accessible name, `aria-activedescendant`, and options that are
+     * genuinely selectable — and these panels hold heterogeneous navigation
+     * items (links, headings, separators) where that is both intrusive and
+     * inaccurate.
+     *
+     * The children previously carried `role="option"` without it, which is a
+     * malformed tree: an option must live inside a listbox, so assistive tech
+     * (and Lighthouse) saw orphaned options. Those roles are gone; the items
+     * are plain `<a>`/`<button>` elements, announced individually, which is
+     * what a navigation list wants. Where "this is the page you're on"
+     * matters, items use `aria-current="page"` — the semantic that actually
+     * fits, rather than `aria-selected`, which was being used to expose the
+     * keyboard cursor and is not a selection at all.
+     *
+     * The container stays focusable so the `onKeyDown` handlers still work;
+     * the cursor itself remains purely visual (`is-kbd`).
      */
     containerProps: {
       ref: containerRef,

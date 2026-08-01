@@ -141,5 +141,19 @@
   "error": {
     "notFound": "Page not found",
     "notFoundDescription": "The page you are looking for does not exist."
+  },
+  "commands": {
+    "heading": "Commands",
+    "toggleLeft": "Toggle explorer panel",
+    "toggleRight": "Toggle tools panel",
+    "closeTab": "Close current tab",
+    "explorer": "Open files",
+    "search": "Search in notes",
+    "toc": "Open table of contents",
+    "series": "Open series",
+    "links": "Open links",
+    "graph": "Open graph",
+    "disableShortcuts": "Disable keyboard shortcuts",
+    "enableShortcuts": "Enable keyboard shortcuts"
   }
 }

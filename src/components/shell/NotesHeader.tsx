@@ -28,9 +28,10 @@ import { EXPLORER_MODES, TOOLS_MODES } from '@components/garden/PanelModeTabs'
 import { TabBar } from '@components/garden/TabBar'
 import { RouteLink } from '@components/garden/RouteLink'
 import { INDEX_TAB_SLUG, GRAPH_TAB_SLUG } from '@store/tabStore'
-import { LOCALES } from '@i18n/routing'
+import { LOCALES, MULTILINGUAL } from '@i18n/routing'
 import type { Locale } from '@config/site'
 import { useLocaleLabel } from '@hooks/useLocaleLabel'
+import { useShortcutsEnabled } from '@hooks/useShortcutsEnabled'
 import { useState } from 'react'
 
 const THEME_ICONS: Record<Theme, React.ReactNode> = {
@@ -64,6 +65,7 @@ export function NotesHeader() {
   const { series } = useNoteContextStore()
   const tabsCount = useTabStore((s) => s.tabs.length)
   const openSearch = useSearchStore((s) => s.open)
+  const shortcutsEnabled = useShortcutsEnabled()
   const isMobile = useIsMobile()
   const router = useRouter()
   const pathname = usePathname()
@@ -164,15 +166,26 @@ export function NotesHeader() {
             type="button"
             onClick={() => openSearch()}
             className="w-full max-w-sm flex items-center gap-2 h-7 px-3 rounded-full bg-card-hover border border-border text-muted hover:text-fg hover:border-primary/40 transition-colors text-xs"
-            aria-label="Open command palette"
+            // No `aria-label`. It read "Open command palette" while the button
+            // visibly says "Search notes, pages, themes…", so the accessible
+            // name did not contain the visible one — a voice-control user
+            // saying what they can see would not match the control
+            // (`label-content-name-mismatch`). Letting the visible text be the
+            // name keeps the two identical by construction.
           >
-            <Search size={12} className="flex-shrink-0" />
+            <Search size={12} className="flex-shrink-0" aria-hidden="true" />
             <span className="flex-1 text-left truncate">
               {tCommand('placeholder')}
             </span>
-            <span className="flex-shrink-0 px-1.5 py-px text-[10px] font-mono border border-border rounded text-muted">
-              /
-            </span>
+            {shortcutsEnabled && (
+              // Part of the name otherwise: "Search notes, pages, themes… /".
+              <span
+                aria-hidden="true"
+                className="flex-shrink-0 px-1.5 py-px text-[10px] font-mono border border-border rounded text-muted"
+              >
+                /
+              </span>
+            )}
           </button>
         )}
       </div>
@@ -187,6 +200,8 @@ export function NotesHeader() {
         {THEME_ICONS[theme]}
       </button>
 
+      {/* Hidden on a single-locale site — see the note in `Header`. */}
+      {MULTILINGUAL && (
       <div className="relative" ref={langRef}>
         <button
           onClick={() => setLangOpen((v) => !v)}
@@ -209,6 +224,7 @@ export function NotesHeader() {
           </div>
         )}
       </div>
+      )}
 
       {/* Right panel section buttons (when open), then divider, then collapse */}
       {rightOpen && !isMobile && (
