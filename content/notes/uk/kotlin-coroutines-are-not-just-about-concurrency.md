@@ -1,6 +1,6 @@
 ---
 title: Kotlin Coroutines — це не лише про конкурентність
-preview: "Чи є конкурентність єдиним призначенням Kotlin Coroutines? Дослідіть універсальні застосування корутин поза асинхронними завданнями, від фундаментальних примітивів до передових технік у Sequences, глибокій рекурсії та UI-фреймворках, таких як Jetpack Compose."
+preview: "Розбір примітивів, на яких побудовані корутини Kotlin, і того, де вони працюють поза асинхронним кодом — Sequence, DeepRecursiveScope та Jetpack Compose."
 date: 2023-10-1
 coverImage: "attachments/kotlin-coroutines-are-not-just-about-concurrency-cover.webp"
 parents: ["Kotlin"]

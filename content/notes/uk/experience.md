@@ -1,6 +1,6 @@
 ---
 title: Досвід
-preview: "Дослідіть мій професійний внесок у Jochen Schweizer mydays Group та Ajax Systems, де я займався веб-розробкою, Android-інжинірингом та оптимізацією систем."
+preview: "Мої професійні ролі дотепер: веб-розробка в Jochen Schweizer mydays Group і Android-розробка в Ajax Systems."
 coverImage: ""
 parents: ["Про мене"]
 ---

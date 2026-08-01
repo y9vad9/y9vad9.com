@@ -1,6 +1,6 @@
 ---
 title: Глибоке занурення в пошук правильного балансу між DDD, Clean та Hexagonal архітектурами
-preview: "Пошук правильного проєктування може бути справжньою головоломкою. Пориньте в практичні ідеї щодо балансування принципів DDD, Clean та Hexagonal, щоб створювати надійні, підтримувані застосунки без зайвої складності. Дізнайтеся, як змусити ці теорії працювати на вас."
+preview: "Як я поєдную ідеї Clean Architecture, DDD і Hexagonal Architecture у власних проєктах — і які частини теорії пропускаю."
 date: 2024-10-21
 coverImage: "attachments/finding-balance-between-ddd-hexagonal-and-clean-architectures-cover.webp"
 parents: ["Проєктування ПЗ", "Kotlin"]
