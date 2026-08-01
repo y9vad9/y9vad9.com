@@ -1,6 +1,6 @@
 ---
 title: Sketchcode
-preview: "Journey through the evolution of Sketchcode, a social network for Sketchware developers that grew from a no-code project into a vibrant platform supporting thousands of users. Discover its key features, community impact, and the pivotal role it played in my programming journey."
+preview: "A social network for Sketchware developers that I built in 2018 — how it grew, and how I learned to program along the way."
 coverImage: ""
 parents: ["Personal"]
 ---

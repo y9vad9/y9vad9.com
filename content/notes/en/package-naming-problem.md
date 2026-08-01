@@ -1,6 +1,6 @@
 ---
 title: Package Naming Nobody Cares About (But Should)
-preview: "Why do developers often overlook package naming? Uncover its crucial role in code maintainability and discover how thinking beyond mere folders can lead to clearer responsibilities, easier navigation, and a more robust software design."
+preview: "Packages work better as namespaces than as folders — the rules I use to decide what deserves its own package and what doesn't."
 date: 2025-10-15
 coverImage: "attachments/package-naming-problem-cover.webp"
 parents: ["Kotlin", "Software Design"]

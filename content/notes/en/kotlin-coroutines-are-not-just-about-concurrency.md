@@ -1,6 +1,6 @@
 ---
 title: Kotlin Coroutines are not just about concurrency
-preview: "Is concurrency the only use for Kotlin Coroutines? Explore the versatile applications of coroutines beyond asynchronous tasks, from foundational primitives to advanced techniques in Sequences, deep recursion, and UI frameworks like Jetpack Compose."
+preview: "A look at the primitives Kotlin coroutines are built on, and where they show up outside async code — Sequence, DeepRecursiveScope and Jetpack Compose."
 date: 2023-10-1
 coverImage: "attachments/kotlin-coroutines-are-not-just-about-concurrency-cover.webp"
 parents: ["Kotlin"]

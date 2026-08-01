@@ -1,6 +1,6 @@
 ---
 title: Experience
-preview: "Explore my professional contributions at Jochen Schweizer mydays Group and Ajax Systems, where I tackled web development, Android engineering, and system optimization."
+preview: "My professional roles so far: web development at Jochen Schweizer mydays Group and Android engineering at Ajax Systems."
 coverImage: ""
 parents: ["Summary"]
 ---

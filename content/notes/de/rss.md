@@ -1,6 +1,6 @@
 ---
 title: RSS-Feeds
-preview: Abonnieren Sie meine neuesten Notizen und Artikel mit Ihrem bevorzugten RSS-Reader.
+preview: Meine neuen Notizen und Artikel — in jedem beliebigen RSS-Reader.
 parents: ["Meta"]
 ---
 

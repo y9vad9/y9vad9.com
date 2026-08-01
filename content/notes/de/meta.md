@@ -1,7 +1,6 @@
 ---
 title: Meta
-preview: "Die Maschine und die Philosophie. Alles darüber, wie dieser digitale Raum aufgebaut ist."
-parents: ["Programmierung"]
+preview: "Wie diese Website gebaut ist und warum gerade so."
 ---
 Dieser Abschnitt enthält Notizen über diese Website selbst – wie sie aufgebaut ist, die Philosophie dahinter und die Werkzeuge, die ich verwende, um sie zu pflegen.
 

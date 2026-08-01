@@ -1,6 +1,6 @@
 ---
 title: ViewModel is not a place for your logic
-preview: "Are your ViewModels doing too much? We explore the proper boundaries of ViewModel responsibility and why keeping them focused on UI state is key to a healthy, scalable software design."
+preview: "A ViewModel should hold UI state and nothing more — why navigation and I/O belong elsewhere."
 parents: ["Android", "Kotlin", "Software Design"]
 date: 2023-02-20
 ---

@@ -1,6 +1,6 @@
 ---
 title: Digging Deep to Find the Right Balance Between DDD, Clean and Hexagonal Architectures
-preview: "Finding the right architecture can be a puzzle. Dive into practical insights on balancing DDD, Clean, and Hexagonal principles to build robust, maintainable applications without over-engineering. Discover how to make these theories work for you."
+preview: "How I combine ideas from Clean Architecture, DDD and Hexagonal Architecture in my own projects — and which parts of the theory I skip."
 date: 2024-10-21
 coverImage: "attachments/finding-balance-between-ddd-hexagonal-and-clean-architectures-cover.webp"
 parents: ["Software Design", "Kotlin"]

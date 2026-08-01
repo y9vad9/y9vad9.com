@@ -1,6 +1,6 @@
 ---
 title: Finding the Right Balance in Gradle Dependency Strategy
-preview: "Mastering Gradle dependency management is crucial for software engineering. This article explores various strategies for declaring dependencies, plugins, and versions, discussing their merits and pitfalls. It covers topics like updating dependencies, security vulnerabilities, and centralization, and introduces solutions such as properties, constants, version catalogs, and BOMs to achieve simple, secure, and maintainable build configurations."
+preview: "Ways to declare dependencies, plugins and versions in Gradle — properties, constants, version catalogs, BOMs — and the trade-offs of each."
 date: 2023-11-25
 coverImage: "attachments/finding-balance-in-gradle-dependency-strategy-cover.webp"
 parents: ["Gradle"]

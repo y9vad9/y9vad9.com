@@ -1,6 +1,6 @@
 ---
 title: Kotlin Multiplatform is now stable – What's the Impact?
-preview: "Kotlin Multiplatform has officially reached stability. Discover the implications of this milestone for cross-platform development, its advantages for developers and businesses, and the exciting new opportunities it unlocks in the Kotlin ecosystem."
+preview: "Kotlin Multiplatform went stable in 1.9.20 — what that changes for developers and teams, and which parts are still experimental."
 date: 2023-06-16
 coverImage: "attachments/kmp-stability-cover.webp"
 parents: ["Kotlin"]

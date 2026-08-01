@@ -2,7 +2,6 @@
 epic: false
 title: Programmierung
 preview: "Alles über Programmierung"
-parents: ["Programmierung"]
 ---
 
 Programmieren ist mittlerweile so etwas wie mein Standardzustand (ich fasse kein Gras an, tut mir leid). Meine Reise begann mit Sketchware – einem No-Code-Tool, um Android-Apps direkt auf dem Handy zu bauen. Aber sobald ich ein Backend brauchte, griff ich zu PHP. Schließlich passten diese No-Code-Lösungen einfach nicht mehr, also wechselte ich zu Java, und von da an ging es richtig los.

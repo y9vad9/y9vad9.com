@@ -1,6 +1,6 @@
 ---
 title: Compiler, Transpiler, Interpreter und JIT
-preview: "Haben Sie sich jemals gefragt, was eigentlich mit Ihrem Code passiert, nachdem Sie auf 'Ausführen' geklickt haben? Wir erklären die grundlegenden Unterschiede zwischen Compilern, Transpilern und Interpretern und wie moderne JIT-Technologie die Grenzen verschwimmen lässt."
+preview: "Notizen aus der Schulzeit darüber, was Compiler, Transpiler, Interpreter und JIT-Compiler eigentlich tun – und warum die Trennung zwischen kompilierten und interpretierten Sprachen unschärfer ist, als sie wirkt."
 parents: ["Programmierung"]
 date: 2025-10-09
 coverImage: ""
@@ -58,8 +58,6 @@ Ein **JIT-Compiler** (Just-In-Time) ist ein Programm, das neben dem Interpreter 
 *   **Method Inlining**: Methoden, die häufig verwendet werden, klein sind und keine Locks einführen (zum Beispiel durch Verwendung des `synchronized`-Schlüsselworts), werden direkt an ihrer Aufrufstelle eingefügt, um die Anzahl der Anweisungen (für einen virtuellen Aufruf) an den Prozessor zu reduzieren.
 *   **Branch Elimination**: Eine spekulative Optimierung basierend auf Laufzeit-Ausführungsdaten. Sobald der Interpreter oder die Runtime genügend Informationen über Verzweigungswahrscheinlichkeiten hat (zum Beispiel, wenn ein Zweig selten oder nie ausgeführt wird), kann er den Zweig entfernen und annehmen, dass er nicht auftreten wird. Dies ist nützlich, wenn bestimmte Programmzustände zur Kompilierzeit nicht bestimmt werden können. Typischerweise fügt der JIT "Guards" für eliminierte Zweige ein, die es ihm ermöglichen, auf Interpretation zurückzufallen (und möglicherweise in Maschinencode neu zu kompilieren), falls sich die Annahme als falsch erweist.
 *   **Kompilierung in Maschinencode**: Sobald der JIT sieht, dass ein bestimmter Code häufig genug ausgeführt wird, kompiliert er ihn in Binärcode. Einiger Code wird möglicherweise nie kompiliert, zum Beispiel Code, der ausschließlich für das Bootstrapping verwendet wird.
-
-Ein JIT-Compiler kann deinen Code so optimieren, dass er so effizient und schnell wie C/C++-Code läuft – und manchmal sogar schneller, dank spekulativer Optimierungen, die on-the-fly durchgeführt werden und die C/C++-Compiler nicht anwenden können. JIT-kompilierte Programme haben jedoch in der Regel langsamere Startzeiten.
 
 ### Was ist der Unterschied zwischen kompilierten und interpretierten Sprachen?
 Während C, C++, Rust und ähnliche Sprachen eindeutig kompilierte Sprachen sind (direkt in Maschinencode übersetzt), ist die Unterscheidung bei Java und Python weniger klar.

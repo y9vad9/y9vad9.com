@@ -1,6 +1,6 @@
 ---
 title: Meta
-preview: "The engine and philosophy. Everything about how this digital space is built."
+preview: "How this site is built, and why it's built that way."
 ---
 This section contains notes about this website itself — how it's built, the philosophy behind it, and the tools I use to maintain it.
 

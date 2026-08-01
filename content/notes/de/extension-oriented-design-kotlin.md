@@ -1,6 +1,6 @@
 ---
 title: Erweiterungsorientiertes Design in Kotlin
-preview: "Entdecken Sie die Kraft des erweiterungsorientierten Designs in Kotlin. Sehen Sie, wie dieser elegante Ansatz die Code-Organisation optimiert, bestehende Klassen verbessert und Lösungen für allgemeine Herausforderungen in der Entwicklung bietet."
+preview: "Was erweiterungsorientiertes Design in Kotlin bedeutet: Der Kern eines Typs bleibt klein und stabil, alles Weitere wird über Erweiterungen ausgedrückt."
 date: 2022-11-15
 coverImage: "attachments/extension-oriented-design-cover.webp"
 parents: ["Kotlin", "Softwaredesign"]

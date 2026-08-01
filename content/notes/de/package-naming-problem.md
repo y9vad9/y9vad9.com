@@ -1,6 +1,6 @@
 ---
 title: Paketbenennung, um die sich niemand kümmert (aber sollte)
-preview: "Warum übersehen Entwickler oft die Paketbenennung? Entdecken Sie ihre entscheidende Rolle bei der Wartbarkeit des Codes und wie das Denken über bloße Ordner hinaus zu klareren Verantwortlichkeiten, einfacherer Navigation und einer robusteren Softwaredesign führen kann."
+preview: "Pakete funktionieren besser als Namespaces denn als Ordner – die Regeln, nach denen ich entscheide, was ein eigenes Paket verdient und was nicht."
 date: 2025-10-15
 coverImage: "attachments/package-naming-problem-cover.webp"
 parents: ["Kotlin", "Softwaredesign"]

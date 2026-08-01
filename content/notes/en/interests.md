@@ -1,6 +1,6 @@
 ---
 title: Interests
-preview: "What keens my interest beyond programming?"
+preview: "What I'm interested in outside of programming."
 parents: ["Summary"]
 ---
 This page is not meant for those who want to know about me as a specialist, but as a person. I want to express here

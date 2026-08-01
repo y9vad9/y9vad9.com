@@ -1,6 +1,6 @@
 ---
 title: Erfahrung
-preview: "Entdecken Sie meine beruflichen Beiträge bei der Jochen Schweizer mydays Group und Ajax Systems, wo ich mich mit Webentwicklung, Android-Engineering und Systemoptimierung befasste."
+preview: "Meine bisherigen beruflichen Stationen: Webentwicklung bei der Jochen Schweizer mydays Group und Android-Entwicklung bei Ajax Systems."
 coverImage: ""
 parents: ["Zusammenfassung"]
 ---

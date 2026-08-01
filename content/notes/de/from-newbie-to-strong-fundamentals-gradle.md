@@ -1,6 +1,6 @@
 ---
 title: Gradle – Vom Neuling zu starken Grundlagen
-preview: "Neu bei Gradle in Kotlin? Dieser Leitfaden erklärt die Kernkonzepte von der Projekteinrichtung bis zu fortgeschrittenen Konfigurationen. Entdecken Sie, wie Sie Gradle für Multi-Modul-Projekte nutzen, Abhängigkeiten verwalten und häufige Fallstricke vermeiden, um robuste und wartbare Builds zu erhalten."
+preview: "Eine Einführung in Gradle für Kotlin-Einsteiger: Projekte und Module, was in build.gradle.kts steht, Source-Sets und Multi-Modul-Projekte."
 date: 2023-10-7
 coverImage: "attachments/gradle-from-newbie-to-strong-fundamentals-cover.webp"
 parents: ["Gradle"]

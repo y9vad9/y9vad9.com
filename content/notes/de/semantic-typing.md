@@ -1,6 +1,6 @@
 ---
 title: Semantische Typisierung, die wir ignorieren
-preview: "Der Sprung von der 'Das ist ein String'-Mentalität zu 'Das ist ein Konzept'. Erfahren Sie, wie Sie mit semantischer Typisierung in Kotlin bessere, selbstdokumentierende Domänenmodelle erstellen."
+preview: "Der Sprung von der „Das ist ein String“-Mentalität zu „Das ist ein Konzept“. Was semantische Typisierung in Kotlin ist, wann sie dem Domänenmodell hilft und wann sie im Weg steht."
 date: 2025-12-24
 coverImage: "attachments/semantic-typing-cover.webp"
 parents: ["Kotlin", "Softwaredesign"]

@@ -1,6 +1,6 @@
 ---
 title: Task Manager
-preview: "One of mine early projects targeting Android to manage device's RAM, focusing on applications that start on device boot time."
+preview: "One of my early projects targeting Android to manage device's RAM, focusing on applications that start on device boot time."
 coverImage: ""
 parents: ["Personal"]
 ---

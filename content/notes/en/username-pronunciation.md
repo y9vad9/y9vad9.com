@@ -1,6 +1,6 @@
 ---
 title: Y9VAD9 Pronunciation
-preview: "Ever wondered how to pronounce 'y9vad9'? Dive into the origins and meaning of this unique username, a playful blend of personal identity and LEET speak, and unlock its secret pronunciation."
+preview: "Where my username came from and how to say it out loud."
 parents: ["Summary"]
 ---
 My username, y9vad9, often sparks curiosity, so let me break it down for you. It's pronounced as "Я Вадя" (Ya Vadya), which is a playful nod to my name, Vadym, and has roots in [LEET](https://en.wikipedia.org/wiki/Leet) speak.

@@ -1,6 +1,6 @@
 ---
 title: Username Pronunciation
-preview: "Haben Sie sich jemals gefragt, wie man 'y9vad9' ausspricht? Tauchen Sie ein in die Ursprünge und Bedeutung dieses einzigartigen Benutzernamens, einer spielerischen Mischung aus persönlicher Identität und LEET-Speak, und lüften Sie sein Geheimnis der Aussprache."
+preview: "Woher mein Benutzername kommt und wie man ihn ausspricht."
 parents: ["Zusammenfassung"]
 ---
 Mein Benutzername, y9vad9, weckt oft Neugier, also lass mich das für dich erklären. Er wird als "Я Вадя" (Ya Vadya) ausgesprochen,

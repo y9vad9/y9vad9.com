@@ -1,6 +1,6 @@
 ---
 title: Compiler, Transpiler, Interpreter and JIT
-preview: "Ever wondered what actually happens to your code after you hit 'run'? We break down the fundamental differences between compilers, transpilers, and interpreters, and how modern JIT technology blurs the lines."
+preview: "Notes from school on what compilers, transpilers, interpreters and JIT compilers actually do — and why the compiled-versus-interpreted split is blurrier than it looks."
 parents: ["Programming"]
 date: 2025-10-09
 ---

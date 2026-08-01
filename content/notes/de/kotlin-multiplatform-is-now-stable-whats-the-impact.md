@@ -1,6 +1,6 @@
 ---
 title: Kotlin Multiplatform ist jetzt stabil – Was ist die Auswirkung?
-preview: "Kotlin Multiplatform hat offiziell Stabilität erreicht. Entdecken Sie die Auswirkungen dieses Meilensteins für die plattformübergreifende Entwicklung, seine Vorteile für Entwickler und Unternehmen und die aufregenden neuen Möglichkeiten, die es im Kotlin-Ökosystem eröffnet."
+preview: "Kotlin Multiplatform ist mit 1.9.20 stabil – was das für Entwickler und Teams ändert und welche Teile noch experimentell sind."
 date: 2023-06-16
 coverImage: "attachments/kmp-stability-cover.webp"
 parents: ["Kotlin"]

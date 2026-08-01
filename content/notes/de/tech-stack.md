@@ -1,6 +1,6 @@
 ---
 title: Tech-Stack
-preview: "Entdecken Sie die Entwicklung einer sprachlichen Landschaft für Entwickler, von den ersten Codezeilen bis zur Beherrschung moderner Paradigmen. Tauchen Sie ein in einen vielseitigen Tech-Stack, erkunden Sie vielfältige architektonische Entscheidungen und erfahren Sie, wie verschiedene Sprachen Innovationen in mobilen, Web- und Multiplattform-Bereichen prägen."
+preview: "Die Sprachen und Werkzeuge, mit denen ich tatsächlich gearbeitet habe: Kotlin, Java, PHP, Python, TypeScript — und was jeweils daraus geworden ist."
 parents: ["Zusammenfassung"]
 ---
 

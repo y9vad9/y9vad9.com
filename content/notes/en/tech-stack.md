@@ -1,6 +1,6 @@
 ---
 title: Tech Stack
-preview: "Uncover the evolution of a developer's linguistic landscape, from the first lines of code to mastering modern paradigms. Delve into a versatile tech stack, explore diverse architectural choices, and see how different languages shape innovation across mobile, web, and multiplatform realms."
+preview: "The languages and tools I've actually worked with: Kotlin, Java, PHP, Python, TypeScript — and what came of each."
 parents: ["Summary"]
 ---
 

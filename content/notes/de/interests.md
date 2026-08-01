@@ -1,6 +1,6 @@
 ---
 title: Interessen
-preview: "Jenseits der Tastatur: Entdecken Sie die Leidenschaften und Kuriositäten, die den Geist eines Entwicklers außerhalb der Welt des Codes beflügeln. Von alten Geschichten bis zu modernen Spielen – erkunden Sie die vielfältigen Interessen, die Perspektiven formen und Kreativität wecken."
+preview: "Was mich außerhalb des Programmierens interessiert."
 parents: ["Zusammenfassung"]
 ---
 # Meine Interessen

@@ -1,6 +1,6 @@
 ---
 title: Projekte
-preview: "Begeben Sie sich auf eine Reise der Innovation und des Lernens durch persönliche Projekte, von frühen Unternehmungen im Bereich der sozialen Netzwerke ohne Code bis hin zu ambitionierten Multiplattform-Anwendungen. Entdecken Sie die Geschichten, Herausforderungen und gewonnenen Erkenntnisse hinter jeder Kreation."
+preview: "Meine Projekte — vom sozialen Netzwerk für No-Code-Entwickler bis zu Multiplattform-Apps, die ich bis heute nicht fertig habe: die Geschichten dahinter, die Schwierigkeiten und was ich daraus mitgenommen habe."
 parents: ["Zusammenfassung"]
 ---
 # Meine Projekte

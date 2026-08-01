@@ -1,6 +1,6 @@
 ---
 title: Projects
-preview: "Explore a journey of innovation and learning through personal projects, from early ventures in no-code social networking to ambitious multiplatform applications. Discover the stories, challenges, and lessons learned behind each creation."
+preview: "My projects — from a social network for no-code developers to multiplatform apps I still haven't finished: the stories behind them, the hard parts, and what I took away."
 parents: ["Summary"]
 ---
 Here is some of my projects, including those that were finished at the time and those that are

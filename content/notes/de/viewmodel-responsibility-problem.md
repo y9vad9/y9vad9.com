@@ -1,6 +1,6 @@
 ---
 title: ViewModel ist kein Platz für deine Logik
-preview: "Machen Ihre ViewModels zu viel? Wir untersuchen die richtigen Grenzen der ViewModel-Verantwortung und warum die Konzentration auf den UI-Zustand der Schlüssel zu einer gesunden und skalierbaren Softwaredesign ist."
+preview: "Ein ViewModel sollte UI-Zustand halten und nicht mehr – warum Navigation und I/O woanders hingehören."
 parents: ["Android", "Kotlin", "Softwaredesign"]
 date: 2023-02-20
 coverImage: ""

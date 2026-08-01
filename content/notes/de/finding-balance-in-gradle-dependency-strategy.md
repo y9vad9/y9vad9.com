@@ -1,6 +1,6 @@
 ---
 title: Die richtige Balance in der Gradle-Abhängigkeitsstrategie finden
-preview: "Die Beherrschung der Gradle-Abhängigkeitsverwaltung ist entscheidend für das Software-Engineering. Dieser Artikel untersucht verschiedene Strategien zur Deklaration von Abhängigkeiten, Plugins und Versionen und diskutiert deren Vor- und Nachteile. Er behandelt Themen wie die Aktualisierung von Abhängigkeiten, Sicherheitslücken und Zentralisierung und stellt Lösungen wie Eigenschaften, Konstanten, Versionskataloge und BOMs vor, um einfache, sichere und wartbare Build-Konfigurationen zu erreichen."
+preview: "Möglichkeiten, Abhängigkeiten, Plugins und Versionen in Gradle zu deklarieren – Properties, Konstanten, Versionskataloge, BOMs – und die Kompromisse jeder Variante."
 date: 2023-11-25
 coverImage: "attachments/finding-balance-in-gradle-dependency-strategy-cover.webp"
 parents: ["Gradle"]

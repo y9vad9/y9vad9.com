@@ -1,6 +1,6 @@
 ---
 title: Extension-Oriented Design in Kotlin
-preview: "Uncover the power of Extension Oriented Design in Kotlin. See how this elegant approach streamlines code organization, enhances existing classes, and provides solutions for common development challenges."
+preview: "What extension-oriented design means in Kotlin: the core of a type stays small and stable, and everything else lives in extensions."
 date: 2022-11-15
 coverImage: "attachments/extension-oriented-design-cover.webp"
 parents: ["Kotlin", "Software Design"]

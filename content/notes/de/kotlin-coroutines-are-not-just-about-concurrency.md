@@ -1,6 +1,6 @@
 ---
 title: Kotlin Coroutinen gehen über die reine Nebenläufigkeit hinaus
-preview: "Ist Nebenläufigkeit der einzige Anwendungsbereich für Kotlin Coroutinen? Entdecken Sie die vielseitigen Anwendungen von Coroutinen jenseits asynchroner Aufgaben, von grundlegenden Primitiven bis hin zu fortgeschrittenen Techniken in Sequenzen, tiefer Rekursion und UI-Frameworks wie Jetpack Compose."
+preview: "Ein Blick auf die Primitive, auf denen Kotlin-Coroutinen aufbauen, und darauf, wo sie außerhalb von asynchronem Code auftauchen – Sequence, DeepRecursiveScope und Jetpack Compose."
 date: 2023-10-1
 coverImage: "attachments/kotlin-coroutines-are-not-just-about-concurrency-cover.webp"
 parents: ["Kotlin"]

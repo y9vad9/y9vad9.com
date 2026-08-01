@@ -1,6 +1,6 @@
 ---
 title: Semantic Typing We Ignore
-preview: "Move from a 'this is just a string' mentality to a 'this is a concept' approach. This exploration of Semantic Typing in Kotlin turns design habits into clear rules for building better, self-documenting domain models."
+preview: "Move from a “this is just a string” mentality to a “this is a concept” approach. What semantic typing is in Kotlin, when it helps a domain model, and when it gets in the way."
 date: 2025-12-24
 coverImage: "attachments/semantic-typing-cover.webp"
 parents: ["Kotlin", "Software Design"]
