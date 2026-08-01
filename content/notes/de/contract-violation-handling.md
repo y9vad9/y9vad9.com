@@ -283,7 +283,7 @@ Ja, wir wollen nicht, dass unsere Benutzer Crashes sehen, die durch Dinge verurs
 
 Die Frage ist nicht _"sollte das werfen?"_, sondern eher _"was genau bin ich bereit, hier totzuschweigen?"_
 
-Consider this simple function I recently implemented:
+Betrachte diese einfache Funktion, die ich kürzlich implementiert habe:
 ```kotlin
 public suspend inline fun <reified T : Enum<T>> R2dbcTransaction.createEnumTypeIgnoring() {
     val enumName = T::class.simpleName?.lowercase() ?: error("Enum must have a name")
@@ -355,7 +355,7 @@ Kurz gesagt:
 Die Disziplin liegt nicht im Vermeiden von Exceptions, sondern darin, **sie sich bewegen zu lassen, bis sie die Grenze erreichen, die ihnen Bedeutung geben kann**.
 
 ## Bonus
-By the way, do you still remember [`Deferred<T>.getCompletionExceptionOrNull(): T?`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/get-completion-exception-or-null.html)? If you assumed it _returns the completion exception or `null` andernfalls zurückgibt_ – lagst du falsch. Ich auch. Bis es in echtem Code eine Exception **geworfen** hat.
+Übrigens, erinnerst du dich noch an [`Deferred<T>.getCompletionExceptionOrNull(): T?`](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/get-completion-exception-or-null.html)? Wenn du angenommen hast, dass sie _die Completion-Exception oder andernfalls `null` zurückgibt_ – lagst du falsch. Ich auch. Bis es in echtem Code eine Exception **geworfen** hat.
 
 Erst nachdem man einen Bug getroffen hat, landet man normalerweise in den Docs, wo es heißt:
 > Returns _completion exception_ result if this deferred was cancelled and has completed, `null` if it had completed normally, or throws [`IllegalStateException`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-illegal-state-exception/index.html) if this deferred value has not completed yet.
