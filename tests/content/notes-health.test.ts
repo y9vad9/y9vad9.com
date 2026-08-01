@@ -206,6 +206,24 @@ function findWikiLine(raw: string, slug: string, label: string): number | null {
   )
 }
 
+/**
+ * Per-test budget.
+ *
+ * These cases build a real `FileSystemNoteRepository`, which runs the note
+ * through the full MDX pipeline — including image encoding, since
+ * `checkAsset` verifies the *generated* file exists under `public/`. That is
+ * the point: it proves a reference resolves all the way to a real file.
+ *
+ * The cost grew sharply when the encoder moved to an 11-rung ladder at
+ * `effort: 6` with animated-GIF re-encoding. From cold, the heaviest locale
+ * takes ~51s on a 4-core laptop, which fits the old 60s budget locally and
+ * blows it on CI's 2-core runners — the suite went red on every push while
+ * passing on every dev machine. The budget now reflects what the work
+ * actually costs; `Test CI` caches `public/notes-assets` so the steady state
+ * is fast and only a content or encoder change pays this in full.
+ */
+const ASSET_TEST_TIMEOUT_MS = 240_000
+
 for (const locale of routing.locales) {
   describe(`content health [${locale}]`, () => {
     it('cover images, body images and videos all resolve', async () => {
@@ -255,7 +273,7 @@ for (const locale of routing.locales) {
         }
       }
       reportIssues(issues, 'Asset references failed validation')
-    }, 60_000)
+    }, ASSET_TEST_TIMEOUT_MS)
 
     it('every internal link points at an existing note (broken wikilinks excepted)', async () => {
       const repo = new FileSystemNoteRepository(locale as Locale)
@@ -307,7 +325,7 @@ for (const locale of routing.locales) {
         }
       }
       reportIssues(issues, 'Internal links failed validation')
-    }, 60_000)
+    }, ASSET_TEST_TIMEOUT_MS)
 
     it('every external link is a syntactically valid URL', async () => {
       const repo = new FileSystemNoteRepository(locale as Locale)
@@ -333,7 +351,7 @@ for (const locale of routing.locales) {
         }
       }
       reportIssues(issues, 'External URLs failed validation')
-    }, 60_000)
+    }, ASSET_TEST_TIMEOUT_MS)
 
     it('co-located videos in subdirectories are accepted (pipeline materialises them)', async () => {
       const tmpRoot = await fsp.realpath(
@@ -433,7 +451,7 @@ for (const locale of routing.locales) {
         }
       }
       reportIssues(issues, 'Frontmatter validation failed')
-    }, 60_000)
+    }, ASSET_TEST_TIMEOUT_MS)
 
     it('every parent name resolves to a note title in the same locale', async () => {
       // The breadcrumb in `NoteArticle` links each parent name to a note
@@ -463,6 +481,6 @@ for (const locale of routing.locales) {
         }
       }
       reportIssues(issues, 'Parent resolution failed')
-    }, 60_000)
+    }, ASSET_TEST_TIMEOUT_MS)
   })
 }

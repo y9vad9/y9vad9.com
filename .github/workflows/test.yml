@@ -31,6 +31,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
+      # The content-health tests encode every referenced image, because they
+      # assert the *generated* file exists rather than just the source. That
+      # is a real check, but re-doing it from cold on every push costs
+      # minutes. Variant filenames are content-hashed, so a stale cache is
+      # always safe: unchanged images are reused and anything else is simply
+      # regenerated — hence the loose `restore-keys` fallback.
+      - name: Restore generated image assets
+        uses: actions/cache@v6
+        with:
+          path: public/notes-assets
+          key: ${{ runner.os }}-notes-assets-${{ hashFiles('content/**', 'src/lib/images/**') }}
+          restore-keys: |
+            ${{ runner.os }}-notes-assets-
+
       - name: Install dependencies
         run: npm ci
 
