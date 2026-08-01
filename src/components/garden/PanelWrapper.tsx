@@ -46,7 +46,18 @@ const BODY_FRAME_LOCKED = `${BODY_FRAME_BASE} overflow-y-hidden`
 // Drawers hang below the h-11 header. `bottom-0` would resolve against the
 // large viewport and tuck the last entries behind mobile Chrome's retractable
 // toolbar, so the height is expressed in `dvh` instead.
-const MOBILE_DRAWER = 'fixed top-11 z-40 w-72 h-[calc(100dvh-2.75rem)] bg-shell flex flex-col overflow-hidden'
+//
+// `z-30`, below the header's `z-40`. It used to match the header at `z-40`,
+// and since this renders *after* `NotesHeader` in the layout — they are
+// siblings under the shell — the tie broke in the drawer's favour and it
+// painted over the bar. That was invisible while the header held only icons,
+// but the language menu drops *out* of the header into the drawer's band, so
+// it opened behind the drawer. Raising the menu could not help: the header is
+// `sticky`, which opens a stacking context, so nothing inside it can outrank
+// a sibling of the header itself. The drawer belongs under the bar anyway —
+// it starts at `top-11`, deliberately below it, and the bar carries the
+// toggle that closes it.
+const MOBILE_DRAWER = 'fixed top-11 z-30 w-72 h-[calc(100dvh-2.75rem)] bg-shell flex flex-col overflow-hidden'
 
 export function PanelWrapper({
   noteList,
@@ -129,8 +140,10 @@ export function PanelWrapper({
       <div className="flex flex-1 relative px-2 pb-2">
         {leftOpen && (
           <>
+            {/* `z-20`: under the drawer (z-30) it dims, and under the header
+                (z-40) so the bar stays lit and usable while a drawer is open. */}
             <div
-              className="fixed inset-0 z-30 bg-fg/30 backdrop-blur-sm"
+              className="fixed inset-0 z-20 bg-fg/30 backdrop-blur-sm"
               onClick={toggleLeft}
               aria-hidden="true"
             />
@@ -148,7 +161,7 @@ export function PanelWrapper({
         {rightOpen && (
           <>
             <div
-              className="fixed inset-0 z-30 bg-fg/30 backdrop-blur-sm"
+              className="fixed inset-0 z-20 bg-fg/30 backdrop-blur-sm"
               onClick={toggleRight}
               aria-hidden="true"
             />
