@@ -9,7 +9,7 @@ In Kotlin schränken wir unsere Typen ständig ein. Wir bevorzugen `String` gege
 
 Also, worum geht es in diesem Artikel eigentlich?
 
-Während wir `Any` in den meisten Situationen unterbewusst vermeiden — aus guten Gründen oder manchmal einfach, weil „warum sollte ich hier `Any` statt `Int` verwenden?" — wenden wir oft nicht dasselbe Denken an, wenn wir unsere eigene Software modellieren: ihre Typen, ihr Verhalten und die Beziehungen zwischen ihnen.
+Während wir `Any` in den meisten Situationen unterbewusst vermeiden — aus guten Gründen oder manchmal einfach, weil „warum sollte ich hier `Any` statt `Int` verwenden?“ — wenden wir oft nicht dasselbe Denken an, wenn wir unsere eigene Software modellieren: ihre Typen, ihr Verhalten und die Beziehungen zwischen ihnen.
 
 Dieser Artikel untersucht die Praxis der **semantischen Typisierung** — was sie bedeutet, warum man sie vielleicht möchte, wann sie den Code verbessert und wann sie zu einem Hindernis wird. Wir werden uns ansehen, wie sich semantische Typisierung in echten Kotlin-Projekten zeigt, sowohl im Anwendungscode als auch im Bibliotheksdesign, und was tendenziell gut funktioniert — oder eben nicht.
 
@@ -20,7 +20,7 @@ Wir werden diese Lektionen in praktische Regeln destillieren, die dir helfen zu 
 ## Was ist semantische Typisierung?
 Beginnen wir damit zu definieren, worüber wir eigentlich sprechen, warum es wichtig ist und warum es nichts ist, das man einfach ignorieren kann.
 
-**Semantische Typisierung** ist die Praxis, semantisch bedeutungsvolle Teilmengen von Allzwecktypen zu erstellen, um Absichten auszudrücken und versehentlichen Missbrauch zu verhindern. Es geht darum, von strukturellen Typen („das ist ein String") zu verhaltensbezogenen oder semantischen Typen („das ist eine E-Mail") überzugehen.
+**Semantische Typisierung** ist die Praxis, semantisch bedeutungsvolle Teilmengen von Allzwecktypen zu erstellen, um Absichten auszudrücken und versehentlichen Missbrauch zu verhindern. Es geht darum, von strukturellen Typen („das ist ein String“) zu verhaltensbezogenen oder semantischen Typen („das ist eine E-Mail“) überzugehen.
 
 Die Idee der semantischen Typisierung ist nicht einzigartig für Kotlin — sie ist seit langem eine gängige Praxis in Sprachen wie Java, wo Entwickler leichtgewichtige Wrapper-Klassen (z.B. `UserId`, `Email`) um Primitive definieren, um Domänenbedeutung zu kodieren und versehentlichen Missbrauch zu verhindern.
 
@@ -86,7 +86,7 @@ Du findest die Dokumentation vielleicht etwas lustig — als ob man einfach etwa
 
 Denk darüber nach: Wenn wir `setWidth` haben, haben wir wahrscheinlich auch `setHeight`, `setSpacing` und ähnliche Funktionen. Ohne semantische Typisierung wird dieselbe Dokumentation überall kopiert — oder schlimmer noch, sie ist unvollständig, fehlt oder ist irgendwo völlig veraltet, weil jemand faul war oder es einfach vergessen hat. Dann muss jeder, der den Code liest, die erwartete Eingabe basierend auf anderen Teilen des Codes erraten, die er vielleicht gar nicht aufruft. Mit einem eingeschränkten Typ verschwindet dieses Rätselraten — du verwendest einfach den Typ dort wieder, wo es semantisch angemessen ist.
 
-Aber da ist noch mehr. Jenseits des „Verpackens" von Daten musst du **Identität und Semantik** berücksichtigen. Du klatschst nicht einfach einen zufälligen Namen darauf, wie den, den GitHub für dein Repo vorgeschlagen hat, du gibst ihm eine echte Bedeutung. Ein Typ sollte für sich allein stehen, ohne zusätzlichen Kontext zu benötigen, damit du nicht bei so etwas endest:
+Aber da ist noch mehr. Jenseits des „Verpackens“ von Daten musst du **Identität und Semantik** berücksichtigen. Du klatschst nicht einfach einen zufälligen Namen darauf, wie den, den GitHub für dein Repo vorgeschlagen hat, du gibst ihm eine echte Bedeutung. Ein Typ sollte für sich allein stehen, ohne zusätzlichen Kontext zu benötigen, damit du nicht bei so etwas endest:
 
 ```kotlin
 fun setWidth(dp: Int) { ... }
@@ -290,7 +290,7 @@ Während du diese Logik technisch innerhalb des Aggregats selbst implementieren 
 ### Bibliothekscode
 Auch wenn Bibliothekscode oft eine zusätzliche Komponente jeder Anwendung ist — was bedeutet, dass er nicht immer den strengen Regeln, Konventionen oder Ansätzen folgt, die für Anwendungscode typisch sind (abgesehen von generischen Best Practices) — würde ich dennoch dringend empfehlen, denselben Ansatz zu verwenden, um deine Typen fast überall einzuschränken.
 
-Anwendungscode wird normalerweise mit dem Ziel geschrieben, die Vorabkosten zu minimieren. Das bedeutet, dass es zwar lohnenswert sein kann, in bestimmten Teilen (wie der Domänenschicht) strikte Modellierung anzuwenden, um zukünftigen Test- und Wartungsaufwand zu reduzieren, aber dasselbe strikte Modell überall beizubehalten, erscheint oft unnötig oder übertrieben. Meiner Meinung nach fallen Bibliotheken jedoch nicht unter diese „kostensparende" Begründung.
+Anwendungscode wird normalerweise mit dem Ziel geschrieben, die Vorabkosten zu minimieren. Das bedeutet, dass es zwar lohnenswert sein kann, in bestimmten Teilen (wie der Domänenschicht) strikte Modellierung anzuwenden, um zukünftigen Test- und Wartungsaufwand zu reduzieren, aber dasselbe strikte Modell überall beizubehalten, erscheint oft unnötig oder übertrieben. Meiner Meinung nach fallen Bibliotheken jedoch nicht unter diese „kostensparende“ Begründung.
 
 Betrachte das folgende Beispiel:
 ```kotlin
@@ -389,7 +389,7 @@ view.layoutParams = ViewGroup.LayoutParams(
 
 Das erste Problem ist, dass du auf den ersten Blick und ohne Dokumentation zu lesen **nicht über die Eingabeparameter** von `layoutParams` urteilen kannst — sind das 200 in Pixeln? dp? Wer weiß? Sicher, im Android Framework sind sich die meisten Leute dessen bewusst, dank umfangreicher Dokumentation und allgemeinem Ökosystemwissen. Aber wenn du deine eigene Bibliothek oder Anwendung erstellst, **erhältst du nicht dasselbe Sicherheitsnetz**. Dein Code ist wahrscheinlich nicht gut dokumentiert, und Leute merken sich selten interne Details. Dies führt zu falschen Annahmen, subtilen Fehlern und frustrierenden Debugging-Sitzungen. Erinnerst du dich auch daran, was einst ein weiser Mann sagte?
 
-Das zweite Problem ist, dass du allein durch das Betrachten der `ImageView`-Klasse **keine Ahnung hast, dass diese Konstanten existieren** oder dass sie speziell zu `ViewGroup.LayoutParams` gehören. Auch wenn `ImageView` diese Klasse nicht einmal erweitert, wird erwartet, dass du die „Magie" hinter `MATCH_PARENT` und `WRAP_CONTENT` kennst. Für jeden Neuling ist das ein Albtraum — Code, der technisch korrekt, aber völlig undurchsichtig ist.
+Das zweite Problem ist, dass du allein durch das Betrachten der `ImageView`-Klasse **keine Ahnung hast, dass diese Konstanten existieren** oder dass sie speziell zu `ViewGroup.LayoutParams` gehören. Auch wenn `ImageView` diese Klasse nicht einmal erweitert, wird erwartet, dass du die „Magie“ hinter `MATCH_PARENT` und `WRAP_CONTENT` kennst. Für jeden Neuling ist das ein Albtraum — Code, der technisch korrekt, aber völlig undurchsichtig ist.
 
 Schau dir nun Jetpack Compose an:
 ```kotlin
@@ -426,9 +426,9 @@ Du magst sagen:
 Das könnte es — **für einen Moment.** Aber Benennung allein reicht in der Praxis nicht aus:
 
 - **Benennung reist nicht.** Sobald der Wert den Bereich verlässt, in dem er erstellt wurde, geht die Bedeutung oft verloren. Du kannst dich nicht darauf verlassen, dass jeder Entwickler — über jede Datei, Schicht oder jedes Feature hinweg — diese Klarheit aufrechterhält.
-- **Leute verwenden Typen aus Bequemlichkeit wieder.** Wenn `PositiveNumber` funktioniert, wird es jemand für Preis, Entfernung, Artikelanzahl oder was auch immer sie passend finden, verwenden. Und sobald ein Typ generisch wiederverwendet wird, verschwindet seine ursprüngliche Absicht. Du willst keinen solchen „generischen" Trend schaffen, sonst was ist der Sinn der Einführung eines Value Objects?
+- **Leute verwenden Typen aus Bequemlichkeit wieder.** Wenn `PositiveNumber` funktioniert, wird es jemand für Preis, Entfernung, Artikelanzahl oder was auch immer sie passend finden, verwenden. Und sobald ein Typ generisch wiederverwendet wird, verschwindet seine ursprüngliche Absicht. Du willst keinen solchen „generischen“ Trend schaffen, sonst was ist der Sinn der Einführung eines Value Objects?
 - **Reviews und Onboarding leiden.** Wenn derselbe Typ für viele Dinge verwendet wird, wird es schwieriger, über Code nachzudenken, schwieriger, Fehler zu verfolgen, und schwieriger für Neulinge zu verstehen, was ein Wert _tatsächlich_ darstellt.
-- **Fehler schleichen sich stillschweigend ein.** Du bemerkst vielleicht nie, dass jemand versehentlich eine „Länge in Kilometern" übergeben hat, wo „Preis in Euro" erwartet wurde — weil der Typ `PositiveNumber` beides akzeptiert.
+- **Fehler schleichen sich stillschweigend ein.** Du bemerkst vielleicht nie, dass jemand versehentlich eine „Länge in Kilometern“ übergeben hat, wo „Preis in Euro“ erwartet wurde — weil der Typ `PositiveNumber` beides akzeptiert.
 
 Das Problem ist also nicht, dass Namen schlecht sind — es ist, dass **sie zu leicht missverstanden, zu leicht missbraucht und zu leicht vergessen sind.** Wenn etwas Preis _bedeutet_, mach es zu einem `Price`. Diese Bedeutung sollte Refactorings, Grenzen und Zeit überdauern. Der einfachste Grund, es zu vermeiden, ist also, weil **es zu generisch ist**. In Wirklichkeit ist **Validierung** nur ein praktisches Ergebnis und nicht der Grund, semantische Typisierung einzuführen.
 
@@ -436,7 +436,7 @@ Du kannst eine natürliche Sprache als Referenz nehmen und überlegen, ob du dei
 
 Daher können wir eine intuitivere und explizitere Regel aufstellen:
 
-> **Typeinschränkungen sollten dein semantische Type in keinem Sinne antreiben – weder in der Benennung noch in der Existenz.**
+> **Typeinschränkungen sollten deinen semantischen Typ in keinem Sinne antreiben – weder in der Benennung noch in der Existenz.**
 
 **Aber was, wenn `PositiveNumber` im mathematischen Kontext wäre?**
 
@@ -446,9 +446,9 @@ Es mag scheinen, dass `PositiveNumber` **immer noch helfen kann**, Fehler in uns
 fun sqrt(x: PositiveNumber): Double
 ```
 
-Auf den ersten Blick sieht das sauber aus — du kodierst die Domänenregel „keine negativen Zahlen erlaubt" direkt in den Typ in dem Kontext, der ein solches Konzept „erlaubt".
+Auf den ersten Blick sieht das sauber aus — du kodierst die Domänenregel „keine negativen Zahlen erlaubt“ direkt in den Typ in dem Kontext, der ein solches Konzept „erlaubt“.
 
-Aber ist es ein gültiges Konzept innerhalb einer solchen Domäne? Ich würde vielleicht „ja" sagen, würde es aber höchstwahrscheinlich unterbewusst vermeiden. Warum?
+Aber ist es ein gültiges Konzept innerhalb einer solchen Domäne? Ich würde vielleicht „ja“ sagen, würde es aber höchstwahrscheinlich unterbewusst vermeiden. Warum?
 
 **Die Bedeutung hängt in einem solchen Fall von der Operation ab, nicht von der Eingabe**. Nimm dies:
 
@@ -458,7 +458,7 @@ fun sqrt(x: PositiveNumber): Foo
 
 Die **Operation** (sqrt) ist das, was die Einschränkung _definiert_ — dass die Eingabe nicht negativ sein darf. Die Eingabe selbst, als Zahl, **trägt diese Bedeutung nicht inhärent**. **Ohne den Operationskontext** ist der Typ `PositiveNumber` **nur eine Zahl mit einer Einschränkung** — aber was bedeutet er _wirklich_ für sich allein?
 
-Darüber hinaus assoziieren viele Leute „positive Zahl" beiläufig mit „nicht-negativ" und vergessen dabei, dass Null **weder** positiv noch negativ ist, noch beides gleichzeitig. Diese subtile Verwirrung kann zu scheinbar logischem Code führen, der tatsächlich falsch ist. Konzeptionell betrachte diese beiden Operationen:
+Darüber hinaus assoziieren viele Leute „positive Zahl“ beiläufig mit „nicht-negativ“ und vergessen dabei, dass Null **weder** positiv noch negativ ist, noch beides gleichzeitig. Diese subtile Verwirrung kann zu scheinbar logischem Code führen, der tatsächlich falsch ist. Konzeptionell betrachte diese beiden Operationen:
 
 ```kotlin
 @JvmInline
@@ -478,7 +478,7 @@ val zero = PositiveNumber(0.0) // ❌ wirft IllegalArgumentException
 sqrt(zero) // ❌ schlägt fehl, aber mathematisch ist sqrt(0) gültig
 ln(PositiveNumber(1.0)) // ✅ funktioniert
 ```
-Beide Funktionen scheinen auf „positiven Zahlen" zu operieren, aber die genauen Einschränkungen unterscheiden sich: `sqrt` akzeptiert Null (nicht-negativ), während ln strikt positive Werte erfordert. Wenn du versuchst, einen einzigen `PositiveNumber`-Typ für beide wiederzuverwenden, wird eine der Operationen entweder gültige Eingaben ablehnen oder ungültige Eingaben zulassen. **Semantische Typisierung muss den Operationskontext respektieren**, nicht nur den nominalen Wert.
+Beide Funktionen scheinen auf „positiven Zahlen“ zu operieren, aber die genauen Einschränkungen unterscheiden sich: `sqrt` akzeptiert Null (nicht-negativ), während ln strikt positive Werte erfordert. Wenn du versuchst, einen einzigen `PositiveNumber`-Typ für beide wiederzuverwenden, wird eine der Operationen entweder gültige Eingaben ablehnen oder ungültige Eingaben zulassen. **Semantische Typisierung muss den Operationskontext respektieren**, nicht nur den nominalen Wert.
 
 Während das Beispiel sehr spezifisch ist, sollte es dir ein großartiges Beispiel für mögliche Probleme bei der missbräuchlichen Verwendung zu allgemeiner Typen geben, was ein Grund ist, sie nicht einzuführen.
 
@@ -509,7 +509,7 @@ Bevorzuge Duplizierung gegenüber einer falschen Abstraktion für Fälle, in den
 
 Daher würde ich eine noch explizitere Regel aufstellen:
 
-> **Operationseinschränkungen sollten dein semantische Type in keinem Sinne antreiben – weder in der Benennung noch in der Existenz.** Wenn dir kein vernünftiger Name einfällt, ohne die Einschränkung zu erwähnen, der zu dieser Regel passen würde – brauchst du höchstwahrscheinlich keinen „semantischen Typ".
+> **Operationseinschränkungen sollten deinen semantischen Typ in keinem Sinne antreiben – weder in der Benennung noch in der Existenz.** Wenn dir kein vernünftiger Name einfällt, ohne die Einschränkung zu erwähnen, der zu dieser Regel passen würde – brauchst du höchstwahrscheinlich keinen „semantischen Typ“.
 
 Eine weitere Sache, die zu erwähnen ist, ist, dass wir zum Beispiel eine `Dp`-Klasse haben können, die dichteunabhängige Pixel darstellt, und dennoch Einschränkungen haben können, die durch die Operation (Nutzungskontext) definiert sind:
 ```kotlin
@@ -539,9 +539,9 @@ Und sobald du diesen Weg einschlägst, **wird jede Regel ein Kandidat für einen
 
 An diesem Punkt entwirfst du kein reichhaltiges Domänenmodell. Du baust eine Constraint-Validierungs-Bibliothek, die wie deine Domäne geformt ist. Und das ist ein völlig anderes Ziel — eines, das mehr Komplexität als Klarheit einführt.
 
-Stellen wir also eine vernünftige Regel auf, ohne uns auf eines unserer „inneren Gefühle" zu verlassen:
+Stellen wir also eine vernünftige Regel auf, ohne uns auf eines unserer „inneren Gefühle“ zu verlassen:
 
-> **Wenn das semantische Type nicht allein als bedeutungsvolles Konzept ohne seinen zugrunde liegenden Typ stehen kann, ist es wahrscheinlich ein schlechtes semantische Type.**
+> **Wenn der semantische Typ nicht allein als bedeutungsvolles Konzept ohne seinen zugrunde liegenden Typ stehen kann, ist er wahrscheinlich ein schlechter semantischer Typ.**
 
 Das ist auch der Grund, warum die Einführung von `DividerHeight(value: Dp)` anstelle von `DividerHeightDp(value: Int)` – eine schlechte Idee ist. Es würde einfach jedes Mal ausgepackt werden, was eine Menge unnötigen Boilerplate in unserem Code erzeugt.
 
@@ -589,7 +589,7 @@ Daher macht eine Benennung wie `DownloadedFileSize` keinen Sinn. Frag dich:
 
 > Spielt die _Quelle_ dieses Strings wirklich eine Rolle für die Geschäftslogik?
 
-So etwas einzuführen mag sich „beschreibend" anfühlen, aber in Wirklichkeit verdrahtest du Kontext fest, der nicht zum Kernkonzept gehört. Du nimmst ein neutrales, wiederverwendbares Konzept — wie „Text" oder „Größe" — und schränkst seinen Umfang unnötig ein. Dies schafft Fragmentierung, Verwirrung und unnötigen Aufwand in der API, eines ohne Grund in das andere zu konvertieren.
+So etwas einzuführen mag sich „beschreibend“ anfühlen, aber in Wirklichkeit verdrahtest du Kontext fest, der nicht zum Kernkonzept gehört. Du nimmst ein neutrales, wiederverwendbares Konzept — wie „Text“ oder „Größe“ — und schränkst seinen Umfang unnötig ein. Dies schafft Fragmentierung, Verwirrung und unnötigen Aufwand in der API, eines ohne Grund in das andere zu konvertieren.
 
 Und ich habe das Gefühl, dass wir es nicht mögen, eines in das andere zu mappen 🌚
 

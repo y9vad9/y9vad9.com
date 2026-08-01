@@ -108,7 +108,7 @@ Und dies ist keine Technik, die nur für Bibliotheken gedacht ist – du kannst 
 - Drücke alles andere als Erweiterungen aus, die darauf aufbauen.
 - Lass das Verhalten wachsen, ohne die Kernabstraktion aufzublähen.
 
-In diesem Modell sind Erweiterungen keine „zusätzlichen Helfer". Sie sind die primäre Art und Weise, wie Verhalten zusammengesetzt wird, während der Kern minimal und explizit bleibt.
+In diesem Modell sind Erweiterungen keine „zusätzlichen Helfer“. Sie sind die primäre Art und Weise, wie Verhalten zusammengesetzt wird, während der Kern minimal und explizit bleibt.
 
 > Wenn du neugierig auf andere Beispiele für diesen Ansatz bist, kannst du dir auch [kotlin.Result](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/util/Result.kt#L173) und die Ktor-Quelltexte ansehen. Im Allgemeinen verwenden die gesamte Standardbibliothek, `kotlinx.coroutines`, Ktor und andere offizielle Bibliotheken diesen Ansatz. Eine großartige Inspirationsquelle!
 

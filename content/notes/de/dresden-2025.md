@@ -14,7 +14,7 @@ Erster Halt: Grand Garden Palace und der Park drumherum. Schön, natürlich. Dur
 
 ![Grand Palace](attachments/dresden-2025-grand-palace.webp)
 
-Dann kommt der Polaroid-Moment (ich glaube, es war ein Polaroid?). Ein älteres Paar gibt mir ihre Vintage-Kamera und erwartet, dass ich ein Foto schieße. In meinem Kopf: „Klick = Foto" wie beim Handy. Realität: nope. Auf der Kamera muss man den Knopf halten. Drücke, loslassen, nichts. Noch einmal drücken, loslassen... nichts. Und jedes Mal kommen sie zurück, um zu checken, ob das Foto fertig ist. Typ beim fünften Versuch war so:
+Dann kommt der Polaroid-Moment (ich glaube, es war ein Polaroid?). Ein älteres Paar gibt mir ihre Vintage-Kamera und erwartet, dass ich ein Foto schieße. In meinem Kopf: „Klick = Foto“ wie beim Handy. Realität: nope. Auf der Kamera muss man den Knopf halten. Drücke, loslassen, nichts. Noch einmal drücken, loslassen... nichts. Und jedes Mal kommen sie zurück, um zu checken, ob das Foto fertig ist. Typ beim fünften Versuch war so:
 ![Meme: Beten und Weinen](attachments/dresden-2025-praying-crying.gif)
 
 Tag endet auf der Terrasse mit Aussicht, einem Drink und einem dieser langen Gespräche, die dich mehr über dein Leben nachdenken lassen als sonst. Zeit weg hat diese seltsame Art, Reflexion zu erzwingen. Man fragt sich: Was passiert gerade? Wo geht's als Nächstes hin? Und warum bin ich nicht einfach mit dem kleinen Zug gefahren? 😔
@@ -48,7 +48,7 @@ Zoo-Tag! Normalerweise nicht mein Ding, aber Dresdens Zoo hat Pinguine. Pinguine
 |-----------------------|------------------------|-----------------------|
 | ![Pinguin](attachments/dresden-2025-zoo-penguin.webp) | ![Kamele](attachments/dresden-2025-zoo-camels.webp) | ![Schafe](attachments/dresden-2025-zoo-sheep.webp) |
 
-Danach völlig erledigt umherlaufen? Kein Problem — am Ende gibt's natürlich ein Bier. Fühle mich, als könnten alle mich jetzt schon als „Drunky" sehen 🌚 — obwohl ich eigentlich kaum trinke.
+Danach völlig erledigt umherlaufen? Kein Problem — am Ende gibt's natürlich ein Bier. Fühle mich, als könnten alle mich jetzt schon als „Drunky“ sehen 🌚 — obwohl ich eigentlich kaum trinke.
 
 ![Trust me bro](attachments/dresden-2025-trust-me-bro.webp)
 

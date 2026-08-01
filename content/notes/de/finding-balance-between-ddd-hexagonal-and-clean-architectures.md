@@ -71,7 +71,7 @@ data class Money(
 ```
 Hier ist `Money(10, EUR)` nicht von einem anderen `Money(10, EUR)` zu unterscheiden.
 
-Es gibt kein Konzept von „welchem" – nur „welcher Wert".
+Es gibt kein Konzept von „welchem“ – nur „welcher Wert“.
 
 Eine weitere mächtige Anwendung von Value Objects ist das **semantische Typing** – das Ersetzen roher Primitive durch bedeutungsvolle Domänentypen:
 ```kotlin
@@ -150,11 +150,11 @@ class UserProfile(
 ```
 Egal, ob wir die E-Mail oder den Anzeigenamen ändern, der Benutzer ist immer noch derselbe. Die Identität der Entität hängt nicht von ihren Attributen ab – sie ist in der ID verankert, die konstant bleibt, auch wenn sich andere Eigenschaften entwickeln. Das macht deutlich, dass es bei einer Entität darum geht, _wer sie ist_, nicht _was sie derzeit hat_.
 
-Obwohl diese Version von `UserProfile` unveränderlich ist, bewahrt sie ihre Identität dennoch durch die `id`. Jede „Änderung" erzeugt eine neue Instanz, die dieselbe Entität zu einem anderen Zeitpunkt darstellt.
+Obwohl diese Version von `UserProfile` unveränderlich ist, bewahrt sie ihre Identität dennoch durch die `id`. Jede „Änderung“ erzeugt eine neue Instanz, die dieselbe Entität zu einem anderen Zeitpunkt darstellt.
 
 Im klassischen DDD sind Entitäten veränderlich (mutable), und viele Implementierungen verlassen sich aus Bequemlichkeit darauf. Ich ziehe es vor, meinen Code wann immer möglich unveränderlich (immutable) zu halten, weil es das Nachdenken über Zustand, Testen und Nebenläufigkeit viel sicherer macht, während das Kernprinzip von DDD, dass eine Entität durch ihre stabile Identität und nicht durch ihre Attribute definiert ist, dennoch respektiert wird.
 
-Und nun zu unserem „Komponisten" – dem Aggregat.
+Und nun zu unserem „Komponisten“ – dem Aggregat.
 
 #### Aggregat (Aggregate)
 In DDD ist ein **Aggregat** ein Cluster von Domänenobjekten – normalerweise Entitäten und Value Objects –, die als eine einzige Konsistenzgrenze behandelt werden. Das Aggregat stellt sicher, dass die Regeln und Invarianten der Domäne eingehalten werden, wann immer sich sein interner Zustand ändert.
@@ -268,7 +268,7 @@ Wir werden an dieser Stelle nicht über die Nützlichkeit oder Effektivität von
 Aber das ist so ziemlich alles – die Implementierung kann von Projekt zu Projekt variieren, und das Einzige, was ich als Regel für alles verwende, ist Unveränderlichkeit, wann immer möglich.
 #### Probleme
 ##### Blutleere Domänen-Entitäten (Anemic Domain Entities)
-> Das **Blutleere Domänenmodell** (Anemic Domain Model) ist ein häufiges Anti-Pattern im Domain-Driven Design (DDD), bei dem die Domänenobjekte – Entitäten und Value Objects – auf passive Datencontainer reduziert werden, denen jegliches Verhalten fehlt und die nur Getter und Setter (falls zutreffend) für ihre Eigenschaften enthalten. Dieses Modell wird als „blutleer" bezeichnet, weil es darin versagt, die Geschäftslogik zu kapseln, die eigentlich innerhalb der Domäne selbst leben sollte. Stattdessen wird diese Logik oft in separate Service-Klassen ausgelagert, was zu mehreren Problemen im Gesamtdesign führt.
+> Das **Blutleere Domänenmodell** (Anemic Domain Model) ist ein häufiges Anti-Pattern im Domain-Driven Design (DDD), bei dem die Domänenobjekte – Entitäten und Value Objects – auf passive Datencontainer reduziert werden, denen jegliches Verhalten fehlt und die nur Getter und Setter (falls zutreffend) für ihre Eigenschaften enthalten. Dieses Modell wird als „blutleer“ bezeichnet, weil es darin versagt, die Geschäftslogik zu kapseln, die eigentlich innerhalb der Domäne selbst leben sollte. Stattdessen wird diese Logik oft in separate Service-Klassen ausgelagert, was zu mehreren Problemen im Gesamtdesign führt.
 
 Um dieses Problem besser zu verstehen: Was genau ist schlecht an blutleeren Domänen-Entitäten? Lass uns das überprüfen:
 - **Mögliche Komplexität beim Verständnis dessen, wozu eine Domänen-Entität fähig ist**: Wenn Logik über Controller oder UseCases verteilt ist, ist es schwieriger, die Verantwortlichkeiten der Entität nachzuvollziehen, was das Verständnis und das Debugging verlangsamt (bedenke auch, dass es abgesehen von der IDE schwierig ist, die Geschäftslogik nachzuschlagen, die du in irgendwelche Controller oder UseCases gesteckt hast, was Code-Reviews viel schwieriger macht).
