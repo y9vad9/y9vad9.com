@@ -79,7 +79,7 @@ export const config: SiteConfig = {
       },
       {
         institution: 'Коледж Київського міжнародного університету',
-        degree: 'Незавершений фаховий молодший бакалавр з комп’ютерних наук',
+        degree: "Незавершений фаховий молодший бакалавр з комп'ютерних наук",
         period: 'Вересень 2020 — Червень 2022',
         logo: '/images/KyMU-logo.webp',
         url: 'notes/education#college-of-kyiv-international-university',
