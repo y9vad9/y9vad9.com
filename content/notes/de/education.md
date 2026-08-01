@@ -15,7 +15,7 @@ Während ich tief in die Grundlagen des Software Engineering von klein auf einta
 *   **Peer Mentoring:** Aktive Unterstützung von Mitstudenten beim Verständnis von allem, von grundlegender Programmierlogik bis hin zu komplexen Designmustern.
 *   **JavaScript-Unterricht:** Ich leitete eine der praktischen Lektionen, in denen wir die Grundlagen von JavaScript lernten. In diesem Zusammenhang erstellte ich einen [Video-Leitfaden für JS-Grundlagen](https://www.youtube.com/watch?v=7NTxuNKRfao), um der Gruppe beim Einstieg zu helfen.
 *   **Java-Kursarbeit:** Entwicklung eines [Telegram-Bots für ein Restaurant](https://github.com/y9vad9/restaurant-coursework/tree/master) mit Java. 
-    > **Eine Warnung zur Codequalität:** Rückblickend ist der Code absolut schrecklich. Ich war unter so großem Zeitdruck, die Frist einzuhalten, dass ich erstklassigen Spaghetti-Code und Design-Horror produziert habe. Er funktioniert, aber bitte verurteilen Sie mich heute nicht deswegen! 😅
+    > **Eine Warnung zur Codequalität:** Rückblickend ist der Code absolut schrecklich. Ich war unter so großem Zeitdruck, die Frist einzuhalten, dass ich erstklassigen Spaghetti-Code und Design-Horror produziert habe. Er funktioniert, aber bitte verurteile mich heute nicht deswegen! 😅
 *   **Bachelorarbeit:** [Minesweeper](https://github.com/y9vad9/minesweeper) — ein plattformübergreifendes Minesweeper-Spiel, entwickelt mit Kotlin und Compose Multiplatform für Android, iOS, Desktop und Web (Wasm). Nutzt SQLDelight zur Datenpersistenz und kotlinx.serialization.
 
 **Wichtigste Highlights:** JavaScript, Java, Python, C++ und parallele Programmierung mit OpenMPI.

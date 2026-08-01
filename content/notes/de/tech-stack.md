@@ -6,7 +6,7 @@ parents: ["Zusammenfassung"]
 
 ## Kotlin (Produktion)
 Kotlin ist seit 2020 meine bevorzugte Sprache. Was als Alternative zu Java für die Android-Entwicklung begann, entwickelte sich schnell
-zu meinem Standard für alles, von Backend-Diensten bis hin zu Multiplattform-Projekten. Sogar die Website, die Sie gerade besuchen,
+zu meinem Standard für alles, von Backend-Diensten bis hin zu Multiplattform-Projekten. Sogar die Website, die du gerade besuchst,
 wurde damit erstellt. Jedes Projekt, an dem ich seit 2021 gearbeitet habe, hat die Flexibilität und Prägnanz von Kotlin genutzt.
 
 ### Stack
@@ -32,7 +32,7 @@ wurde damit erstellt. Jedes Projekt, an dem ich seit 2021 gearbeitet habe, hat d
 - Admob
 - Android Lifecycle (ViewModel, etc.)
 
-Die Verwendung einiger Bibliotheken können Sie [hier](https://github.com/y9vad9/simple-vocabulary) überprüfen.
+Die Verwendung einiger Bibliotheken kannst du [hier](https://github.com/y9vad9/simple-vocabulary) überprüfen.
 ### Multiplattform
 - [Compose Multiplatform](https://github.com/y9vad9/cadento)
 - [SQLDelight](https://github.com/y9vad9/cadento)

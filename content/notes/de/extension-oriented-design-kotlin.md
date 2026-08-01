@@ -12,9 +12,9 @@ Der Fortschritt bleibt nicht stehen, und jede Sprache bringt ihre eigenen Konven
 ## Erweiterungen in Kotlin
 Beginnen wir mit einer kurzen Einführung für Leser, die neu bei Kotlin sind – oder es nicht täglich nutzen, aber dennoch neugierig sind.
 
-> Eine **Kotlin-Erweiterung** (Extension) ist ein Sprachmerkmal, mit dem Sie einem **bestehenden Typ neues Verhalten hinzufügen können, ohne ihn zu ändern oder von ihm zu erben**.
+> Eine **Kotlin-Erweiterung** (Extension) ist ein Sprachmerkmal, mit dem du einem **bestehenden Typ neues Verhalten hinzufügen kannst, ohne ihn zu ändern oder von ihm zu erben**.
 
-In den meisten objektorientierten Sprachen ist der klassische Weg zur Funktionserweiterung die **Vererbung**. Dies funktioniert gut, solange Ihnen die Klasse gehört oder Vererbung keine Option ist – zum Beispiel, wenn ein Typ ein Primitiv, `final`, `sealed` ist oder bereits zu viele Implementierungen hat, um ihn sinnvoll zu erweitern.
+In den meisten objektorientierten Sprachen ist der klassische Weg zur Funktionserweiterung die **Vererbung**. Dies funktioniert gut, solange dir die Klasse gehört oder Vererbung keine Option ist – zum Beispiel, wenn ein Typ ein Primitiv, `final`, `sealed` ist oder bereits zu viele Implementierungen hat, um ihn sinnvoll zu erweitern.
 
 In Java wird diese Einschränkung normalerweise durch die Einführung sogenannter *Helper*- oder *Utils*-Klassen gelöst (die Benennung variiert, die Idee nicht). Beispielsweise sieht das Hinzufügen einer Funktion zum Finden des maximalen Elements in einer Liste oft so aus:
 ```java
@@ -40,11 +40,11 @@ public final class ListUtils {
 }
 ```
 
-Technisch gesehen könnte man eine `List` in einer anderen Klasse kapseln, um zusätzliche Funktionalität über das [Delegationsmuster](https://de.wikipedia.org/wiki/Delegationsprinzip) bereitzustellen. In der Praxis wird dies jedoch selten getan. Stellen Sie sich vor, Sie erstellen eine Liste mit `List.of(...)` und kapseln sie dann erneut in `FooList<E>`, nur um eine einzige zusätzliche Operation zu erhalten – dies führt zu unnötigem Aufwand und oft zu zusätzlichen Allokationen bei sehr geringem Nutzen. Infolgedessen bleiben statische Hilfsmethoden der dominierende Ansatz. Das funktioniert zwar, bringt aber Kompromisse mit sich.
+Technisch gesehen könnte man eine `List` in einer anderen Klasse kapseln, um zusätzliche Funktionalität über das [Delegationsmuster](https://de.wikipedia.org/wiki/Delegationsprinzip) bereitzustellen. In der Praxis wird dies jedoch selten getan. Stell dir vor, du erstellst eine Liste mit `List.of(...)` und kapselst sie dann erneut in `FooList<E>`, nur um eine einzige zusätzliche Operation zu erhalten – dies führt zu unnötigem Aufwand und oft zu zusätzlichen Allokationen bei sehr geringem Nutzen. Infolgedessen bleiben statische Hilfsmethoden der dominierende Ansatz. Das funktioniert zwar, bringt aber Kompromisse mit sich.
 
 Man muss wissen, dass `ListUtils` existiert, sich an seinen Namen erinnern und hoffen, dass er einer vorhersehbaren Namenskonvention folgt. In echten Codebasen neigen diese Klassen dazu, groß zu werden, sich im Laufe der Zeit zu vervielfältigen und in mehrere Varianten zu fragmentieren. Das Finden einer existierenden Hilfsfunktion wird oft zu einem Suchproblem, und doppelte Implementierungen sind an der Tagesordnung, einfach weil jemand nicht wusste, dass die Funktionalität bereits existierte.
 
-Kotlin adressiert dies mit **Erweiterungsfunktionen** (Extension Functions). Anstatt nach einer Hilfsklasse zu suchen, suchen Sie nach Verhalten, das *auf dem Typ selbst* definiert ist:
+Kotlin adressiert dies mit **Erweiterungsfunktionen** (Extension Functions). Anstatt nach einer Hilfsklasse zu suchen, suchst du nach Verhalten, das *auf dem Typ selbst* definiert ist:
 ```kotlin
 fun Iterable<T : Comparable<T>>.max(): T { /* ... */ }
 ```
@@ -103,18 +103,18 @@ Erweiterungen vermeiden diese Klasse von Problemen durch ihr Design. Sie können
 
 Infolgedessen helfen Erweiterungen nicht nur bei der Strukturierung von Code – sie helfen dabei, das Vertrauen in die Abstraktion selbst zu bewahren.
 
-Und dies ist keine Technik, die nur für Bibliotheken gedacht ist – Sie können denselben Ansatz in Ihrem eigenen Code anwenden. Ein paar allgemeine Richtlinien:
-- Definieren Sie eine kleine, stabile Kernfähigkeit.
-- Drücken Sie alles andere als Erweiterungen aus, die darauf aufbauen.
-- Lassen Sie das Verhalten wachsen, ohne die Kernabstraktion aufzublähen.
+Und dies ist keine Technik, die nur für Bibliotheken gedacht ist – du kannst denselben Ansatz in deinem eigenen Code anwenden. Ein paar allgemeine Richtlinien:
+- Definiere eine kleine, stabile Kernfähigkeit.
+- Drücke alles andere als Erweiterungen aus, die darauf aufbauen.
+- Lass das Verhalten wachsen, ohne die Kernabstraktion aufzublähen.
 
 In diesem Modell sind Erweiterungen keine „zusätzlichen Helfer". Sie sind die primäre Art und Weise, wie Verhalten zusammengesetzt wird, während der Kern minimal und explizit bleibt.
 
-> Wenn Sie neugierig auf andere Beispiele für diesen Ansatz sind, können Sie sich auch [kotlin.Result](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/util/Result.kt#L173) und die Ktor-Quelltexte ansehen. Im Allgemeinen verwenden die gesamte Standardbibliothek, `kotlinx.coroutines`, Ktor und andere offizielle Bibliotheken diesen Ansatz. Eine großartige Inspirationsquelle!
+> Wenn du neugierig auf andere Beispiele für diesen Ansatz bist, kannst du dir auch [kotlin.Result](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/src/kotlin/util/Result.kt#L173) und die Ktor-Quelltexte ansehen. Im Allgemeinen verwenden die gesamte Standardbibliothek, `kotlinx.coroutines`, Ktor und andere offizielle Bibliotheken diesen Ansatz. Eine großartige Inspirationsquelle!
 
 
 ## Ab in die Tiefe
-Versuchen wir, selbst etwas zu bauen, um diese Idee wirklich zu festigen. Stellen Sie sich vor, Sie müssten eine kleine und einfache Caching-Bibliothek entwickeln. Wie würden Sie unter Berücksichtigung des **erweiterungsorientierten Designs** vorgehen?
+Versuchen wir, selbst etwas zu bauen, um diese Idee wirklich zu festigen. Stell dir vor, du müsstest eine kleine und einfache Caching-Bibliothek entwickeln. Wie würdest du unter Berücksichtigung des **erweiterungsorientierten Designs** vorgehen?
 
 Zuerst müssen wir die **Kernfunktionalität** identifizieren – den minimalen Satz an Operationen, den jeder Cache unterstützen muss. Im Kern macht ein Cache zwei Dinge:
 1. Einen Wert über einen Schlüssel abrufen.
@@ -149,13 +149,13 @@ fun <K : Any, V : Any> Cache<K, V>.getOrAssign(key: K, block: () -> V): V {
 }
 ```
 
-Beachten Sie, wie das funktioniert: Das Interface selbst bleibt winzig – nur `get` und `set`. Alles andere lebt in Erweiterungen. Hier ist `getOrAssign` genau diese Art von Erweiterung: Sie ändert nicht, wie der Cache funktioniert, sondern fügt lediglich eine klare, bequeme Art der Nutzung hinzu.
+Beachte, wie das funktioniert: Das Interface selbst bleibt winzig – nur `get` und `set`. Alles andere lebt in Erweiterungen. Hier ist `getOrAssign` genau diese Art von Erweiterung: Sie ändert nicht, wie der Cache funktioniert, sondern fügt lediglich eine klare, bequeme Art der Nutzung hinzu.
 
 An der Aufrufseite liest es sich fast wie natürliche Sprache: `cache.getOrAssign(key) { aufwendigeBerechnung() }`. Man weiß sofort, was passiert: Wenn der Wert da ist, verwende ihn; andernfalls berechne ihn und speichere ihn. Der Name `getOrAssign` ist bewusst gewählt – wir möchten explizit ausdrücken, was diese Erweiterung tut, und niemanden raten lassen.
 
 Das Schöne an diesem Ansatz ist, dass wir den Kern stabil halten können, während wir Verhalten auf eine Weise hinzufügen, die vorhersehbar und kombinierbar ist. Das hält die Dinge klein, klar und lässt die Funktionalität natürlich wachsen.
 
-Später könnten Sie so etwas wie `invalidate(key: K)` als Erweiterung hinzufügen – alles ohne das ursprüngliche Interface zu berühren. Es lässt die API sauberer wirken als die Abhängigkeit von `set(key, null)` – was zwar funktioniert, sich aber etwas technisch anfühlt und für jemanden, der den Cache nutzt, nicht sofort offensichtlich ist.
+Später könntest du so etwas wie `invalidate(key: K)` als Erweiterung hinzufügen – alles ohne das ursprüngliche Interface zu berühren. Es lässt die API sauberer wirken als die Abhängigkeit von `set(key, null)` – was zwar funktioniert, sich aber etwas technisch anfühlt und für jemanden, der den Cache nutzt, nicht sofort offensichtlich ist.
 
 ## Fazit
 Wir verwenden Erweiterungsfunktionen aus vielen Gründen: um technische Einschränkungen zu umgehen (zum Beispiel, wenn eine Klasse nicht zur Änderung verfügbar ist oder wenn bestimmte Funktionen wie `inline`-Funktionen nicht direkt verwendet werden können) und um Code so zu strukturieren, dass das Verständnis verbessert wird.

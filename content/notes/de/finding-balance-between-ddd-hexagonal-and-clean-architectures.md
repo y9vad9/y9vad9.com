@@ -7,31 +7,31 @@ parents: ["Softwaredesign", "Kotlin"]
 ---
 Die Wahl der richtigen Softwaredesign ist eine Herausforderung, insbesondere wenn es darum geht, Theorie und Empfehlungen aus dem Internet mit der praktischen Umsetzung in Einklang zu bringen. In diesem Artikel werde ich meine Reise und die architektonischen Entscheidungen, die für mich funktioniert haben, teilen.
 
-Obwohl der Titel suggerieren mag, dass ich Ihnen genau sagen werde, wie Sie Ihre Anwendung strukturieren sollen, ist das nicht mein Ziel. Stattdessen werde ich mich auf meine persönlichen Erfahrungen, Entscheidungen und die Gründe für die Ansätze konzentrieren, die ich beim Erstellen meiner Apps gewählt habe. Das bedeutet nicht, dass Sie die Dinge auf die gleiche Weise strukturieren sollten, aber da viele meiner Freunde mich danach gefragt haben, dachte ich, ich würde versuchen, die Architektur zu erklären, die wir in [Cadento](https://github.com/y9vad9/cadento) verwenden (P.S.: persönliches Projekt, das ich mit meinen Freunden mache; Upd: es ist 2025 und es ist immer noch nicht fertig :D).
+Obwohl der Titel suggerieren mag, dass ich dir genau sagen werde, wie du deine Anwendung strukturieren sollst, ist das nicht mein Ziel. Stattdessen werde ich mich auf meine persönlichen Erfahrungen, Entscheidungen und die Gründe für die Ansätze konzentrieren, die ich beim Erstellen meiner Apps gewählt habe. Das bedeutet nicht, dass du die Dinge auf die gleiche Weise strukturieren solltest, aber da viele meiner Freunde mich danach gefragt haben, dachte ich, ich würde versuchen, die Architektur zu erklären, die wir in [Cadento](https://github.com/y9vad9/cadento) verwenden (P.S.: persönliches Projekt, das ich mit meinen Freunden mache; Upd: es ist 2025 und es ist immer noch nicht fertig :D).
 
 ### Smarte Terminologie
-Sie kennen wahrscheinlich bereits bestimmte Begriffe wie **Clean Architecture**, **DDD** (Domain-driven Design) oder vielleicht sogar **Hexagonale Architektur**. Vielleicht haben Sie schon viele Artikel darüber gelesen. Aber ich persönlich sah in den meisten davon einige Probleme – zu viel theoretische Information und zu wenig praktische Information. Sie mögen Ihnen kleine und unrealistische Beispiele geben, bei denen alles perfekt funktioniert, aber das hat bei mir nie funktioniert und mir nie gute Antworten gegeben, sondern nur die Menge an Boilerplate erhöht.
+Du kennst wahrscheinlich bereits bestimmte Begriffe wie **Clean Architecture**, **DDD** (Domain-driven Design) oder vielleicht sogar **Hexagonale Architektur**. Vielleicht hast du schon viele Artikel darüber gelesen. Aber ich persönlich sah in den meisten davon einige Probleme – zu viel theoretische Information und zu wenig praktische Information. Sie mögen dir kleine und unrealistische Beispiele geben, bei denen alles perfekt funktioniert, aber das hat bei mir nie funktioniert und mir nie gute Antworten gegeben, sondern nur die Menge an Boilerplate erhöht.
 
 Einige davon sind fast identisch oder umfassen sich größtenteils gegenseitig und widersprechen sich in den meisten Fällen nicht, aber viele Leute bleiben bei einem spezifischen Ansatz stehen und denken nicht, dass es nicht das Ende der Welt ist.
 
 Wir werden versuchen, die wertvollsten Informationen aus verschiedenen Ansätzen, von denen ich mich inspirieren lasse, zu lernen, abgesehen davon, wie ich meine Apps zunächst baue. Dann kommen wir zu meinen speziellen Gedanken und Implementierungen. Beginnen wir dort, wo die meisten Leute bei der Entwicklung von Android-Apps anfangen:
 #### Clean Architecture
-Clean Architecture klingt ziemlich einfach – Sie haben spezifische Schichten, die jeweils nur eine spezifische Aufgabe erfüllen sollen (ich weiß, zu viel spezifisch). Google empfiehlt die folgende Struktur, nennt sie aber nicht "clean", sondern "modern":
+Clean Architecture klingt ziemlich einfach – du hast spezifische Schichten, die jeweils nur eine spezifische Aufgabe erfüllen sollen (ich weiß, zu viel spezifisch). Google empfiehlt die folgende Struktur, nennt sie aber nicht "clean", sondern "modern":
 - **Präsentation**
 - *Domäne* (optional nach Googles Meinung)
 - **Daten**
 
-Die **Präsentationsschicht** ist für Ihre Benutzeroberfläche verantwortlich, und idealerweise besteht ihre einzige Rolle darin, zwischen dem Benutzer (der mit der Benutzeroberfläche interagiert) und dem **Domänenmodell** zu kommunizieren. Die **Domänenschicht** behandelt die Geschäftslogik, während die **Datenschicht** sich mit Low-Level-Operationen wie dem Lesen und Schreiben in eine Datenbank befasst.
+Die **Präsentationsschicht** ist für deine Benutzeroberfläche verantwortlich, und idealerweise besteht ihre einzige Rolle darin, zwischen dem Benutzer (der mit der Benutzeroberfläche interagiert) und dem **Domänenmodell** zu kommunizieren. Die **Domänenschicht** behandelt die Geschäftslogik, während die **Datenschicht** sich mit Low-Level-Operationen wie dem Lesen und Schreiben in eine Datenbank befasst.
 
 Klingt einfach, oder? Doch innerhalb dieser Struktur liegt eine große Frage: Laut der von Google empfohlenen Architektur für Apps, warum ist die **Domänenschicht** optional? Wo soll dann die Geschäftslogik hin?
 
-Diese Idee kommt von Googles Standpunkt, dass die Domänenschicht in bestimmten Fällen übersprungen werden kann. In einfacheren Anwendungen finden Sie möglicherweise Beispiele, bei denen die **Geschäftslogik** in der **ViewModel** (Teil der Präsentationsschicht) platziert wird. Was ist also das Problem bei diesem Ansatz?
+Diese Idee kommt von Googles Standpunkt, dass die Domänenschicht in bestimmten Fällen übersprungen werden kann. In einfacheren Anwendungen findest du möglicherweise Beispiele, bei denen die **Geschäftslogik** in der **ViewModel** (Teil der Präsentationsschicht) platziert wird. Was ist also das Problem bei diesem Ansatz?
 
 Das Problem liegt in den **MVVM/MVI/MVP**-Mustern und der Rolle der **Präsentationsschicht**. Die Präsentationsschicht sollte nur die **Integration mit Plattformdetails** und UI-bezogene Aufgaben behandeln. In diesem Kontext ist es entscheidend, die Präsentationsschicht – ob sie MVVM oder ein anderes Muster verwendet – frei von **Geschäftslogik** zu halten. Die einzige Logik, die sie enthalten sollte, bezieht sich auf plattformspezifische Anforderungen.
 
 Warum? In der **Clean Architecture** hat jede Schicht eine spezifische Verantwortung, um die Trennung der Belange und wartbaren Code sicherzustellen. Die Aufgabe der **Präsentationsschicht** besteht darin, mit dem Benutzer über die Benutzeroberfläche zu interagieren und plattformbezogene Operationen wie das Rendern von Ansichten oder das Handhaben von Eingaben zu verwalten. Sie soll keine Geschäftslogik enthalten, da diese in die **Domänenschicht** gehört, wo die Kernregeln und Entscheidungsfindung zentralisiert sind.
 
-Das Konzept besteht darin, plattformspezifische Überlegungen in der Präsentationsschicht zu trennen, wodurch es möglich wird, die Benutzeroberfläche oder Plattform zu ändern oder anzupassen, ohne die Geschäftsregeln und andere Codes zu beeinflussen. Wenn Sie beispielsweise von einer Android- zu einer iOS-App wechseln möchten, müssten Sie nur die Benutzeroberfläche überarbeiten, während die Domänenlogik erhalten bleibt, was im Kontext von Kotlin besonders vorteilhaft ist. 😋
+Das Konzept besteht darin, plattformspezifische Überlegungen in der Präsentationsschicht zu trennen, wodurch es möglich wird, die Benutzeroberfläche oder Plattform zu ändern oder anzupassen, ohne die Geschäftsregeln und andere Codes zu beeinflussen. Wenn du beispielsweise von einer Android- zu einer iOS-App wechseln möchtest, müsstest du nur die Benutzeroberfläche überarbeiten, während die Domänenlogik erhalten bleibt, was im Kontext von Kotlin besonders vorteilhaft ist. 😋
 
 Die meisten Missverständnisse rühren daher, dass nicht verstanden wird, was Geschäftslogik ist, wo sie sich befinden sollte und die Art bestimmter Beispiele.
 
@@ -40,11 +40,11 @@ Um weitere Probleme anzugehen, sprechen wir mehr über die Domänenschicht, insb
 ### Domain-driven Design
 Domain-driven Design (DDD) dreht sich um die Strukturierung der Anwendung, um den Kern der Geschäftsdomäne widerzuspiegeln. Aber einfach – welcher Code sollte wie geschrieben werden?
 
-Sie kennen sicherlich bereits Repositories oder UseCases und einige von Ihnen denken vielleicht, dass UseCases ein Teil davon sind. Aber der wichtigste Teil sind nicht UseCases oder Repositories (ich betrachte sie insgesamt nicht als Teil einer Domäne), sondern Geschäftsobjekte, um die Ihre Domänenlogik lebt.
+Du kennst sicherlich bereits Repositories oder UseCases und einige von euch denken vielleicht, dass UseCases ein Teil davon sind. Aber der wichtigste Teil sind nicht UseCases oder Repositories (ich betrachte sie insgesamt nicht als Teil einer Domäne), sondern Geschäftsobjekte, um die deine Domänenlogik lebt.
 
-Domänenobjekte im DDD-Bereich sind essentielle Objekte, die das Geschäftsproblem widerspiegeln, das Sie ansprechen. Es sind nicht nur gewöhnliche DTOs oder POJOs, wie sie häufig in vielen Anfängerprojekten verwendet werden. Stattdessen kapseln Domänenobjekte in DDD sowohl Daten als auch Verhalten (das schließt zum Beispiel Validierung ein). Sie sind darauf ausgelegt, reale Konzepte und Prozesse darzustellen und verkörpern die Regeln und Logik, die diese Konzepte steuern. Aber was ist der einfache Ratschlag, der sich daraus ergibt?
+Domänenobjekte im DDD-Bereich sind essentielle Objekte, die das Geschäftsproblem widerspiegeln, das du ansprichst. Es sind nicht nur gewöhnliche DTOs oder POJOs, wie sie häufig in vielen Anfängerprojekten verwendet werden. Stattdessen kapseln Domänenobjekte in DDD sowohl Daten als auch Verhalten (das schließt zum Beispiel Validierung ein). Sie sind darauf ausgelegt, reale Konzepte und Prozesse darzustellen und verkörpern die Regeln und Logik, die diese Konzepte steuern. Aber was ist der einfache Ratschlag, der sich daraus ergibt?
 
-Es gibt 3 Arten von Domänenobjekten innerhalb von DDD, also lassen Sie uns über sie sprechen.
+Es gibt 3 Arten von Domänenobjekten innerhalb von DDD, also lass uns über sie sprechen.
 
 #### Value Objects
 Ein **Value Object** (Wertobjekt) ist ein unveränderliches Domänenkonzept, das **keine eigene Identität** hat.
@@ -103,11 +103,11 @@ public value class EmailAddress private constructor(public val rawString: String
 }
 ```
 
-Sie können mehr über semantisches Typing in meinem Artikel lesen — [Semantische Typisierung, die wir ignorieren](semantic-typing).
+Du kannst mehr über semantisches Typing in meinem Artikel lesen — [Semantische Typisierung, die wir ignorieren](semantic-typing).
 
-Kurz gesagt, mein allgemeiner Rat wäre, die direkte Verwendung von rohen Typen wie `String`, `Int`, `Long` usw. in Ihrem Domänenmodell zu vermeiden (`Boolean` ist oft die einzige vernünftige Ausnahme).
+Kurz gesagt, mein allgemeiner Rat wäre, die direkte Verwendung von rohen Typen wie `String`, `Int`, `Long` usw. in deinem Domänenmodell zu vermeiden (`Boolean` ist oft die einzige vernünftige Ausnahme).
 
-Führen Sie stattdessen semantische Value Objects ein, die:
+Führe stattdessen semantische Value Objects ein, die:
 - selbsterklärend sind
 - Validierung kapseln
 - Domänenlogik lokalisieren
@@ -217,7 +217,7 @@ In diesem Beispiel gehen alle Erstellungen und Zustandsänderungen durch typsich
 
 Die versiegelten Ergebnistypen (sealed result types) machen explizit und selbstdokumentierend, welche Ergebnisse möglich sind, und ermöglichen es dem Compiler, die Behandlung sowohl von Erfolgs- als auch von Fehlerfällen zu erzwingen. Die direkte Instanziierung von `User` wird durch den `private constructor` verhindert, sodass jede Instanz die Validierungslogik in `create` oder `promoteToAdmin` durchlaufen muss.
 
-Aggregate selbst haben auch Grenzen, die wir respektieren müssen. Sie können nicht einfach ein Aggregat in ein anderes einbetten, da jedes Aggregat für seine eigenen Invarianten und Konsistenzregeln verantwortlich ist. Ein Team-Aggregat kann beispielsweise User-Aggregate nicht direkt enthalten; es behält nur Referenzen auf deren IDs.
+Aggregate selbst haben auch Grenzen, die wir respektieren müssen. Du kannst nicht einfach ein Aggregat in ein anderes einbetten, da jedes Aggregat für seine eigenen Invarianten und Konsistenzregeln verantwortlich ist. Ein Team-Aggregat kann beispielsweise User-Aggregate nicht direkt enthalten; es behält nur Referenzen auf deren IDs.
 
 ```kotlin
 class Team private constructor(
@@ -248,7 +248,7 @@ Dies hält die Regeln klar: Team setzt seine eigenen Invarianten durch, während
 
 __________
 
-Abgesehen von Aggregaten, Domänen-Entitäten und Value Objects sehen Sie möglicherweise manchmal die Service-Klassen der Domänenschicht. Sie werden für Logik verwendet, die normalerweise nicht in den Aggregaten untergebracht werden kann, aber dennoch eine Art Geschäftslogik ist. Zum Beispiel:
+Abgesehen von Aggregaten, Domänen-Entitäten und Value Objects siehst du möglicherweise manchmal die Service-Klassen der Domänenschicht. Sie werden für Logik verwendet, die normalerweise nicht in den Aggregaten untergebracht werden kann, aber dennoch eine Art Geschäftslogik ist. Zum Beispiel:
 ```kotlin
 class ShippingService {
 	fun calculatePrice(
@@ -263,16 +263,16 @@ class ShippingService {
 }
 ```
 
-Wir werden an dieser Stelle nicht über die Nützlichkeit oder Effektivität von Services oder Aggregatoren auf Domänenebene diskutieren. Behalten Sie es einfach im Hinterkopf, bis wir an den Punkt kommen, an dem wir diese Ansätze zu einem Ganzen kombinieren.
+Wir werden an dieser Stelle nicht über die Nützlichkeit oder Effektivität von Services oder Aggregatoren auf Domänenebene diskutieren. Behalte es einfach im Hinterkopf, bis wir an den Punkt kommen, an dem wir diese Ansätze zu einem Ganzen kombinieren.
 
 Aber das ist so ziemlich alles – die Implementierung kann von Projekt zu Projekt variieren, und das Einzige, was ich als Regel für alles verwende, ist Unveränderlichkeit, wann immer möglich.
 #### Probleme
 ##### Blutleere Domänen-Entitäten (Anemic Domain Entities)
 > Das **Blutleere Domänenmodell** (Anemic Domain Model) ist ein häufiges Anti-Pattern im Domain-Driven Design (DDD), bei dem die Domänenobjekte – Entitäten und Value Objects – auf passive Datencontainer reduziert werden, denen jegliches Verhalten fehlt und die nur Getter und Setter (falls zutreffend) für ihre Eigenschaften enthalten. Dieses Modell wird als „blutleer" bezeichnet, weil es darin versagt, die Geschäftslogik zu kapseln, die eigentlich innerhalb der Domäne selbst leben sollte. Stattdessen wird diese Logik oft in separate Service-Klassen ausgelagert, was zu mehreren Problemen im Gesamtdesign führt.
 
-Um dieses Problem besser zu verstehen: Was genau ist schlecht an blutleeren Domänen-Entitäten? Lassen Sie uns das überprüfen:
-- **Mögliche Komplexität beim Verständnis dessen, wozu eine Domänen-Entität fähig ist**: Wenn Logik über Controller oder UseCases verteilt ist, ist es schwieriger, die Verantwortlichkeiten der Entität nachzuvollziehen, was das Verständnis und das Debugging verlangsamt (bedenken Sie auch, dass es abgesehen von der IDE schwierig ist, die Geschäftslogik nachzuschlagen, die Sie in irgendwelche Controller oder UseCases gesteckt haben, was Code-Reviews viel schwieriger macht).
-- **Kapselung ist gebrochen**: Entitäten halten nur Daten ohne Verhalten, was die Geschäftslogik in Services drängt und die Struktur schwerer wartbar macht. Das bedeutet, dass Sie die Logik über UseCases/Controller/usw. hinweg abgleichen und sicherstellen müssen, dass die Geschäftslogik tatsächlich korrekt geändert wird.
+Um dieses Problem besser zu verstehen: Was genau ist schlecht an blutleeren Domänen-Entitäten? Lass uns das überprüfen:
+- **Mögliche Komplexität beim Verständnis dessen, wozu eine Domänen-Entität fähig ist**: Wenn Logik über Controller oder UseCases verteilt ist, ist es schwieriger, die Verantwortlichkeiten der Entität nachzuvollziehen, was das Verständnis und das Debugging verlangsamt (bedenke auch, dass es abgesehen von der IDE schwierig ist, die Geschäftslogik nachzuschlagen, die du in irgendwelche Controller oder UseCases gesteckt hast, was Code-Reviews viel schwieriger macht).
+- **Kapselung ist gebrochen**: Entitäten halten nur Daten ohne Verhalten, was die Geschäftslogik in Services drängt und die Struktur schwerer wartbar macht. Das bedeutet, dass du die Logik über UseCases/Controller/usw. hinweg abgleichen und sicherstellen musst, dass die Geschäftslogik tatsächlich korrekt geändert wird.
 - **Schwieriger zu testen**: Wenn Verhalten verstreut ist, wird das Testen einzelner Features schwieriger, weil die Logik nicht innerhalb der Entität selbst gruppiert ist.
 - **Wiederholung von Logik**: Geschäftsregeln werden oft über Services/UseCases hinweg wiederholt, was zu unnötiger Wiederholung und höheren Wartungskosten führt.
 
@@ -407,7 +407,7 @@ sealed interface TimerState : State<TimerEvent> {
 
 Wenn man eine solche Entität betrachtet, versteht man schneller, was sie tut, wie sie auf Domänenereignisse reagiert und andere Dinge, die passieren können.
 
-Aber was Geschäftsobjekte betrifft, haben Sie manchmal vielleicht das Gefühl, dass sie kein Verhalten haben, das Sie ihnen hinzufügen/verschieben können. Hier ist mein Beispiel für ein solches Objekt:
+Aber was Geschäftsobjekte betrifft, hast du manchmal vielleicht das Gefühl, dass sie kein Verhalten haben, das du ihnen hinzufügen/verschieben kannst. Hier ist mein Beispiel für ein solches Objekt:
 
 ```kotlin
 data class User(
@@ -426,13 +426,13 @@ data class User(
 ```
 > **Interessante Anmerkung**: Es ist ein tatsächlicher Code aus meiner Benutzerdomäne mit einem solchen Problem.
 
-Das potenzielle Problem ist, dass `User` und `Patch` Datencontainer ohne Geschäftslogik sind. Zunächst einmal verwende ich `Patch` nur in den UseCases, was bedeutet, dass es dort platziert werden sollte, wo es benötigt wird. Wenden Sie diese Regel für alles an – eine Deklaration ohne Verwendung auf der Ebene, die sie definiert, bedeutet, dass Sie etwas falsch machen.
+Das potenzielle Problem ist, dass `User` und `Patch` Datencontainer ohne Geschäftslogik sind. Zunächst einmal verwende ich `Patch` nur in den UseCases, was bedeutet, dass es dort platziert werden sollte, wo es benötigt wird. Wende diese Regel für alles an – eine Deklaration ohne Verwendung auf der Ebene, die sie definiert, bedeutet, dass du etwas falsch machst.
 
 Was `User` betrifft, gibt es keine Notwendigkeit, Aggregatfunktionen zu erstellen – Kotlins automatisch generierte `copy`-Methode ist mehr als genug, da Value Objects bereits validiert sind und es keine benutzerdefinierte Logik dafür für die gesamte Entität gibt.
 
-Um mehr über dieses Problem zu erfahren, können Sie beispielsweise diesen [Artikel](https://medium.com/@inzuael/anemic-domain-model-vs-rich-domain-model-78752b46098f) lesen.
+Um mehr über dieses Problem zu erfahren, kannst du beispielsweise diesen [Artikel](https://medium.com/@inzuael/anemic-domain-model-vs-rich-domain-model-78752b46098f) lesen.
 
-Ich würde hinzufügen, dass Sie versuchen sollten, blutleere Domänen-Entitäten zu vermeiden, sich aber gleichzeitig nicht dazu zwingen sollten – wenn es nichts zu aggregieren gibt, fügen Sie keine Aggregate hinzu. Erfinden Sie kein Verhalten, wenn nichts hinzuzufügen ist – [KISS](https://www.interaction-design.org/literature/topics/keep-it-simple-stupid) gilt immer noch.
+Ich würde hinzufügen, dass du versuchen solltest, blutleere Domänen-Entitäten zu vermeiden, dich aber gleichzeitig nicht dazu zwingen solltest – wenn es nichts zu aggregieren gibt, füge keine Aggregate hinzu. Erfinde kein Verhalten, wenn nichts hinzuzufügen ist – [KISS](https://www.interaction-design.org/literature/topics/keep-it-simple-stupid) gilt immer noch.
 
 ##### Ignorieren der allgegenwärtigen Sprache (Ubiquitous Language)
 Ubiquitous Language, ein Schlüsselkonzept in DDD, wird oft ignoriert. Das Domänenmodell und der Code sollten dieselbe Sprache wie die Geschäftsinteressengruppen verwenden, um Missverständnisse zu reduzieren. Das Versäumnis, den Code an der **Sprache der Domänenexperten** auszurichten, führt zu einer Diskrepanz zwischen der Geschäftslogik und der tatsächlichen Implementierung.
@@ -451,9 +451,9 @@ Die Hexagonale Architektur, auch bekannt als Ports and Adapters, verfolgt einen 
 > 1. **Inbound Ports** definieren die Operationen, die die Außenwelt auf der Kerndomäne ausführen kann.
 > 2. **Outbound Ports** definieren die Dienste, die die Domäne von der Außenwelt benötigt.
 
-Der Unterschied zwischen DDD und Hexagonaler Architektur in der Isolationsstrategie ist konzeptionell derselbe, aber letztere hebt ihn auf die nächste Ebene. Die Hexagonale Architektur definiert, wie Sie mit Ihrem Domänenmodell kommunizieren sollten.
+Der Unterschied zwischen DDD und Hexagonaler Architektur in der Isolationsstrategie ist konzeptionell derselbe, aber letztere hebt ihn auf die nächste Ebene. Die Hexagonale Architektur definiert, wie du mit deinem Domänenmodell kommunizieren solltest.
 
-Wenn Sie also beispielsweise auf einen externen Dienst oder eine Funktion zugreifen müssen, um etwas in Ihrer Domäne zu tun, gehen Sie wie folgt vor:
+Wenn du also beispielsweise auf einen externen Dienst oder eine Funktion zugreifen musst, um etwas in deiner Domäne zu tun, gehst du wie folgt vor:
 ```kotlin
 interface GetCurrentUserPort {
 	suspend fun execute(): Result<User>
@@ -484,7 +484,7 @@ interface UserRepository {
 ```
 Ich konsolidiere alles in einem einzigen Repository, um unnötige Klassenerstellung zu vermeiden und eine klarere Abstraktion für die meisten Leute zu bieten, die mit dem Konzept eines Repositorys vertraut sind.
 
-Es ist vielleicht nicht immer der Fall, dass Sie ein Repository von einem anderen Feature oder System aufrufen müssen. Manchmal möchten Sie vielleicht eine andere Geschäftslogik aufrufen, die das erledigt, was Sie benötigen (was viel besser sein kann), bekannt als UseCases. In diesem Szenario ist es üblich, ein anderes Interface als im ersten Beispiel zu haben.
+Es ist vielleicht nicht immer der Fall, dass du ein Repository von einem anderen Feature oder System aufrufen musst. Manchmal möchtest du vielleicht eine andere Geschäftslogik aufrufen, die das erledigt, was du benötigst (was viel besser sein kann), bekannt als UseCases. In diesem Szenario ist es üblich, ein anderes Interface als im ersten Beispiel zu haben.
 
 Hier ist die Visualisierung:
 ![Visualisation](attachments/finding-balance-between-ddd-hexagonal-and-clean-architectures-hexagonal-visualization.png)
@@ -515,7 +515,7 @@ class TransferMoneyUseCase(private val getUserPort: GetUserPort) : TransferServi
 }
 ```
 
-Die Implementierung von Ports erfolgt durch _Adapter_ – sie sind im Grunde nur Bindeglieder, die Ihr Interface implementieren, um mit einem externen System zu arbeiten. Die Benennung einer solchen Schicht kann variieren – von einfachem **Data** oder **Integration** bis hin zu direktem **Adapters**. Sie sind ziemlich austauschbar und hängen von den spezifischen Namenskonventionen des Projekts ab. Diese Schicht implementiert normalerweise andere Domänen und verwendet andere _Ports_, um das zu erreichen, was sie benötigt.
+Die Implementierung von Ports erfolgt durch _Adapter_ – sie sind im Grunde nur Bindeglieder, die dein Interface implementieren, um mit einem externen System zu arbeiten. Die Benennung einer solchen Schicht kann variieren – von einfachem **Data** oder **Integration** bis hin zu direktem **Adapters**. Sie sind ziemlich austauschbar und hängen von den spezifischen Namenskonventionen des Projekts ab. Diese Schicht implementiert normalerweise andere Domänen und verwendet andere _Ports_, um das zu erreichen, was sie benötigt.
 
 Hier ist ein Beispiel für die Implementierung von `GetUserPort`:
 ```kotlin
@@ -529,33 +529,33 @@ class GetUserAdapter(private val getUserUseCase: GetUserUseCase) : GetUserPort {
 }
 ```
 
-Features sind also nur auf der Daten-/Adapter-Ebene gekoppelt. Der Vorteil dabei ist, dass Ihre Domänenlogik unverändert bleibt, egal was mit dem externen System passiert. Das ist ein weiterer Grund, warum die Ports der Domäne eigentlich nicht allem entsprechen sollten, was das externe System will – es liegt in der Verantwortung des Adapters, damit umzugehen. Damit meine ich, dass zum Beispiel die Funktionssignatur anders sein kann als die, die im externen System verwendet wird, solange es natürlich möglich ist, damit zu arbeiten.
+Features sind also nur auf der Daten-/Adapter-Ebene gekoppelt. Der Vorteil dabei ist, dass deine Domänenlogik unverändert bleibt, egal was mit dem externen System passiert. Das ist ein weiterer Grund, warum die Ports der Domäne eigentlich nicht allem entsprechen sollten, was das externe System will – es liegt in der Verantwortung des Adapters, damit umzugehen. Damit meine ich, dass zum Beispiel die Funktionssignatur anders sein kann als die, die im externen System verwendet wird, solange es natürlich möglich ist, damit zu arbeiten.
 
 Eine weitere Sache ist, dass es wichtig ist zu überlegen, wie man mit Domänentypen umgeht. Features sind selten vollständig von anderen Arten von Features isoliert. Wenn wir zum Beispiel ein Geschäftsobjekt namens `User` und ein Value Object `UserId` haben, müssen wir oft die ID des Benutzers wiederverwenden, um Informationen in Bezug auf den Benutzer zu speichern. Dies schafft die Notwendigkeit, einen Weg zu finden, diesen Typ in verschiedenen Teilen des Systems wiederzuverwenden.
 
-In einer idealen Hexagonalen Architektur sollten verschiedene Domänen unabhängig voneinander existieren. Das bedeutet, dass jede Domäne ihre spezifischen Definitionen der von ihr verwendeten Typen haben sollte. Einfacher ausgedrückt: Es erfordert, dass Sie diese Typen jedes Mal neu deklarieren, wenn Sie sie benötigen.
+In einer idealen Hexagonalen Architektur sollten verschiedene Domänen unabhängig voneinander existieren. Das bedeutet, dass jede Domäne ihre spezifischen Definitionen der von ihr verwendeten Typen haben sollte. Einfacher ausgedrückt: Es erfordert, dass du diese Typen jedes Mal neu deklarierst, wenn du sie benötigst.
 
 Das erzeugt eine Menge Duplizierung, Boilerplate beim Konvertieren jedes Typs zwischen separaten Domänen, Probleme bei der Validierung (insbesondere wenn sich Anforderungen im Laufe der Zeit ändern, könnte man etwas übersehen) und ist einfach ein großer Schmerz im Leben eines jeden Entwicklers.
 
-Der Rat ist, dass Sie nicht all diesen Regeln folgen sollten, solange Sie keinen Nutzen darin sehen. Suchen Sie nach einem glücklichen Mittelweg im Umgang damit; wie ich damit umgegangen bin, werden wir im folgenden Teil besprechen.
+Der Rat ist, dass du nicht all diesen Regeln folgen solltest, solange du keinen Nutzen darin siehst. Suche nach einem glücklichen Mittelweg im Umgang damit; wie ich damit umgegangen bin, werden wir im folgenden Teil besprechen.
 
 #### Probleme
 ##### Falsches mentales Modell
-Was die Fehler betrifft, die ich am häufigsten sehe – Entwickler verstehen nicht, dass es bei den Domänen-/Anwendungsschichten nicht nur um eine physische Aufteilung geht, sondern um das richtige mentale Modell. Lassen Sie es mich erklären:
+Was die Fehler betrifft, die ich am häufigsten sehe – Entwickler verstehen nicht, dass es bei den Domänen-/Anwendungsschichten nicht nur um eine physische Aufteilung geht, sondern um das richtige mentale Modell. Lass es mich erklären:
 
 > **Mentales Modell** ist eine konzeptionelle Darstellung der Funktionsweise oder Struktur verschiedener Teile des Systems, die miteinander interagieren (einfach gesagt, wie der Code von denen wahrgenommen wird, die ihn verwenden). Es unterscheidet sich von einem physischen Modell darin, dass ein physisches Modell **physische** Interaktion beinhaltet – zum Beispiel das Aufrufen einer bestimmten Funktion oder das Implementieren eines Moduls, d.h. alles, was von Hand gemacht wird.
 
-Ein häufiges Problem im Softwaredesign ist es, der Domänen-/Anwendungsschicht zu erlauben, Kenntnis von der Datenspeicherung oder -beschaffung zu haben, was das Prinzip der Trennung der Belange verletzt. Der Fokus der Domäne sollte auf der Geschäftslogik liegen, unabhängig von Datenquellen. Sie könnten jedoch Beispielen wie `LocalUsersRepository` oder `RemoteUsersRepository` begegnen, sowie entsprechenden UseCases wie `GetCachedUserUseCase` oder `GetRemoteUserUseCase` in der Anwendungsschicht (falls Repositories in der Domäne liegen, platziere ich sie normalerweise dort, wo ich sie verwende – in der Anwendungsschicht, aber das Problem bleibt). Obwohl dies ein spezifisches Problem lösen mag, verletzt es das mentale Modell der Domäne, das unabhängig von der Datenquelle bleiben sollte.
+Ein häufiges Problem im Softwaredesign ist es, der Domänen-/Anwendungsschicht zu erlauben, Kenntnis von der Datenspeicherung oder -beschaffung zu haben, was das Prinzip der Trennung der Belange verletzt. Der Fokus der Domäne sollte auf der Geschäftslogik liegen, unabhängig von Datenquellen. Du könntest jedoch Beispielen wie `LocalUsersRepository` oder `RemoteUsersRepository` begegnen, sowie entsprechenden UseCases wie `GetCachedUserUseCase` oder `GetRemoteUserUseCase` in der Anwendungsschicht (falls Repositories in der Domäne liegen, platziere ich sie normalerweise dort, wo ich sie verwende – in der Anwendungsschicht, aber das Problem bleibt). Obwohl dies ein spezifisches Problem lösen mag, verletzt es das mentale Modell der Domäne, das unabhängig von der Datenquelle bleiben sollte.
 
 Dasselbe gilt für DAOs im Kontext von Frameworks wie `androidx.room`. Sie verletzen nicht nur die Regel, keine Aussage über die Datenquelle zu machen, sondern verletzen zusätzlich die Regel der Unabhängigkeit von Frameworks.
 
-Ihre Repositories/UseCases sollten sich von der Datenquelle fernhalten, auch wenn es in Situationen, in denen die Implementierung nicht direkt in der Domänen-/Anwendungsschicht liegt, in Ordnung zu sein scheint.
+Deine Repositories/UseCases sollten sich von der Datenquelle fernhalten, auch wenn es in Situationen, in denen die Implementierung nicht direkt in der Domänen-/Anwendungsschicht liegt, in Ordnung zu sein scheint.
 
 ### Meine Implementierung
 Nachdem ich die Erklärung der Ansätze, die ich verwende, abgeschlossen habe, möchte ich zu meiner tatsächlichen Implementierung übergehen und wie ich mit der Reduzierung unnötigen Boilerplates und Abstraktionen umgegangen bin.
 
 Beginnen wir damit, die Schlüsselideen jedes diskutierten Ansatzes zu definieren:
-- **Clean Architecture**: Teilen Sie Ihren Code nach ihrer Verantwortlichkeit in verschiedene Schichten auf (Domain, Data, Presentation)
+- **Clean Architecture**: Teile deinen Code nach ihrer Verantwortlichkeit in verschiedene Schichten auf (Domain, Data, Presentation)
 - **Domain-driven Design**: Die Domäne sollte nur Geschäftslogik enthalten, alle Typen sollten über ihren gesamten Lebenszyklus hinweg konsistent und valide sein.
 - **Hexagonale Architektur**: Strenge Regeln für den Zugriff auf innere und äußere Welten.
 
@@ -569,15 +569,15 @@ Die Struktur der Cadento-Features (verschiedene Domänen) ist wie folgt:
 - **dependencies** (Integrationsschicht mit Koin)
 - **presentation** (UI mit Compose und MVI)
 
-Ich mag diese Struktur bisher, aber vielleicht möchten Sie die UI von ViewModels unterscheiden, um verschiedene UI-Frameworks pro Plattform verwenden zu können; ich plane das nicht, also lasse ich es so, wie es ist. Aber falls ich in Zukunft vor einer solchen Herausforderung stehe, ist es für mich nicht schwer, da ich in den ViewModels nicht von Compose abhängig bin.
+Ich mag diese Struktur bisher, aber vielleicht möchtest du die UI von ViewModels unterscheiden, um verschiedene UI-Frameworks pro Plattform verwenden zu können; ich plane das nicht, also lasse ich es so, wie es ist. Aber falls ich in Zukunft vor einer solchen Herausforderung stehe, ist es für mich nicht schwer, da ich in den ViewModels nicht von Compose abhängig bin.
 
 Das Hauptproblem, das ich erlebt habe, war der Boilerplate, den ich bei der Implementierung der Hexagonalen Architektur hatte – ich habe Typen kopiert und eingefügt, was mich fragen ließ: 'Brauche ich das wirklich?'. Also habe ich mir folgende Regeln ausgedacht:
 1. Ich habe gemeinsame Kerntypen, die zwischen verschiedenen Systemen wiederverwendet werden; es ist eine Art kombinierte Domäne der am meisten benötigten Typen.
 2. Der Typ kann nur dann gemeinsam sein, wenn er in den meisten Domänen verwendet wird, ein Problem mit der Duplizierung der Validierung hat und überhaupt keine komplexe Struktur aufweist (manchmal gibt es Ausnahmen, aber normalerweise nicht viele).
 
-Was meine ich mit 'komplexer Struktur'? Normalerweise benötigt Ihre Domäne, die den Typ einer anderen Domäne anfordert, nicht alles, was in dem gegebenen Typ beschrieben ist. Zum Beispiel möchten Sie vielleicht den Typ 'User' teilen, samt seinen Value Objects, aber größtenteils benötigen andere Domänen nicht alles vom Typ User und wollen vielleicht zum Beispiel nur den Namen und die ID. Ich versuche solche Situationen zu vermeiden, und selbst wenn etwas bereits in den Kerndomänentypen vorhanden ist, würde ich lieber einen eigenen Typ mit Informationen erstellen, die meine bestimmte Domäne benötigt. Aber was die Validierung angeht, teile ich fast alle semantischen Value Objects.
+Was meine ich mit 'komplexer Struktur'? Normalerweise benötigt deine Domäne, die den Typ einer anderen Domäne anfordert, nicht alles, was in dem gegebenen Typ beschrieben ist. Zum Beispiel möchtest du vielleicht den Typ 'User' teilen, samt seinen Value Objects, aber größtenteils benötigen andere Domänen nicht alles vom Typ User und wollen vielleicht zum Beispiel nur den Namen und die ID. Ich versuche solche Situationen zu vermeiden, und selbst wenn etwas bereits in den Kerndomänentypen vorhanden ist, würde ich lieber einen eigenen Typ mit Informationen erstellen, die meine bestimmte Domäne benötigt. Aber was die Validierung angeht, teile ich fast alle semantischen Value Objects.
 
-Sie können diese Idee für größere Projekte erweitern, indem Sie nicht nur gemeinsame Kerntypen erstellen, sondern Typen für spezifische Bereiche, in denen eine Gruppe Ihrer Subdomänen (Bounded Contexts) arbeitet.
+Du kannst diese Idee für größere Projekte erweitern, indem du nicht nur gemeinsame Kerntypen erstellst, sondern Typen für spezifische Bereiche, in denen eine Gruppe deiner Subdomänen (Bounded Contexts) arbeitet.
 
 Zusammenfassend lässt sich sagen, dass ich Value Objects, die dieselben Validierungsregeln haben, in einem gemeinsamen Modul wiederverwende; ich versuche, mein Modul für gemeinsame Kerntypen nicht mit allem zu überladen. Es sollte immer einen glücklichen Mittelweg geben.
 
@@ -617,9 +617,9 @@ class GetTimersUseCase(
 ```
 > **Hinweis**: Dies ist ein Beispiel aus dem Cadento Backend
 
-Es verletzt weder die Hexagonale Architektur noch DDD, was es zu einem guten Weg macht, zu definieren, wie die Außenwelt auf Ihre Domäne zugreift. Es hat die gleiche Bedeutung und das gleiche Verhalten wie ein Inbound Port.
+Es verletzt weder die Hexagonale Architektur noch DDD, was es zu einem guten Weg macht, zu definieren, wie die Außenwelt auf deine Domäne zugreift. Es hat die gleiche Bedeutung und das gleiche Verhalten wie ein Inbound Port.
 
 Was die Outbound Ports betrifft, habe ich es genauso gemacht, wie ich es zuvor in den Beispielen gezeigt habe.
 
 ## Fazit
-In meinen Projekten bevorzuge ich es, die Dinge praktisch zu halten. Während Theorie und Abstraktion nützlich sind, können sie einfache Dinge verkomplizieren. Deshalb kombiniere ich die Stärken von Clean Architecture, DDD und Hexagonaler Architektur, ohne mich allzu streng an die Buchstaben zu halten. Nutzen Sie kritisches Denken, um festzustellen, was Sie tatsächlich benötigen und warum es Ihrem Projekt nützt, anstatt blind Empfehlungen zu folgen.
+In meinen Projekten bevorzuge ich es, die Dinge praktisch zu halten. Während Theorie und Abstraktion nützlich sind, können sie einfache Dinge verkomplizieren. Deshalb kombiniere ich die Stärken von Clean Architecture, DDD und Hexagonaler Architektur, ohne mich allzu streng an die Buchstaben zu halten. Nutze kritisches Denken, um festzustellen, was du tatsächlich benötigst und warum es deinem Projekt nützt, anstatt blind Empfehlungen zu folgen.

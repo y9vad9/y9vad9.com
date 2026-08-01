@@ -5,7 +5,7 @@ date: 2023-10-1
 coverImage: "attachments/kotlin-coroutines-are-not-just-about-concurrency-cover.webp"
 parents: ["Kotlin"]
 ---
-Jedes Mal, wenn Sie von Kotlin Coroutinen hören, denken Sie wahrscheinlich an eine einfache, prägnante und leistungsstarke Lösung für die Bearbeitung asynchroner Aufgaben, wie zum Beispiel Netzwerkanfragen. Aber ist das ihr _einziger Zweck_? Betrachten wir die Verwendung von Kotlin Coroutinen jenseits der Nebenläufigkeit.
+Jedes Mal, wenn du von Kotlin Coroutinen hörst, denkst du wahrscheinlich an eine einfache, prägnante und leistungsstarke Lösung für die Bearbeitung asynchroner Aufgaben, wie zum Beispiel Netzwerkanfragen. Aber ist das ihr _einziger Zweck_? Betrachten wir die Verwendung von Kotlin Coroutinen jenseits der Nebenläufigkeit.
 
 ## Kotlin Coroutinen Primitive
 Beginnen wir damit, zu verstehen, wie der zugrunde liegende Mechanismus von Coroutinen funktioniert. Wenn wir uns die Kotlin Coroutinen Primitive ansehen, handelt es sich nur um ein paar Klassen und Funktionen:
@@ -42,7 +42,7 @@ suspend fun executeNetworkRequest(): String =
 ```
 > `suspendCoroutine` – ist eine Brücke zwischen Kotlin Coroutinen-Code und nicht-Coroutinen-basiertem Code.
 
-Oder verwenden Sie eine bestehende asynchrone (Pseudocode):
+Oder verwende eine bestehende asynchrone (Pseudocode):
 ```kotlin
 suspend fun executeNetworkRequest(): String =
 	suspendCoroutine { continuation ->
@@ -58,7 +58,7 @@ suspend fun executeNetworkRequest(): String =
 Wir können also nicht nur unsere Nebenläufigkeitslogik implementieren, sondern auch bestehende nutzen und sie mit Kotlin Coroutinen zum Laufen bringen.
 
 ### `startCoroutine`
-Wir können auch Suspend-Funktionen aus nicht-Suspend-Kontexten mit `startCoroutine` starten. In Kotlin wird dies immer am Ende verwendet, wenn Ihre `main`-Funktion `suspend` ist.
+Wir können auch Suspend-Funktionen aus nicht-Suspend-Kontexten mit `startCoroutine` starten. In Kotlin wird dies immer am Ende verwendet, wenn deine `main`-Funktion `suspend` ist.
 
 > `kotlinx.coroutines` verwendet es auch, um Coroutinen auszuführen, aber der Mechanismus dort ist natürlich viel komplexer.
 
@@ -86,7 +86,7 @@ fun main() {
 
 suspend fun a() {...}
 ```
-> Aber natürlich können Sie Suspend-Funktionen aus `kotlinx.coroutines` nicht einfach auf diese Weise aufrufen, wenn Sie Coroutinen ausführen.
+> Aber natürlich kannst du Suspend-Funktionen aus `kotlinx.coroutines` nicht einfach auf diese Weise aufrufen, wenn du Coroutinen ausführst.
 
 ### `CoroutineContext`
 Jetzt kommen wir zu einem weiteren Mitglied von `Continuation` – `CoroutineContext`. Wozu dient es?
@@ -151,7 +151,7 @@ fun main() {
 >
 > `CoroutineContext.Key` – ist der Bezeichner von `CoroutineContext.Element`.
 
-Sie können diesen Code [hier](https://pl.kotl.in/0AZBcZ4MM) ausprobieren.
+Du kannst diesen Code [hier](https://pl.kotl.in/0AZBcZ4MM) ausprobieren.
 #### Beispiel aus der Praxis
 
 Stellen wir uns vor, wir haben unseren API-Dienst. Normalerweise benötigen wir eine Autorisierungsebene, daher betrachten wir das nächste Beispiel (als solches habe ich gRPC genommen):
@@ -203,12 +203,12 @@ Für gRPC müssen wir auch unseren Interceptor registrieren und unsere RPCs schr
 
 > Für Java verwendet gRPC [ThreadLocal](https://docs.oracle.com/javase/8/docs/api/java/lang/ThreadLocal.html), daher können wir `CoroutineContext` auch als Alternative zu `ThreadLocal` betrachten. Wir können `ThreadLocal` innerhalb von Coroutinen nicht verwenden, da eine Coroutine normalerweise nicht mit einem bestimmten Thread verknüpft ist (insbesondere, wenn wir über `withContext` sprechen). Coroutinen werden eher auf einem anderen Thread fortgesetzt (außerdem können verschiedene Coroutinen auf einem einzigen Thread ausgeführt werden).
 
-Aber bedeutet das nicht, dass der einzige Grund, warum Coroutinen existieren, die Nebenläufigkeit ist? Lassen Sie es mich erklären.
+Aber bedeutet das nicht, dass der einzige Grund, warum Coroutinen existieren, die Nebenläufigkeit ist? Lass es mich erklären.
 
 ## `Sequence`
-Eines der häufigsten Beispiele ist die – `kotlin.sequences.Sequence<T>`. Kurz gesagt, es ist eine faule Sammlung, die nur dann iteriert, wenn Sie Elemente konsumieren. Sie können mehr darüber [hier](https://kotlinlang.org/docs/sequences.html) lesen.
+Eines der häufigsten Beispiele ist die – `kotlin.sequences.Sequence<T>`. Kurz gesagt, es ist eine faule Sammlung, die nur dann iteriert, wenn du Elemente konsumierst. Du kannst mehr darüber [hier](https://kotlinlang.org/docs/sequences.html) lesen.
 
-Wenn Sie jemals die `SequenceScope`-Quellen betrachtet haben, verwendet sie unter der Haube Suspend-Funktionen:
+Wenn du jemals die `SequenceScope`-Quellen betrachtet hast, verwendet sie unter der Haube Suspend-Funktionen:
 ```kotlin
 @RestrictSuspension
 public abstract class SequenceScope<in T> internal constructor() {
@@ -224,7 +224,7 @@ public abstract class SequenceScope<in T> internal constructor() {
 
 > `@RestrictSuspension` verbietet Konsumenten, nicht-Mitglieds-Suspend-Funktionen aufzurufen.
 
-Die Idee ist also, dass Elemente faul konsumiert werden. Sie können sie als reguläre Sammlungen verwenden und die Vorteile der faulen Iteration nutzen.
+Die Idee ist also, dass Elemente faul konsumiert werden. Du kannst sie als reguläre Sammlungen verwenden und die Vorteile der faulen Iteration nutzen.
 
 Aber wie funktioniert es unter der Haube? Werfen wir einen Blick auf die Implementierungsquellen:
 ```kotlin
@@ -316,7 +316,7 @@ private class SequenceBuilderIterator<T> : SequenceScope<T>(), Iterator<T>, Cont
    > `COROUTINE_SUSPENDED` ist eine spezielle Konstante, die intern vom Kotlin-Compiler verwendet wird, um die Suspendierung und Wiederaufnahme von Coroutinen zu verwalten. Es ist nichts, womit Entwickler normalerweise direkt interagieren, sondern dient als internes Signal innerhalb des Coroutinen-Mechanismus.
 
 Sieht etwas schwierig zu lesen aus, nicht wahr? Gehen wir Schritt für Schritt vor:
-1. Zuerst beginnen wir mit Zuständen. Wir haben die nächsten Zustände, lassen Sie uns kurz darüber sprechen:
+1. Zuerst beginnen wir mit Zuständen. Wir haben die nächsten Zustände, lass uns kurz darüber sprechen:
 	- **State_NotReady**: Der Iterator ist derzeit nicht bereit, ein Element bereitzustellen. Er wartet möglicherweise auf eine Operation oder weitere Verarbeitung, um ein Element verfügbar zu machen.
 	- **State_ManyNotReady**: Der Iterator ist darauf vorbereitet, mehrere Elemente bereitzustellen, aber sie sind nicht sofort verfügbar. Er wartet auf ein Signal, dass Elemente zum Verbrauch bereit sind (im Grunde wartet er auf einen Terminaloperator).
 	- **State_ManyReady**: Der Iterator ist jetzt bereit, mehrere Elemente bereitzustellen. Er kann sofort das nächste Element aus der Sequenz liefern.
@@ -324,7 +324,7 @@ Sieht etwas schwierig zu lesen aus, nicht wahr? Gehen wir Schritt für Schritt v
 	- **State_Done**: Der Iterator hat keine weiteren Elemente mehr bereitzustellen. Er hat seine Aufgabe, Elemente aus der Sequenz zu erzeugen, abgeschlossen. Diesen Zustand erreichen wir, wenn wir `SequenceBuilder` verlassen.
 	- **State_Failed**: Etwas Unerwartetes ist passiert, und der Iterator ist auf ein Problem gestoßen. Normalerweise sollte dies nicht passieren.
 2. `hasNext` gibt je nach Zustand einen Wert oder eine Reihe von Werten zurück, wenn er bereit ist, zu konsumieren. Darüber hinaus startet er die Ausführung der Sequenz bei jeder Iteration innerhalb von `while`. Wenn also `State_NotReady` vorliegt, wird es durch Ausführen der nächsten Yields bereit gemacht.
-3. Die Funktion `next` ruft das nächste Element aus dem Iterator basierend auf seinem aktuellen Zustand ab (ähnlich wie bei `hasNext`). Wenn `next` ohne `hasNext` aufgerufen wurde, können Sie `nextNotReady()` erreichen. In anderen Situationen wird einfach der Wert zurückgegeben.
+3. Die Funktion `next` ruft das nächste Element aus dem Iterator basierend auf seinem aktuellen Zustand ab (ähnlich wie bei `hasNext`). Wenn `next` ohne `hasNext` aufgerufen wurde, kannst du `nextNotReady()` erreichen. In anderen Situationen wird einfach der Wert zurückgegeben.
 4. Die `yield`-Funktion ändert lediglich die Zustände der Sequenziterator-Implementierung. Wenn neue Elemente hinzugefügt werden, wechselt sie zu `State_Ready`. Die Verwendung von `suspendCoroutineUninterceptedOrReturn` suspendiert die Coroutine (Ausführung) und setzt sie später fort. Sie wird gestartet, wenn die vorherige Coroutine (Suspend-Punkt) beendet ist.
 
 Um meine Erklärung abzuschließen, beenden wir sie einfach damit, wie wir die gleiche Funktionalität nur mit Callbacks realisieren könnten:
@@ -344,11 +344,11 @@ Aber es sieht etwas schwierig zu lesen aus, nicht wahr? Deshalb sind Coroutinen 
 Am Ende sieht es doch gar nicht so komplex aus, oder?
 
 ## `DeepRecursiveScope`
-Nun wollen wir uns einen weiteren Anwendungsfall für Kotlin Coroutinen ansehen – `DeepRecursiveScope`. Wie Sie wahrscheinlich wissen, haben wir normalerweise, wenn eine bestimmte Funktion sich selbst aufruft, eine Wahrscheinlichkeit, einen `StackOverflowError` zu erhalten, da jeder Aufruf dazu beiträgt, unseren Stack zu füllen.
+Nun wollen wir uns einen weiteren Anwendungsfall für Kotlin Coroutinen ansehen – `DeepRecursiveScope`. Wie du wahrscheinlich weißt, haben wir normalerweise, wenn eine bestimmte Funktion sich selbst aufruft, eine Wahrscheinlichkeit, einen `StackOverflowError` zu erhalten, da jeder Aufruf dazu beiträgt, unseren Stack zu füllen.
 
 > Zu diesem Zweck existiert zum Beispiel auch die Sprachkonstruktion `tailrec`. Der Unterschied ist, dass `tailrec` keine Verzweigungen (bedingte Prüfungen) mit Aufrufen anderer Funktionen haben kann.
 >
-> Sie können mehr darüber [hier](https://kotlinlang.org/docs/functions.html#tail-recursive-functions) lesen.
+> Du kannst mehr darüber [hier](https://kotlinlang.org/docs/functions.html#tail-recursive-functions) lesen.
 
 `DeepRecursiveScope` stützt sich also nicht auf den traditionellen Stack-Flow, sondern nutzt alle Funktionen, die Coroutinen bieten. Um es besser zu verstehen, betrachten wir das klassische Beispiel mit Fibonacci-Zahlen:
 ```kotlin
@@ -363,9 +363,9 @@ val fibonacci = DeepRecursiveFunction<Int, Int> { x ->
 println(fibonacci(12)) // Ausgabe: 144
 ```
 
-Für ein komplexeres Beispiel können Sie die [kdoc](https://github.com/JetBrains/kotlin/blob/7a7d392b3470b38d42f80c896b7270678d0f95c3/libraries/stdlib/src/kotlin/util/DeepRecursive.kt#L40) konsultieren.
+Für ein komplexeres Beispiel kannst du die [kdoc](https://github.com/JetBrains/kotlin/blob/7a7d392b3470b38d42f80c896b7270678d0f95c3/libraries/stdlib/src/kotlin/util/DeepRecursive.kt#L40) konsultieren.
 
-Wir werden uns nicht mit den genauen Implementierungsdetails von `DeepRecursiveScope` aufhalten (Sie können sie [hier](https://github.com/JetBrains/kotlin/blob/7a7d392b3470b38d42f80c896b7270678d0f95c3/libraries/stdlib/src/kotlin/util/DeepRecursive.kt#L131) nachlesen), da sie die gleiche Idee wie `Sequence` mit zusätzlichem Verhalten zur Unterstützung der bereitgestellten Mechanismen haben, aber lassen Sie uns diskutieren, wie Kotlin Coroutinen dieses spezielle Problem lösen. Außerdem gibt es einen [sehr guten Artikel darüber](https://elizarov.medium.com/deep-recursion-with-coroutines-7c53e15993e3) von Roman Elizarov.
+Wir werden uns nicht mit den genauen Implementierungsdetails von `DeepRecursiveScope` aufhalten (du kannst sie [hier](https://github.com/JetBrains/kotlin/blob/7a7d392b3470b38d42f80c896b7270678d0f95c3/libraries/stdlib/src/kotlin/util/DeepRecursive.kt#L131) nachlesen), da sie die gleiche Idee wie `Sequence` mit zusätzlichem Verhalten zur Unterstützung der bereitgestellten Mechanismen haben, aber lass uns diskutieren, wie Kotlin Coroutinen dieses spezielle Problem lösen. Außerdem gibt es einen [sehr guten Artikel darüber](https://elizarov.medium.com/deep-recursion-with-coroutines-7c53e15993e3) von Roman Elizarov.
 
 ### Coroutinen intern
 Wie genau löst es das Problem? Wie ich bereits erwähnt habe, sind Coroutinen von [CPS (Continuation Passing Style)](https://en.wikipedia.org/wiki/Continuation-passing_style) inspiriert, aber es ist nicht genau das, was der Kotlin-Compiler tut, um Coroutinen so effizient zu handhaben.
@@ -387,7 +387,7 @@ Der genaue Mechanismus von Coroutinen ist der folgende:
 So können wir von nun an verstehen, wie Coroutinen intern funktionieren. Gehen wir zu anderen Beispielen über, in denen Kotlin Coroutinen über die Nebenläufigkeit hinaus verwendet werden.
 
 ## Jetpack Compose
-Wenn Sie jemals mit Compose gearbeitet und beispielsweise Zeigerereignisse verarbeitet haben, haben Sie wahrscheinlich bemerkt, dass einige Hacks aus Coroutinen verwendet werden, um auf Updates zu warten:
+Wenn du jemals mit Compose gearbeitet und beispielsweise Zeigerereignisse verarbeitet hast, hast du wahrscheinlich bemerkt, dass einige Hacks aus Coroutinen verwendet werden, um auf Updates zu warten:
 ```kotlin
 @RestrictsSuspension // <---
 @JvmDefaultWithCompatibility
@@ -411,7 +411,7 @@ interface AwaitPointerEventScope : Density {
 	// ...
 }
 ```
-Wie Sie sehen, ist der Scope, der zur Verarbeitung von Zeigerereignissen verwendet wird, mit `@RestrictsSuspension` markiert. Wenn wir die bereitgestellte Dokumentation konsultieren, sehen wir Folgendes:
+Wie du siehst, ist der Scope, der zur Verarbeitung von Zeigerereignissen verwendet wird, mit `@RestrictsSuspension` markiert. Wenn wir die bereitgestellte Dokumentation konsultieren, sehen wir Folgendes:
 ```markdown
 Dies ist ein eingeschränkter Suspendierungsbereich. Code in diesem Bereich wird
 immer un-dispatched aufgerufen und darf nur für Aufrufe von
@@ -424,4 +424,4 @@ immer un-dispatched aufgerufen und darf nur für Aufrufe von
 ## Fazit
 Zusammenfassend hat dieser Artikel verschiedene Facetten von Kotlin Coroutinen beleuchtet und ihre Vielseitigkeit jenseits traditioneller Nebenläufigkeitsaufgaben hervorgehoben. Wir haben uns mit den inneren Mechanismen der Coroutinen-Primitive befasst, ihre Verwendung in Sequenzen und komplexen Problemlösungsszenarien wie tiefer Rekursion diskutiert und reale Beispiele untersucht, die ihre breite Anwendbarkeit demonstrieren. Der Titel "Coroutinen gehen über die reine Nebenläufigkeit hinaus" spiegelt treffend die vielfältigen Fähigkeiten wider, die Kotlin Coroutinen in der modernen Softwareentwicklung bieten.
 
-Fühlen Sie sich frei, Ihr Fachwissen zwanglos in den Kaffeepausen-Chat einzubringen!
+Fühl dich frei, dein Fachwissen zwanglos in den Kaffeepausen-Chat einzubringen!

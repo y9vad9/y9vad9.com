@@ -9,9 +9,9 @@ parents: ["Persönlich"]
 
 ## Funktionen
 
-- Aktivieren oder deaktivieren Sie Anwendungen, die beim Starten des Telefons mitgeladen werden.
-- Zeigen Sie laufende Prozesse an und beenden Sie diese, um Systemressourcen freizugeben.
-- Optimieren Sie die Speichernutzung für eine bessere Leistung durch automatische Bereinigung.
+- Aktiviere oder deaktiviere Anwendungen, die beim Starten des Telefons mitgeladen werden.
+- Zeige laufende Prozesse an und beende diese, um Systemressourcen freizugeben.
+- Optimiere die Speichernutzung für eine bessere Leistung durch automatische Bereinigung.
 
 ## Erfolge
 

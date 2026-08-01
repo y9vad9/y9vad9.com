@@ -9,7 +9,7 @@ In der neuesten Kotlin-Version, [Version 1.9.20](https://blog.jetbrains.com/kotl
 
 Für diejenigen, die nicht wissen, was Kotlin Multiplatform ist, werde ich es kurz erklären:
 > **❓ Erklärung** <br/>
-> Kotlin Multiplatform – ist Kotlin-Technologien, die die Fähigkeit der Sprache nutzen, in verschiedenen Umgebungen und Sprachen kompiliert zu werden, wie z. B. JVM (+Android), Web (über JavaScript oder WebAssembly; zusätzlich kann WASM für andere Ziele innerhalb seiner Technologie verwendet werden) und Native (iOS über Objective-C und Desktop über C++). Damit können Sie gemeinsamen und wiederverwendbaren Code zwischen verschiedenen Plattformen nur mit Kotlin schreiben.
+> Kotlin Multiplatform – ist Kotlin-Technologien, die die Fähigkeit der Sprache nutzen, in verschiedenen Umgebungen und Sprachen kompiliert zu werden, wie z. B. JVM (+Android), Web (über JavaScript oder WebAssembly; zusätzlich kann WASM für andere Ziele innerhalb seiner Technologie verwendet werden) und Native (iOS über Objective-C und Desktop über C++). Damit kannst du gemeinsamen und wiederverwendbaren Code zwischen verschiedenen Plattformen nur mit Kotlin schreiben.
 
 ## Bahnbrechend
 Da es jetzt stabil ist, wollen wir seine Vorteile hervorheben:
