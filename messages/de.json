@@ -17,7 +17,8 @@
     "searchPlaceholder": "Suchen…",
     "searchHint": "/ drücken zum Suchen",
     "language": "Sprache",
-    "theme": "Design"
+    "theme": "Design",
+    "search": "Suche"
   },
   "theme": {
     "light": "Hell",

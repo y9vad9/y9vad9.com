@@ -17,7 +17,8 @@
     "searchPlaceholder": "Search…",
     "searchHint": "Press / to search",
     "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "search": "Search"
   },
   "theme": {
     "light": "Light",

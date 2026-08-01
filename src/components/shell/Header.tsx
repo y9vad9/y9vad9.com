@@ -175,6 +175,20 @@ export function Header() {
               )}
             </button>
 
+            {/* Compact search, phone only — the control above is
+                `hidden md:flex`, so a phone had no way into the palette at
+                all. That also made turning shortcuts off a one-way door
+                here, since the toggle lives inside the palette and `/` goes
+                with it. Icon-only, so it carries a real `aria-label`: with no
+                visible text there is nothing for the name to contradict. */}
+            <button
+              onClick={() => openSearch()}
+              className="md:hidden p-2 rounded-lg hover:bg-card-hover transition-colors text-muted hover:text-fg"
+              aria-label={tHeader('search')}
+            >
+              <Search size={16} aria-hidden="true" />
+            </button>
+
             {/* Language. Hidden on a single-locale site: the control would
                 open a menu whose only entry is the language already in use.
                 Same reasoning in the drawer below, in `NotesHeader`, and in
