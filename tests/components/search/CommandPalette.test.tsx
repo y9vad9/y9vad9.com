@@ -9,7 +9,19 @@ import { getRouterMock } from '../../utils/nextRouter'
 import { SiteConfigProvider } from '@lib/config/SiteConfigProvider'
 import { config as baseConfig } from '~/site.config'
 import type { SiteConfig } from '@config/site'
+import { scopedCommandLabel } from '@lib/shortcuts/gardenShortcuts'
 
+
+/**
+ * A palette row's visible text, built the way the component builds it.
+ *
+ * Commands read `Scope: Action` so they can be found by where they act, not
+ * only by the verb someone picked. The next-intl mock returns keys verbatim,
+ * so composing here keeps the assertions honest — hardcoding
+ * `'scopes.explorer: toggleLeft'` in a dozen places would pass even if the
+ * component stopped scoping altogether.
+ */
+const cmd = (scope: string, id: string) => scopedCommandLabel(`scopes.${scope}`, id)
 
 /** `true` = a fine pointer is available, which stands in for "has a keyboard". */
 function mockPointer(fine: boolean) {
@@ -62,7 +74,7 @@ describe('CommandPalette', () => {
       state.pathname = '/en/notes/some-note'
       renderPalette()
       // The commands themselves stay — tapping one is the whole point here.
-      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(cmd('explorer', 'toggleLeft'))).toBeInTheDocument())
       expect(screen.queryByText(/^(⌘|Ctrl) \[$/)).not.toBeInTheDocument()
       expect(screen.queryByText('G')).not.toBeInTheDocument()
       state.pathname = '/en'
@@ -74,8 +86,8 @@ describe('CommandPalette', () => {
       mockPointer(false)
       renderPalette()
       await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
-      expect(screen.queryByText('disableShortcuts')).not.toBeInTheDocument()
-      expect(screen.queryByText('enableShortcuts')).not.toBeInTheDocument()
+      expect(screen.queryByText(cmd('shortcuts', 'disableShortcuts'))).not.toBeInTheDocument()
+      expect(screen.queryByText(cmd('shortcuts', 'enableShortcuts'))).not.toBeInTheDocument()
     })
   })
 
@@ -86,26 +98,26 @@ describe('CommandPalette', () => {
       const { state } = await getRouterMock()
       state.pathname = '/en'
       renderPalette()
-      await waitFor(() => expect(screen.getByText('disableShortcuts')).toBeInTheDocument())
-      expect(screen.queryByText('toggleLeft')).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.getByText(cmd('shortcuts', 'disableShortcuts'))).toBeInTheDocument())
+      expect(screen.queryByText(cmd('explorer', 'toggleLeft'))).not.toBeInTheDocument()
     })
 
     it('flips the stored preference and relabels itself', async () => {
       renderPalette()
-      await waitFor(() => expect(screen.getByText('disableShortcuts')).toBeInTheDocument())
-      fireEvent.click(screen.getByText('disableShortcuts'))
+      await waitFor(() => expect(screen.getByText(cmd('shortcuts', 'disableShortcuts'))).toBeInTheDocument())
+      fireEvent.click(screen.getByText(cmd('shortcuts', 'disableShortcuts')))
       expect(useShortcutsStore.getState().preference).toBe(false)
       // Selecting a command closes the palette, as every other command does,
       // so the relabel is only visible on the next open.
       act(() => useSearchStore.setState({ isOpen: true }))
-      await waitFor(() => expect(screen.getByText('enableShortcuts')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(cmd('shortcuts', 'enableShortcuts'))).toBeInTheDocument())
     })
 
     it("the reader's choice overrides the site default", async () => {
       // Site config says off; the reader turned them back on.
       useShortcutsStore.setState({ preference: true })
       renderPalette({ shortcuts: { enabled: false } })
-      await waitFor(() => expect(screen.getByText('disableShortcuts')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(cmd('shortcuts', 'disableShortcuts'))).toBeInTheDocument())
     })
 
     it('falls back to the site default when nothing is chosen', async () => {
@@ -114,7 +126,7 @@ describe('CommandPalette', () => {
   // reads `(any-pointer: fine)`, and jsdom ships no `matchMedia` at all.
   mockPointer(true)
       renderPalette({ shortcuts: { enabled: false } })
-      await waitFor(() => expect(screen.getByText('enableShortcuts')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(cmd('shortcuts', 'enableShortcuts'))).toBeInTheDocument())
     })
 
     it('stops the / key opening the palette once disabled', async () => {
@@ -139,8 +151,8 @@ describe('CommandPalette', () => {
       const { state } = await getRouterMock()
       state.pathname = '/en/notes/some-note'
       renderPalette()
-      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
-      expect(screen.getByText('graph')).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByText(cmd('explorer', 'toggleLeft'))).toBeInTheDocument())
+      expect(screen.getByText(cmd('tools', 'graph'))).toBeInTheDocument()
       // Chord rendered beside the row, platform-resolved.
       expect(screen.getByText(/^(⌘|Ctrl) \[$/)).toBeInTheDocument()
       expect(screen.getByText('G')).toBeInTheDocument()
@@ -152,7 +164,7 @@ describe('CommandPalette', () => {
       state.pathname = '/en'
       renderPalette()
       await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
-      expect(screen.queryByText('toggleLeft')).not.toBeInTheDocument()
+      expect(screen.queryByText(cmd('explorer', 'toggleLeft'))).not.toBeInTheDocument()
     })
 
     it('keeps the commands but drops the chords when shortcuts are disabled', async () => {
@@ -162,9 +174,45 @@ describe('CommandPalette', () => {
       const { state } = await getRouterMock()
       state.pathname = '/en/notes/some-note'
       renderPalette({ shortcuts: { enabled: false } })
-      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(cmd('explorer', 'toggleLeft'))).toBeInTheDocument())
       expect(screen.queryByText(/^(⌘|Ctrl) \[$/)).not.toBeInTheDocument()
       expect(screen.queryByText('G')).not.toBeInTheDocument()
+      state.pathname = '/en'
+    })
+
+    it('finds commands by their scope, not just by the verb', async () => {
+      // The reason the labels carry a `Scope:` prefix at all. Someone who
+      // knows they want to do something to the tools panel can type "tools"
+      // and see everything it can do, without guessing whether the author
+      // called it "open", "show", "focus" or "reveal".
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText(cmd('tools', 'graph'))).toBeInTheDocument())
+
+      fireEvent.change(screen.getByPlaceholderText('placeholder'), {
+        target: { value: 'scopes.tools' },
+      })
+
+      await waitFor(() => expect(screen.getByText(cmd('tools', 'graph'))).toBeInTheDocument())
+      expect(screen.getByText(cmd('tools', 'toc'))).toBeInTheDocument()
+      // ...and only that scope: the explorer's commands are filtered out.
+      expect(screen.queryByText(cmd('explorer', 'toggleLeft'))).not.toBeInTheDocument()
+      state.pathname = '/en'
+    })
+
+    it('still finds a command by its action alone', async () => {
+      // The prefix must not cost the old way of searching.
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText(cmd('tools', 'graph'))).toBeInTheDocument())
+
+      fireEvent.change(screen.getByPlaceholderText('placeholder'), {
+        target: { value: 'graph' },
+      })
+
+      await waitFor(() => expect(screen.getByText(cmd('tools', 'graph'))).toBeInTheDocument())
       state.pathname = '/en'
     })
 
@@ -172,9 +220,9 @@ describe('CommandPalette', () => {
       const { state } = await getRouterMock()
       state.pathname = '/en/notes/some-note'
       renderPalette()
-      await waitFor(() => expect(screen.getByText('toggleLeft')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText(cmd('explorer', 'toggleLeft'))).toBeInTheDocument())
       const before = usePanelStore.getState().leftOpen
-      fireEvent.click(screen.getByText('toggleLeft'))
+      fireEvent.click(screen.getByText(cmd('explorer', 'toggleLeft')))
       expect(usePanelStore.getState().leftOpen).toBe(!before)
       state.pathname = '/en'
     })

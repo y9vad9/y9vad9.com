@@ -145,8 +145,14 @@
   },
   "commands": {
     "heading": "Commands",
-    "toggleLeft": "Toggle explorer panel",
-    "toggleRight": "Toggle tools panel",
+    "scopes": {
+      "explorer": "Explorer",
+      "tools": "Tools",
+      "tabs": "Tabs",
+      "shortcuts": "Shortcuts"
+    },
+    "toggleLeft": "Toggle panel",
+    "toggleRight": "Toggle panel",
     "closeTab": "Close current tab",
     "explorer": "Open files",
     "search": "Search in notes",
@@ -154,7 +160,7 @@
     "series": "Open series",
     "links": "Open links",
     "graph": "Open graph",
-    "disableShortcuts": "Disable keyboard shortcuts",
-    "enableShortcuts": "Enable keyboard shortcuts"
+    "disableShortcuts": "Disable",
+    "enableShortcuts": "Enable"
   }
 }

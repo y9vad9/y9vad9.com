@@ -21,6 +21,7 @@ import { useHasKeyboard } from '@hooks/useMediaQuery'
 import {
   GARDEN_SHORTCUTS,
   isMacPlatform,
+  scopedCommandLabel,
   shortcutHint,
   type ShortcutActions,
 } from '@lib/shortcuts/gardenShortcuts'
@@ -233,7 +234,10 @@ export function CommandPalette() {
     if (gardenCommands.length > 0) {
       const isMac = isMacPlatform()
       for (const shortcut of gardenCommands) {
-        const label = tCommands(shortcut.id)
+        const label = scopedCommandLabel(
+          tCommands(`scopes.${shortcut.scope}`),
+          tCommands(shortcut.id),
+        )
         if (q && !label.toLowerCase().includes(q)) continue
         r.push({
           type: 'command',
@@ -251,13 +255,19 @@ export function CommandPalette() {
     // it governs the palette's own `/` and double-Shift too, so someone who
     // turned shortcuts off needs to find it from wherever they are. It is
     // also the only way back once the keyboard route is closed.
-    const toggleLabel = shortcutsEnabled
-      ? tCommands('disableShortcuts')
-      : tCommands('enableShortcuts')
+    const toggleLabel = scopedCommandLabel(
+      tCommands('scopes.shortcuts'),
+      shortcutsEnabled ? tCommands('disableShortcuts') : tCommands('enableShortcuts'),
+    )
     // Nothing to switch off on a device with no keys. Without this the
     // landing page on a phone showed a Commands group whose only entry was
     // an offer to disable shortcuts that cannot fire there anyway.
-    if (hasKeyboard && (!q || toggleLabel.toLowerCase().includes(q) || 'shortcuts'.includes(q))) {
+    //
+    // Matching the label alone is enough now that it is scope-prefixed: the
+    // word "shortcuts" is in the string itself, so the separate literal check
+    // this used to carry — which also matched every prefix of that word, and
+    // so surfaced the entry on a bare `s` — is gone.
+    if (hasKeyboard && (!q || toggleLabel.toLowerCase().includes(q))) {
       r.push({
         type: 'command',
         id: 'toggleShortcuts',

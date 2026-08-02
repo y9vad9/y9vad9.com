@@ -24,6 +24,18 @@ export type ShortcutId =
   | 'links'
   | 'graph'
 
+/**
+ * The part of the garden a command acts on.
+ *
+ * The palette prints this ahead of the action as `Scope: Action`, the
+ * convention Obsidian uses. It matters for finding things: a reader who knows
+ * *where* they want to act — the explorer, the tools panel — can type that and
+ * see every command for it, without having to guess the verb someone chose.
+ * Typing the verb still works, since the scope is only a prefix on the same
+ * searchable string.
+ */
+export type ShortcutScope = 'explorer' | 'tools' | 'tabs'
+
 /** What a shortcut can do. Supplied by whoever holds the stores. */
 export interface ShortcutActions {
   toggleLeft: () => void
@@ -35,6 +47,8 @@ export interface ShortcutActions {
 
 export interface GardenShortcut {
   id: ShortcutId
+  /** Groups the command in the palette — see `ShortcutScope`. */
+  scope: ShortcutScope
   /** Requires the platform modifier — ⌘ on macOS, Ctrl elsewhere. */
   mod: boolean
   /**
@@ -48,16 +62,27 @@ export interface GardenShortcut {
 }
 
 export const GARDEN_SHORTCUTS: readonly GardenShortcut[] = [
-  { id: 'toggleLeft', mod: true, trigger: '[', run: (a) => a.toggleLeft() },
-  { id: 'toggleRight', mod: true, trigger: ']', run: (a) => a.toggleRight() },
-  { id: 'closeTab', mod: true, trigger: '\\', run: (a) => a.closeActiveTab() },
-  { id: 'explorer', mod: false, trigger: 'KeyE', run: (a) => a.focusExplorer('files') },
-  { id: 'search', mod: false, trigger: 'KeyF', run: (a) => a.focusExplorer('search') },
-  { id: 'toc', mod: false, trigger: 'KeyT', run: (a) => a.focusTools('toc') },
-  { id: 'series', mod: false, trigger: 'KeyS', run: (a) => a.focusTools('series') },
-  { id: 'links', mod: false, trigger: 'KeyL', run: (a) => a.focusTools('links') },
-  { id: 'graph', mod: false, trigger: 'KeyG', run: (a) => a.focusTools('graph') },
+  { id: 'toggleLeft', scope: 'explorer', mod: true, trigger: '[', run: (a) => a.toggleLeft() },
+  { id: 'toggleRight', scope: 'tools', mod: true, trigger: ']', run: (a) => a.toggleRight() },
+  { id: 'closeTab', scope: 'tabs', mod: true, trigger: '\\', run: (a) => a.closeActiveTab() },
+  { id: 'explorer', scope: 'explorer', mod: false, trigger: 'KeyE', run: (a) => a.focusExplorer('files') },
+  { id: 'search', scope: 'explorer', mod: false, trigger: 'KeyF', run: (a) => a.focusExplorer('search') },
+  { id: 'toc', scope: 'tools', mod: false, trigger: 'KeyT', run: (a) => a.focusTools('toc') },
+  { id: 'series', scope: 'tools', mod: false, trigger: 'KeyS', run: (a) => a.focusTools('series') },
+  { id: 'links', scope: 'tools', mod: false, trigger: 'KeyL', run: (a) => a.focusTools('links') },
+  { id: 'graph', scope: 'tools', mod: false, trigger: 'KeyG', run: (a) => a.focusTools('graph') },
 ]
+
+/**
+ * `Scope: Action`, as the palette lists it.
+ *
+ * Kept here rather than inlined at the call site so the shortcuts toggle —
+ * which is not a `GardenShortcut`, since it binds no key — is built the same
+ * way and cannot drift into a different separator or order.
+ */
+export function scopedCommandLabel(scope: string, action: string): string {
+  return `${scope}: ${action}`
+}
 
 /**
  * The chord as a reader should see it — `⌘ [` on macOS, `Ctrl [` elsewhere,

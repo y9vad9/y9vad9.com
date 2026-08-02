@@ -145,8 +145,14 @@
   },
   "commands": {
     "heading": "Befehle",
-    "toggleLeft": "Explorer-Bereich umschalten",
-    "toggleRight": "Werkzeug-Bereich umschalten",
+    "scopes": {
+      "explorer": "Explorer",
+      "tools": "Werkzeuge",
+      "tabs": "Tabs",
+      "shortcuts": "Tastenkürzel"
+    },
+    "toggleLeft": "Bereich umschalten",
+    "toggleRight": "Bereich umschalten",
     "closeTab": "Aktuellen Tab schließen",
     "explorer": "Dateien öffnen",
     "search": "In Notizen suchen",
@@ -154,7 +160,7 @@
     "series": "Serie öffnen",
     "links": "Links öffnen",
     "graph": "Graph öffnen",
-    "disableShortcuts": "Tastenkürzel deaktivieren",
-    "enableShortcuts": "Tastenkürzel aktivieren"
+    "disableShortcuts": "Deaktivieren",
+    "enableShortcuts": "Aktivieren"
   }
 }
