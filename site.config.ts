@@ -264,4 +264,10 @@ export const config: SiteConfig = {
   //   // over plain HTTP, and the spec is still moving.
   //   webmcp: { enabled: false },
   // },
+  // The built-in `rss` action copies the feed URL. This site has a note
+  // that explains feeds and lists every language's, which is a better
+  // destination than a URL on the clipboard.
+  garden: {
+    actions: ['graph', 'random', { label: 'RSS Feeds', href: 'notes/rss', icon: 'rss' }],
+  },
 }

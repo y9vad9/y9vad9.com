@@ -99,4 +99,11 @@ export const config: SiteConfig = {
     siteUrl: 'https://y9vad9.com',
     noindexPaths: ['/notes/graph'],
   },
+
+  // The built-in `rss` action copies the feed URL. This site has a note
+  // that explains feeds and lists every language's, which is a better
+  // destination than a URL on the clipboard.
+  garden: {
+    actions: ['graph', 'random', { label: 'RSS-стрічки', href: 'notes/rss', icon: 'rss' }],
+  },
 }
