@@ -23,12 +23,49 @@ describe('buildFileTree', () => {
     ])
   })
 
-  it('places series entries before standalones', () => {
+  it('keeps a series in date order among the standalones', () => {
+    // Input arrives newest-first from `listAllNotes`. This asserted the
+    // opposite before — series hoisted above everything — which put an
+    // archived 2022 course at the top of the sidebar, above notes from 2026.
     const result = buildFileTree([
       { slug: 'lone', title: 'Lone', series: null, order: null },
       { slug: 's1', title: 'S Part 1', series: 'Sigma', order: 1 },
     ])
-    expect(result.map((e) => e.slug)).toEqual(['s1', 'lone'])
+    expect(result.map((e) => e.slug)).toEqual(['lone', 's1'])
+  })
+
+  it('places a series at its most recent member, not its first-numbered one', () => {
+    // Part 3 is the newest thing in the series, so the series belongs where
+    // part 3 falls — but the entry still links to part 1.
+    const result = buildFileTree([
+      { slug: 'fresh', title: 'Fresh', series: null, order: null },
+      { slug: 'p3', title: 'Part 3', series: 'Course', order: 3 },
+      { slug: 'older', title: 'Older', series: null, order: null },
+      { slug: 'p1', title: 'Part 1', series: 'Course', order: 1 },
+    ])
+    expect(result.map((e) => e.slug)).toEqual(['fresh', 'p1', 'older'])
+    expect(result[1]).toEqual({ slug: 'p1', displayTitle: 'Course', isSeries: true })
+  })
+
+  it('emits each series exactly once however many parts it has', () => {
+    const result = buildFileTree(
+      Array.from({ length: 19 }, (_, i) => ({
+        slug: `part-${i}`,
+        title: `Part ${i}`,
+        series: 'Kotlin for beginners',
+        order: i,
+      })),
+    )
+    expect(result).toHaveLength(1)
+  })
+
+  it('interleaves several series by recency', () => {
+    const result = buildFileTree([
+      { slug: 'b1', title: 'B one', series: 'Beta', order: 1 },
+      { slug: 'solo', title: 'Solo', series: null, order: null },
+      { slug: 'a1', title: 'A one', series: 'Alpha', order: 1 },
+    ])
+    expect(result.map((e) => e.displayTitle)).toEqual(['Beta', 'Solo', 'Alpha'])
   })
 
   it('uses the lowest-order series member as the link target', () => {
