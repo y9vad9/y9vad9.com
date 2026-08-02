@@ -14,10 +14,10 @@ import {
   applyParentFilters,
 } from '@lib/search/paletteQuery'
 import { useSearchStore } from '@store/searchStore'
-import { usePanelStore } from '@store/panelStore'
 import { useShortcutsStore } from '@store/shortcutsStore'
 import { useShortcutsEnabled } from '@hooks/useShortcutsEnabled'
 import { useHasKeyboard } from '@hooks/useMediaQuery'
+import { createShortcutActions } from '@lib/shortcuts/createShortcutActions'
 import {
   GARDEN_SHORTCUTS,
   isMacPlatform,
@@ -183,21 +183,7 @@ export function CommandPalette() {
     [pathname, locale],
   )
 
-  const commandActions = useMemo<ShortcutActions>(
-    () => ({
-      // Read through `getState()` rather than subscribing: the palette has no
-      // reason to re-render when a panel toggles behind it.
-      toggleLeft: () => usePanelStore.getState().toggleLeft(),
-      toggleRight: () => usePanelStore.getState().toggleRight(),
-      closeActiveTab: () => {
-        const { activeSlug, closeTab } = useTabStore.getState()
-        if (activeSlug) closeTab(activeSlug)
-      },
-      focusExplorer: (mode) => usePanelStore.getState().focusExplorer(mode),
-      focusTools: (mode) => usePanelStore.getState().focusTools(mode),
-    }),
-    [],
-  )
+  const commandActions = useMemo<ShortcutActions>(() => createShortcutActions(), [])
 
   const allResults = useMemo(() => {
     const r: Array<{

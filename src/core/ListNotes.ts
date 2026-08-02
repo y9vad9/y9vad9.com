@@ -26,6 +26,18 @@ export async function listRecentNotes(
   return all.filter((n) => n.date !== null).slice(0, count)
 }
 
+/**
+ * Notes the author marked `pinned: true`, newest first.
+ *
+ * Archived notes are excluded even when pinned: the two flags contradict each
+ * other, and a pin left behind on something since archived would quietly put
+ * stale writing at the top of the garden.
+ */
+export async function listPinnedNotes(repo: NoteRepository): Promise<Note[]> {
+  const all = await listAllNotes(repo)
+  return all.filter((n) => n.isPinned && !n.isArchived)
+}
+
 export async function listFeaturedNotes(
   repo: NoteRepository,
   slugs: string[],

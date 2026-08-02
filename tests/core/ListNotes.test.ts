@@ -4,9 +4,10 @@ import {
   listNotesByParent,
   listRecentNotes,
   listFeaturedNotes,
+  listPinnedNotes,
 } from '@core/ListNotes'
 import { MemoryNoteRepository } from '@adapters/memory/MemoryNoteRepository'
-import { sampleNotes } from '../fixtures/notes'
+import { sampleNotes, makeNote } from '../fixtures/notes'
 
 describe('listAllNotes', () => {
   it('returns all notes sorted by date descending', async () => {
@@ -76,5 +77,35 @@ describe('listFeaturedNotes', () => {
     const repo = new MemoryNoteRepository(sampleNotes)
     const result = await listFeaturedNotes(repo, ['flows', 'does-not-exist', 'kotlin'])
     expect(result.map((n) => n.slug)).toEqual(['flows', 'kotlin'])
+  })
+})
+
+describe('listPinnedNotes', () => {
+  const repo = () =>
+    new MemoryNoteRepository([
+      makeNote({ slug: 'plain', title: 'Plain', date: new Date('2024-03-01') }),
+      makeNote({ slug: 'older-pin', title: 'Older pin', isPinned: true, date: new Date('2024-01-01') }),
+      makeNote({ slug: 'newer-pin', title: 'Newer pin', isPinned: true, date: new Date('2024-05-01') }),
+      makeNote({ slug: 'stale', title: 'Stale', isPinned: true, isArchived: true, date: new Date('2024-06-01') }),
+    ])
+
+  it('returns only pinned notes, newest first', async () => {
+    const result = await listPinnedNotes(repo())
+    expect(result.map((n) => n.slug)).toEqual(['newer-pin', 'older-pin'])
+  })
+
+  it('drops a pin left behind on an archived note', async () => {
+    // The two flags contradict each other. `stale` is the newest of the
+    // three pins, so without this it would head the garden — putting the
+    // author's most explicitly retired writing in the most prominent slot.
+    const result = await listPinnedNotes(repo())
+    expect(result.map((n) => n.slug)).not.toContain('stale')
+  })
+
+  it('returns nothing when the author has pinned nothing', async () => {
+    // The index hides the whole section on an empty list, so this is the
+    // out-of-the-box state for a fresh site rather than an edge case.
+    const bare = new MemoryNoteRepository([makeNote({ slug: 'a' }), makeNote({ slug: 'b' })])
+    expect(await listPinnedNotes(bare)).toEqual([])
   })
 })

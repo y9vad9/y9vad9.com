@@ -37,6 +37,14 @@ export interface Note {
   order: number | null
   isArchived: boolean
   isEpic: boolean
+  /**
+   * Author-chosen entry point, surfaced above everything else in the garden.
+   *
+   * Distinct from `isEpic`: an epic is a durable topic hub — another index to
+   * traverse — while a pin is a note worth reading *now*. The index leads with
+   * pins precisely because they need no traversal.
+   */
+  isPinned: boolean
   body: string
   headings: Heading[]
   /**

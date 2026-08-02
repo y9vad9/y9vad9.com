@@ -21,6 +21,7 @@ export function makeNote(overrides: Partial<Note> = {}): Note {
     order: null,
     isArchived: false,
     isEpic: false,
+    isPinned: false,
     body: '<p>Body</p>',
     headings: [],
     outgoingLinks: [],

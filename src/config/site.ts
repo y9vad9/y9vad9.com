@@ -1,3 +1,6 @@
+import type { IconName } from 'lucide-react/dynamic'
+import type { ShortcutId } from '@lib/shortcuts/gardenShortcuts'
+
 /**
  * Any BCP-47 locale code. Free-form so users can add or remove languages by
  * editing `locales.supported` in `site.config.ts` and dropping matching
@@ -119,7 +122,80 @@ export interface SiteConfig {
   seo?: SeoConfig
   agents?: AgentsConfig
   shortcuts?: ShortcutsConfig
+  garden?: GardenConfig
 }
+
+/** Built-in actions the garden index can offer. */
+export type GardenActionId = 'graph' | 'random' | 'rss'
+
+/**
+ * Fields every site-defined action shares.
+ *
+ * `icon` is any lucide-react icon name in kebab-case (`book-open`, `mail`,
+ * `github`). They load on demand rather than being bundled — all ~2000 would
+ * otherwise ship to reach the handful anyone uses — so naming one costs a
+ * small chunk fetch, not the icon set. Typed against lucide's own union, so a
+ * misspelling is a build error rather than a silently missing icon.
+ */
+interface GardenActionBase {
+  label: string
+  icon?: IconName
+}
+
+/**
+ * Go somewhere. A bare path (`notes/rss`) is internal and client-routed;
+ * anything carrying a scheme (`https://…`) opens in a new tab.
+ */
+export interface LinkGardenAction extends GardenActionBase {
+  href: string
+}
+
+/**
+ * Put text on the clipboard. A value starting with `/` is resolved against
+ * the site's own origin at click time, so `/en/feed.xml` copies a full URL
+ * without the config having to know where the site is deployed.
+ */
+export interface CopyGardenAction extends GardenActionBase {
+  copy: string
+}
+
+/**
+ * Run one of the garden's own commands — the same ids the keyboard shortcuts
+ * and the command palette dispatch.
+ */
+export interface CommandGardenAction extends GardenActionBase {
+  command: ShortcutId
+}
+
+/**
+ * A site-defined action.
+ *
+ * Behaviour is data, not a callback. The config is imported on the server
+ * while the action row is a client component, and functions do not survive
+ * that boundary — a `run: () => void` here would be silently dropped rather
+ * than fail loudly. So each variant names what it does and the renderer owns
+ * how.
+ */
+export type CustomGardenAction =
+  | LinkGardenAction
+  | CopyGardenAction
+  | CommandGardenAction
+
+export type GardenAction = GardenActionId | CustomGardenAction
+
+export interface GardenConfig {
+  /**
+   * Which actions appear, in this order. Omit for the built-in three;
+   * set to `[]` to drop the section entirely.
+   *
+   * Order is the config's, not the renderer's — being able to remove an
+   * entry but not move it would be half a feature.
+   */
+  actions?: readonly GardenAction[]
+}
+
+/** What the index renders when a site says nothing about actions. */
+export const DEFAULT_GARDEN_ACTIONS: readonly GardenActionId[] = ['graph', 'random', 'rss']
 
 /**
  * Keyboard shortcuts in the garden.

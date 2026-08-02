@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { sortNotes, SORT_MODES, SORT_LABEL_KEY, type SortMode } from '@lib/notes/sortNotes'
 import { useParams } from 'next/navigation'
 import { useHydrated } from '@hooks/useHydrated'
 import { useTranslations } from 'next-intl'
@@ -16,7 +17,6 @@ import {
 } from 'lucide-react'
 import { NoteLink } from './NoteLink'
 
-type SortMode = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
 
 function readStored(key: string): boolean {
   try {
@@ -113,26 +113,12 @@ function Group({
         )
       : items.slice()
 
-    return list.sort((a, b) => {
-      switch (sort) {
-        case 'date-desc':
-          return (b.date ?? '').localeCompare(a.date ?? '')
-        case 'date-asc':
-          return (a.date ?? '').localeCompare(b.date ?? '')
-        case 'name-asc':
-          return a.title.localeCompare(b.title)
-        case 'name-desc':
-          return b.title.localeCompare(a.title)
-      }
-    })
+    return sortNotes(list, sort)
   }, [items, filter, sort])
 
-  const sortLabels: Record<SortMode, string> = {
-    'date-desc': t('sortDate'),
-    'date-asc': t('sortDateAsc'),
-    'name-asc': t('sortNameAsc'),
-    'name-desc': t('sortNameDesc'),
-  }
+  const sortLabels = Object.fromEntries(
+    SORT_MODES.map((m) => [m, t(SORT_LABEL_KEY[m])]),
+  ) as Record<SortMode, string>
 
   return (
     <section>
@@ -161,7 +147,7 @@ function Group({
             </button>
             {sortOpen && (
               <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-20 min-w-44">
-                {(Object.keys(sortLabels) as SortMode[]).map((mode) => (
+                {SORT_MODES.map((mode) => (
                   <button
                     key={mode}
                     onClick={() => { setSort(mode); setSortOpen(false) }}

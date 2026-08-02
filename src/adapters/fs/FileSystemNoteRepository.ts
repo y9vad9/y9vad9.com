@@ -46,6 +46,7 @@ function parseNoteMeta(slug: string, raw: string): NoteMeta {
     order: data.order != null ? Number(data.order) : null,
     isArchived: Boolean(data.archived),
     isEpic: Boolean(data.epic),
+    isPinned: Boolean(data.pinned),
     readingTimeMinutes: Math.ceil(readingTime(raw).minutes),
   }
 }

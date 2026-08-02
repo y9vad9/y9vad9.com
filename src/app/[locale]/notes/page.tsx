@@ -1,20 +1,21 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { Sprout, Clock, Star, Network } from 'lucide-react'
+import { Pin, Star, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { createRepository } from '@adapters/createRepositories'
-import { listAllNotes, listRecentNotes } from '@core/ListNotes'
+import { listAllNotes, listPinnedNotes } from '@core/ListNotes'
 import { getEpics } from '@core/GetCategories'
-import { buildMentionGraph } from '@core/graph/BuildMentionGraph'
 import { NoteListClient } from '@components/garden/NoteListClient'
 import { NoteCard } from '@components/garden/NoteCard'
+import { GardenActions } from '@components/garden/GardenActions'
 import { RouteTabSync } from '@components/garden/RouteTabSync'
-import { RouteLink } from '@components/garden/RouteLink'
 import { JsonLd } from '@components/seo/JsonLd'
-import { INDEX_TAB_SLUG, GRAPH_TAB_SLUG } from '@store/tabStore'
+import { INDEX_TAB_SLUG } from '@store/tabStore'
 import { breadcrumbsJsonLd, collectionPageJsonLd } from '@lib/seo/jsonLd'
 import { baseMetadata } from '@lib/seo/metadata'
 import { loadSiteConfig } from '@lib/config/loadConfig'
+import { DEFAULT_GARDEN_ACTIONS } from '@config/site'
+import { loadGardenIntro } from '@lib/content/gardenIntro'
 
 export async function generateMetadata({
   params,
@@ -46,14 +47,19 @@ export default async function GardenHubPage({
   ])
   const repo = createRepository(locale)
 
-  const [allNotes, recentNotes, epics, graph] = await Promise.all([
+  const [allNotes, pinnedNotes, epics, intro] = await Promise.all([
     listAllNotes(repo),
-    listRecentNotes(repo, 5),
+    listPinnedNotes(repo),
     getEpics(repo),
-    buildMentionGraph(repo),
+    loadGardenIntro(locale),
   ])
+  // Archived notes are excluded the same way pins exclude them: a third of
+  // this corpus can be retired writing, and a "random note" that lands there
+  // a third of the time is a worse invitation than one that doesn't.
+  const gardenActions = siteConfig.garden?.actions ?? DEFAULT_GARDEN_ACTIONS
 
-  const totalReadingTime = allNotes.reduce((sum, n) => sum + n.readingTimeMinutes, 0)
+  const randomSlugs = allNotes.filter((n) => !n.isArchived && !n.noindex).map((n) => n.slug)
+
   const notesForList = allNotes.map((n) => ({
     slug: n.slug,
     title: n.title,
@@ -86,23 +92,61 @@ export default async function GardenHubPage({
           ),
         ]}
       />
-      {/* Welcome hero */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-muted mb-4">
-          <Sprout size={28} className="text-primary" />
-        </div>
-        <h1 className="text-3xl font-bold mb-2">{t('welcome')}</h1>
-        <p className="text-muted italic">{t('welcomeDescription')}</p>
-      </div>
+      {/* The hero that used to open this page carried its only `h1`. The
+          ceremony is gone but the document still needs a top-level heading:
+          without it the Graph CTA's `h2` would be the highest on the page,
+          leaving screen-reader users no title to orient by and the page with
+          no outline. Visually hidden rather than restored — the tab already
+          says where you are. */}
+      <h1 className="sr-only">{t('welcome')}</h1>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-12">
-        <StatCard label={t('notes')} value={allNotes.length} />
-        <StatCard label={t('totalReadingTime')} value={`${totalReadingTime} ${t('min')}`} />
-        <StatCard label={t('connections')} value={graph.edges.length} />
-      </div>
+      {/* The author's own opening, from `content/garden/<locale>.md`.
+          Nothing renders when that file is absent — this slot briefly held
+          `garden.welcomeDescription`, but a framework string standing in for
+          the author's voice reads as filler, because it is. `welcomeDescription`
+          is back to serving only the meta description above. */}
+      {intro && (
+        <div
+          className="prose mb-10"
+          dangerouslySetInnerHTML={{ __html: intro }}
+        />
+      )}
 
-      {/* Epics */}
+      {/* Start here — the author's own entry points, and deliberately the
+          first thing on the page.
+          What used to lead here was a welcome hero and three stat cards.
+          Neither survived the question "what does a reader do with this?":
+          nobody navigates by a total reading time, and the hero spent a
+          whole screen restating that this is a garden. Pins are notes you
+          can read immediately, which is what someone arriving actually
+          wants — unlike the topic hubs below, they need no traversal. */}
+      {pinnedNotes.length > 0 && (
+        <section className="mb-12">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted uppercase tracking-wide mb-4">
+            <Pin size={12} /> {t('startHere')}
+          </div>
+          <div className="flex flex-col gap-2">
+            {pinnedNotes.map((note) => (
+              <NoteCard
+                key={note.slug}
+                href={`/${locale}/notes/${note.slug}`}
+                note={{
+                  slug: note.slug,
+                  title: note.title,
+                  preview: note.preview,
+                  date: note.date?.toISOString() ?? null,
+                  coverImage: note.coverImage,
+                  coverImageSrcSet: note.coverImageSrcSet,
+                  isArchived: note.isArchived,
+                  isSeries: !!note.series,
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Topics */}
       {epics.length > 0 && (
         <section className="mb-12">
           <div className="flex items-center gap-2 text-xs font-medium text-muted uppercase tracking-wide mb-4">
@@ -115,13 +159,16 @@ export default async function GardenHubPage({
                 href={epic.slug ? `/${locale}/notes/${epic.slug}` : `/${locale}/notes?parent=${encodeURIComponent(epic.name)}`}
                 className="group p-4 rounded-xl border border-border hover:border-primary hover:bg-card transition-all duration-300"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary-muted flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Sprout size={14} className="text-primary" />
-                  </div>
-                  <span className="text-xs text-muted">{epic.mentionCount}</span>
+                {/* No icon. Every card carried the same sprout, so it
+                    distinguished nothing while taking the top third of the
+                    card — the name and the count are the only things here
+                    that differ between topics. */}
+                <div className="flex items-baseline justify-between gap-2 mb-1">
+                  <p className="font-medium text-sm">{epic.name}</p>
+                  <span className="text-xs text-muted tabular-nums flex-shrink-0">
+                    {epic.mentionCount}
+                  </span>
                 </div>
-                <p className="font-medium text-sm mb-1">{epic.name}</p>
                 {epic.preview && (
                   <p className="text-xs text-muted italic line-clamp-2">{epic.preview}</p>
                 )}
@@ -131,75 +178,29 @@ export default async function GardenHubPage({
         </section>
       )}
 
-      {/* Recent notes */}
-      <section className="mb-12">
-        <div className="flex items-center gap-2 text-xs font-medium text-muted uppercase tracking-wide mb-4">
-          <Clock size={12} /> {t('recentNotes')}
-        </div>
-        <div className="flex flex-col gap-2">
-          {recentNotes.map((note) => (
-            <NoteCard
-              key={note.slug}
-              href={`/${locale}/notes/${note.slug}`}
-              note={{
-                slug: note.slug,
-                title: note.title,
-                preview: note.preview,
-                date: note.date?.toISOString() ?? null,
-                coverImage: note.coverImage,
-                coverImageSrcSet: note.coverImageSrcSet,
-                isArchived: note.isArchived,
-                isSeries: !!note.series,
-              }}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Graph CTA */}
-      <RouteLink
-        href={`/${locale}/notes/graph`}
-        routeSlug={GRAPH_TAB_SLUG}
-        routeTitle={t('knowledgeGraph')}
-        routeKind="graph"
-        className="group block p-8 rounded-2xl border-2 border-dashed border-border hover:border-primary hover:bg-primary-muted/30 transition-all duration-300 text-center"
-      >
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-muted mb-4 group-hover:scale-110 transition-transform">
-          <Network size={24} className="text-primary" />
-        </div>
-        <h2 className="font-bold text-lg mb-1">{t('knowledgeGraph')}</h2>
-        <p className="text-sm text-muted mb-3">{t('knowledgeGraphDescription')}</p>
-        <span className="text-xs uppercase tracking-widest text-primary">{t('launchExplorer')} →</span>
-      </RouteLink>
+      {/* Actions.
+          The graph link used to sit here alone and unlabelled, the one bare
+          card between Topics and the search box — homeless because it was the
+          only member of an unnamed category. Naming the category fixes it,
+          and the category is honest: Topics are material, these are tools.
+          Which ones appear, and in what order, is the site's call. */}
+      {gardenActions.length > 0 && (
+        <section className="mb-12">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted uppercase tracking-wide mb-4">
+            <Wrench size={12} /> {t('actions')}
+          </div>
+          <GardenActions
+            actions={gardenActions}
+            locale={locale}
+            randomSlugs={randomSlugs}
+          />
+        </section>
+      )}
 
       {/* Note list */}
       <div className="mt-12">
         <NoteListClient notes={notesForList} locale={locale} />
       </div>
-    </div>
-  )
-}
-
-/**
- * Three of these sit in a `grid-cols-3` that never collapses, so on a phone
- * each card gets roughly 70px of content width. At `text-3xl` a value like
- * "189 min" wrapped onto two lines while "32" did not, and the labels wrapped
- * to three lines against one — same font size throughout, but the ragged
- * wrapping made the middle card read as a different size entirely.
- *
- * The value scales down on small screens and is pinned to a single line, so
- * the three cards stay visually identical whatever they contain. `tabular-nums`
- * keeps the digits from shifting width between locales.
- */
-function StatCard({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="text-center p-2 sm:p-4 rounded-xl border border-border">
-      <p className="text-lg sm:text-2xl md:text-3xl font-bold text-primary whitespace-nowrap tabular-nums">
-        {value}
-      </p>
-      <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wide mt-1 text-balance">
-        {label}
-      </p>
     </div>
   )
 }
