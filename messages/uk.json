@@ -11,7 +11,8 @@
     "codeProfile": "Профіль коду",
     "summary": "Резюме",
     "interests": "Інтереси",
-    "pronunciation": "Вимова"
+    "pronunciation": "Вимова",
+    "redirecting": "Перенаправлення…"
   },
   "header": {
     "searchPlaceholder": "Пошук…",
@@ -149,7 +150,8 @@
       "explorer": "Провідник",
       "tools": "Інструменти",
       "tabs": "Вкладки",
-      "shortcuts": "Гарячі клавіші"
+      "shortcuts": "Гарячі клавіші",
+      "garden": "Сад"
     },
     "toggleLeft": "Перемкнути панель",
     "toggleRight": "Перемкнути панель",
@@ -159,8 +161,25 @@
     "toc": "Відкрити зміст",
     "series": "Відкрити серію",
     "links": "Відкрити посилання",
-    "graph": "Відкрити граф",
+    "graph": "Відкрити локальний граф",
+    "globalGraph": "Відкрити граф знань",
     "disableShortcuts": "Вимкнути",
     "enableShortcuts": "Увімкнути"
+  },
+  "a11y": {
+    "filter": "Фільтр",
+    "filterPlaceholder": "Фільтр…",
+    "sort": "Сортування",
+    "clear": "Очистити",
+    "resizeLeftPanel": "Змінити розмір лівої панелі",
+    "resizeRightPanel": "Змінити розмір правої панелі",
+    "imagePreview": "Перегляд зображення",
+    "close": "Закрити",
+    "switchLanguage": "Змінити мову",
+    "openMenu": "Відкрити меню",
+    "closeMenu": "Закрити меню",
+    "toggleExplorer": "Перемкнути провідник",
+    "toggleTools": "Перемкнути інструменти",
+    "copyCode": "Копіювати код"
   }
 }
