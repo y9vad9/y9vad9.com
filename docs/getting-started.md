@@ -86,8 +86,9 @@ One thing to do before you publish: set your production origin, either as `seo.s
 |:---|:---|
 | `site.config.ts`, `site.<locale>.config.ts` | Yours. |
 | `content/` | Yours, all of it. |
+| `.github/workflows/` | Yours. Deployment is per-site. |
 | `messages/` | The template's. Override from `content/i18n/` instead. |
 | `src/` | The template's. Changing it means merge conflicts forever. |
 | `public/` | Shared. You add files; the template owns `notes-assets/` and `_static/`. |
 
-That split is enforced by `.gitattributes` and explained in [Upgrading](upgrading.md). The short version: keep your edits in `content/` and `site*.config.ts` and upstream updates stay boring.
+That split is enforced by `.gitattributes` and explained in [Upgrading](upgrading.md). The short version: keep your edits in `content/`, `site*.config.ts` and your workflow, and upstream updates stay boring.

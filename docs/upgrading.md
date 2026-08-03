@@ -22,13 +22,16 @@ git remote add origin https://github.com/your-username/my-site.git
 |:---|:---|
 | `content/**` | You. Notes, navigation, landing composition, translations, theme. |
 | `site.config.ts`, `site.<locale>.config.ts` | You. |
+| `.github/workflows/**` | You. Deployment is per-site. |
 | `src/**` | The template. |
 | `messages/**` | The template. |
 | `public/**` | Shared. You add files; the build owns `notes-assets/` and `_static/`. |
 
-`.gitattributes` marks the first two groups `merge=ours`, so when both you and upstream have changed the same file, your version wins with no conflict to resolve.
+`.gitattributes` marks the first three groups `merge=ours`, so when both you and upstream have changed the same file, your version wins with no conflict to resolve.
 
-The real protection is that upstream does not write to those paths. The merge driver is the backstop, not the plan.
+For the first two the real protection is that upstream does not write to those paths, and the merge driver is only a backstop. The workflows are different: upstream does change them, and the driver is the whole mechanism. That is a deliberate trade. Your workflow carries a Cloudflare project name, a trigger you chose and whatever your hosting needs, none of which upstream can know, so a sync that overwrote it would break your deploy rather than improve it. The cost is that CI improvements stop arriving on their own. Read `git diff` on that file after a sync and apply what you want by hand.
+
+Only `workflows/` is protected. The rest of `.github/` is boilerplate most forks never edit and usually want updated.
 
 ## The driver needs registering
 

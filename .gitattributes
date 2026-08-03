@@ -24,5 +24,21 @@ content/**                   merge=ours
 # multilingual fork, and the bare `site.config.ts` pattern never covered it.
 site*.config.ts              merge=ours
 
+# Deployment is per-site, not per-template. The bundled workflow carries a
+# Cloudflare Pages project name, a trigger a fork decides for itself, and
+# whatever extra steps that fork's hosting needs — none of which upstream can
+# know. Left unprotected, a sync overwrites all of it: a template change from a
+# hard-coded name to `vars.CLOUDFLARE_PROJECT_NAME` landed on a fork that had
+# not set that variable, and the deploy failed with an empty `--project-name=`.
+#
+# The cost is real and worth stating: a fork stops receiving CI improvements
+# here. That is the better trade. A workflow that silently stops deploying is
+# worse than one that stays on an older recipe, and the diff is always there to
+# read and apply by hand.
+#
+# Only `workflows/`. The rest of `.github/` (issue templates, funding, Dependabot
+# config) is boilerplate a fork rarely edits and usually wants updated.
+.github/workflows/**         merge=ours
+
 # Normalise line endings
 * text=auto

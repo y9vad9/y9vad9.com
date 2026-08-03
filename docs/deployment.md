@@ -80,6 +80,8 @@ And one repository variable, on the Variables tab of the same page:
 |:---|:---|
 | `CLOUDFLARE_PROJECT_NAME` | Your Cloudflare Pages project name. |
 
+Hard-coding the name into the workflow instead is fine. `.github/workflows/**` is `merge=ours`, so whatever you put there survives every sync, and the flip side is that CI improvements stop arriving on their own. See [Upgrading](upgrading.md).
+
 The workflow runs on manual dispatch only. To deploy on every push, uncomment the `push` trigger at the top of the file.
 
 Wrangler's version is pinned in the workflow. Left unset, the action resolves whatever is current at deploy time, which means the tool publishing your site could change under you between two runs of the same commit.
