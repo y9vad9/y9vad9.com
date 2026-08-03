@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { config as siteConfig } from '~/site.config'
-import { applyTheme, THEMES, THEME_OPTIONS } from '@lib/theme'
+import { applyTheme, THEMES, THEME_OPTIONS, THEME_STORAGE_KEY } from '@lib/theme'
 import type { Theme } from '@lib/theme'
 
 // The theme list and the DOM write live in `@lib/theme` so the blocking
@@ -39,6 +39,6 @@ export const useThemeStore = create<ThemeStore>()(
         applyTheme(next)
       },
     }),
-    { name: 'theme' },
+    { name: THEME_STORAGE_KEY },
   ),
 )

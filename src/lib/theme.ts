@@ -49,6 +49,34 @@ export function themePolarity(id: Theme): Polarity {
 }
 
 /**
+ * The `localStorage` key `persist` writes the theme under.
+ *
+ * Three things read it and none of them can import the others' parser: the
+ * blocking bootstrap script below is a string, the store names it as config,
+ * and `ThemeProvider` watches it for changes made in other tabs. The key and
+ * the envelope shape therefore live here, once.
+ */
+export const THEME_STORAGE_KEY = 'theme'
+
+/**
+ * Pull a theme out of a persisted zustand envelope (`{state:{theme},…}`).
+ *
+ * Returns null for anything unrecognised, including a theme the site no longer
+ * configures — a stale value should leave the current one alone rather than
+ * apply a palette with no CSS behind it.
+ */
+export function readPersistedTheme(raw: string | null | undefined): Theme | null {
+  if (!raw) return null
+  try {
+    const theme = (JSON.parse(raw) as { state?: { theme?: unknown } })?.state?.theme
+    return typeof theme === 'string' && THEMES.includes(theme) ? theme : null
+  } catch {
+    // Not JSON, or truncated by a quota error mid-write.
+    return null
+  }
+}
+
+/**
  * A translator that can be asked whether it holds a key, which is what
  * next-intl's `useTranslations` actually returns.
  */
@@ -155,7 +183,7 @@ export function themeBootstrapScript(): string {
     `(function(){try{` +
     `var m=${JSON.stringify(polarities)},d=${JSON.stringify(polarityAttr)},` +
     `t=${JSON.stringify(siteConfig.defaultTheme)};` +
-    `try{var s=localStorage.getItem('theme');if(s){var p=JSON.parse(s);` +
+    `try{var s=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});if(s){var p=JSON.parse(s);` +
     `if(p&&p.state&&p.state.theme)t=p.state.theme;}}catch(e){}` +
     `var r=document.documentElement;` +
     `r.className=(r.className.replace(/\\btheme-\\S+/g,'').trim()+' theme-'+t).trim();` +
