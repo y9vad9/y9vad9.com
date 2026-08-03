@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import {
   PanelLeft,
@@ -9,16 +8,11 @@ import {
   Search,
   Home,
   Sprout,
-  Sun,
-  Moon,
-  Coffee,
-  Trees,
-  Monitor,
   Globe,
   Network,
 } from 'lucide-react'
 import { usePanelStore } from '@store/panelStore'
-import { useThemeStore, type Theme } from '@store/themeStore'
+import { useThemeStore } from '@store/themeStore'
 import { useNoteContextStore } from '@store/noteContextStore'
 import { useTabStore } from '@store/tabStore'
 import { useSearchStore } from '@store/searchStore'
@@ -31,19 +25,15 @@ import { INDEX_TAB_SLUG, GRAPH_TAB_SLUG } from '@store/tabStore'
 import { LOCALES, MULTILINGUAL } from '@i18n/routing'
 import type { Locale } from '@config/site'
 import { useLocaleLabel } from '@hooks/useLocaleLabel'
+import { useLocaleSwitch } from '@hooks/useLocaleSwitch'
 import { useShortcutsEnabled } from '@hooks/useShortcutsEnabled'
+import { themeIconFor } from '@lib/themeIcon'
+import { themeLabel, THEMEABLE, THEME_OPTIONS } from '@lib/theme'
 import { useState } from 'react'
-
-const THEME_ICONS: Record<Theme, React.ReactNode> = {
-  light: <Sun size={14} />,
-  dark: <Moon size={14} />,
-  warm: <Coffee size={14} />,
-  forest: <Trees size={14} />,
-  system: <Monitor size={14} />,
-}
 
 export function NotesHeader() {
   const tTheme = useTranslations('theme')
+  const tA11y = useTranslations('a11y')
   const langLabel = useLocaleLabel()
   const tExplorer = useTranslations('explorer')
   const tPanel = useTranslations('panel')
@@ -67,16 +57,13 @@ export function NotesHeader() {
   const openSearch = useSearchStore((s) => s.open)
   const shortcutsEnabled = useShortcutsEnabled()
   const isMobile = useIsMobile()
-  const router = useRouter()
-  const pathname = usePathname()
+  const goToLocale = useLocaleSwitch()
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useOnClickOutside<HTMLDivElement>(langOpen, () => setLangOpen(false))
 
   function switchLocale(target: Locale) {
     setLangOpen(false)
-    if (target === locale) return
-    const next = pathname.replace(/^\/[a-z]{2}(?=\/|$)/, `/${target}`)
-    router.push(next)
+    goToLocale(target)
   }
 
   // On mobile both panels overlay the content as drawers, so they're mutually
@@ -96,8 +83,8 @@ export function NotesHeader() {
       <button
         onClick={onToggleLeft}
         className={`p-1.5 rounded hover:bg-card-hover transition-colors ${leftOpen ? 'text-primary' : 'text-muted'}`}
-        aria-label="Toggle explorer"
-        title="Toggle Explorer (⌘[)"
+        aria-label={tA11y('toggleExplorer')}
+        title={tA11y('toggleExplorer')}
       >
         <PanelLeft size={16} />
       </button>
@@ -149,8 +136,8 @@ export function NotesHeader() {
         routeTitle={tGarden('knowledgeGraph')}
         routeKind="graph"
         className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-        title="Knowledge Graph"
-        aria-label="Knowledge Graph"
+        title={tGarden('knowledgeGraph')}
+        aria-label={tGarden('knowledgeGraph')}
       >
         <Network size={15} />
       </RouteLink>
@@ -174,7 +161,7 @@ export function NotesHeader() {
             // name keeps the two identical by construction.
           >
             <Search size={12} className="flex-shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-left truncate">
+            <span className="flex-1 text-start truncate">
               {tCommand('placeholder')}
             </span>
             {shortcutsEnabled && (
@@ -190,15 +177,23 @@ export function NotesHeader() {
         )}
       </div>
 
-      {/* Theme + Lang */}
+      {/* Theme + Lang. Both hidden when there is nothing to switch between. */}
+      {THEMEABLE && (
       <button
         onClick={cycleTheme}
         className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-        aria-label={`Theme: ${tTheme(theme)}`}
-        title={tTheme(theme)}
+        aria-label={`Theme: ${themeLabel(theme, tTheme)}`}
+        title={themeLabel(theme, tTheme)}
       >
-        {THEME_ICONS[theme]}
+        {/* Resolved through `ThemeOption.icon` like the landing header does.
+            This used to be a hardcoded map of the five built-in ids, so a
+            custom theme rendered `undefined` — an empty, clickable button. */}
+        {(() => {
+          const Icon = themeIconFor(THEME_OPTIONS.find((t) => t.id === theme)?.icon)
+          return <Icon size={14} />
+        })()}
       </button>
+      )}
 
       {/* Hidden on a single-locale site — see the note in `Header`. */}
       {MULTILINGUAL && (
@@ -206,17 +201,17 @@ export function NotesHeader() {
         <button
           onClick={() => setLangOpen((v) => !v)}
           className="p-1.5 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-          aria-label="Switch language"
+          aria-label={tA11y('switchLanguage')}
         >
           <Globe size={15} />
         </button>
         {langOpen && (
-          <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-28">
+          <div className="absolute end-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-28">
             {LOCALES.map((l) => (
               <button
                 key={l}
                 onClick={() => switchLocale(l)}
-                className={`w-full px-3 py-2 text-xs text-left hover:bg-card-hover transition-colors ${l === locale ? 'text-primary font-medium' : 'text-fg'}`}
+                className={`w-full px-3 py-2 text-xs text-start hover:bg-card-hover transition-colors ${l === locale ? 'text-primary font-medium' : 'text-fg'}`}
               >
                 {langLabel(l)}
               </button>
@@ -246,8 +241,8 @@ export function NotesHeader() {
       <button
         onClick={onToggleRight}
         className={`p-1.5 rounded hover:bg-card-hover transition-colors ${rightOpen ? 'text-primary' : 'text-muted'}`}
-        aria-label="Toggle tools"
-        title="Toggle Tools (⌘])"
+        aria-label={tA11y('toggleTools')}
+        title={tA11y('toggleTools')}
       >
         <PanelRight size={16} />
       </button>

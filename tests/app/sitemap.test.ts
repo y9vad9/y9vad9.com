@@ -41,12 +41,32 @@ describe('sitemap', () => {
     expect(urls.some((u) => u.endsWith('/kotlin'))).toBe(true)
   })
 
-  it('attaches hreflang alternates per entry', async () => {
+  it('advertises only the locales a note is actually written in', async () => {
+    // This asserted the opposite — every configured locale on every note — and
+    // so locked in a real SEO defect: an untranslated note declared alternates
+    // that 404. hreflang has to be reciprocal, so a dead entry makes Google
+    // discard the whole cluster, taking the genuine translations with it.
+    await write('en', 'only-english.md', `---\ntitle: EN only\n---\n`)
+    await write('en', 'both.md', `---\ntitle: Both\n---\n`)
+    await write('uk', 'both.md', `---\ntitle: Обидві\n---\n`)
+
+    const sitemap = (await import('../../src/app/sitemap')).default
+    const entries = await sitemap()
+
+    const solo = entries.find((e) => e.url.endsWith('/only-english'))!
+    expect(Object.keys(solo.alternates?.languages ?? {})).toEqual(['en'])
+
+    const both = entries.find((e) => e.url.endsWith('/en/notes/both'))!
+    expect(Object.keys(both.alternates?.languages ?? {}).sort()).toEqual(['en', 'uk'])
+  })
+
+  it('keeps every locale for routes that exist everywhere', async () => {
     await write('en', 'k.md', `---\ntitle: K\n---\n`)
     const sitemap = (await import('../../src/app/sitemap')).default
     const entries = await sitemap()
-    const kotlin = entries.find((e) => e.url.endsWith('/k'))!
-    expect(Object.keys(kotlin.alternates?.languages ?? {})).toEqual(
+    // The garden index is not a note; it resolves in all locales.
+    const index = entries.find((e) => e.url.endsWith('/en/notes'))!
+    expect(Object.keys(index.alternates?.languages ?? {})).toEqual(
       expect.arrayContaining([...routing.locales]),
     )
   })

@@ -26,7 +26,7 @@ describe('/api/search-index', () => {
       `---\ntitle: Kotlin\n---\nBody`,
       'utf-8',
     )
-    const { GET } = await import('../../../src/app/api/search-index/route')
+    const { GET } = await import('../../../src/app/api/search-index/route.node')
     const req = new Request('http://localhost/api/search-index?locale=en')
     const res = await GET(req)
     const body = await res.json()
@@ -40,7 +40,7 @@ describe('/api/search-index', () => {
       `---\ntitle: A\n---\n`,
       'utf-8',
     )
-    const { GET } = await import('../../../src/app/api/search-index/route')
+    const { GET } = await import('../../../src/app/api/search-index/route.node')
     const req = new Request('http://localhost/api/search-index?locale=zz')
     const res = await GET(req)
     const body = await res.json()

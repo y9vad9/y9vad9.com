@@ -16,6 +16,8 @@
  * `.next/cache` and read back on warm starts.
  */
 
+import { config as siteConfig } from '~/site.config'
+
 const cache = new Map<string, string | null>()
 const FETCH_TIMEOUT_MS = 5_000
 
@@ -33,6 +35,10 @@ function decodeBasicEntities(s: string): string {
 }
 
 export async function fetchExternalTitle(url: string): Promise<string | null> {
+  // Off unless the site asks for it. An unconditional network call per
+  // external link made `next build` non-reproducible and non-hermetic — see
+  // `LinksConfig.fetchExternalTitles`.
+  if (!siteConfig.links?.fetchExternalTitles) return null
   if (cache.has(url)) return cache.get(url) ?? null
   try {
     const ctrl = new AbortController()

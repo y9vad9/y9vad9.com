@@ -17,14 +17,18 @@ import {
   type SiteProfile,
 } from '@lib/agents/llmsTxt'
 import { loadSiteConfig } from '@lib/config/loadConfig'
+import { writeFenced, type Fence } from '@lib/hosting/fencedBlock'
+import { hostFileIo } from '@lib/hosting/fileIo'
 import type { Locale } from '@config/site'
 
 const PUBLIC_ROOT = path.join(process.cwd(), 'public')
 const NOTES_ROOT = path.join(process.cwd(), 'content', 'notes')
 
 /** Fences our generated block inside a user-owned `_headers`. */
-const HEADERS_BEGIN = '# --- onvu:agents begin (generated, do not edit) ---'
-const HEADERS_END = '# --- onvu:agents end ---'
+const HEADERS_FENCE: Fence = {
+  begin: '# --- onvu:agents begin (generated, do not edit) ---',
+  end: '# --- onvu:agents end ---',
+}
 /** Snapshot of the site's own `_headers`, so ours is never appended twice. */
 const HEADERS_BASE = '.onvu-headers-base'
 
@@ -317,48 +321,16 @@ export async function emitAgentArtifacts(): Promise<void> {
  *
  * `_headers` is a file sites already own — it typically carries CSP, HSTS and
  * cache-control policy — so clobbering it would silently strip a site's
- * security headers. Our block is fenced by markers and rewritten in place, so
- * repeat builds stay idempotent and hand-written rules either side survive.
+ * security headers. The fencing, the marker escaping and the base snapshot all
+ * live in `@lib/hosting/fencedBlock`, shared with `_redirects`, which has the
+ * same problem for the same reason.
  */
 async function writeHeadersFile(opts: HeadersFileOptions): Promise<void> {
-  const target = path.join(PUBLIC_ROOT, '_headers')
-  const basePath = path.join(PUBLIC_ROOT, HEADERS_BASE)
-
-  const read = async (p: string) => {
-    try {
-      return await fs.readFile(p, 'utf-8')
-    } catch {
-      return null
-    }
-  }
-
-  const current = await read(target)
-  // The markers carry `(generated, do not edit)`, so they must be escaped —
-  // unescaped, those parentheses become a capture group, the fence never
-  // matches, and every build appends another block instead of replacing one.
-  const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const fence = new RegExp(
-    `\\n*${escape(HEADERS_BEGIN)}[\\s\\S]*?${escape(HEADERS_END)}\\n*`,
-    'g',
-  )
-
-  // Never append to our own output. Page generation runs across worker
-  // processes, and read-then-append let two of them both observe a
-  // fence-free file and each add a block. Instead the site's own rules are
-  // captured once as a base and the file is rebuilt from it every time, so
-  // concurrent workers write byte-identical content and duplication is not
-  // representable.
-  let base: string
-  if (current === null) {
-    base = ''
-  } else if (fence.test(current)) {
-    fence.lastIndex = 0
-    base = (await read(basePath)) ?? current.replace(fence, '\n').trimEnd()
-  } else {
-    base = current.trimEnd()
-    await fs.writeFile(basePath, base, 'utf-8')
-  }
-
-  const block = `${HEADERS_BEGIN}\n${buildHeadersFile(opts).trimEnd()}\n${HEADERS_END}`
-  await fs.writeFile(target, base ? `${base}\n\n${block}\n` : `${block}\n`, 'utf-8')
+  await writeFenced({
+    target: path.join(PUBLIC_ROOT, '_headers'),
+    snapshot: path.join(PUBLIC_ROOT, HEADERS_BASE),
+    fence: HEADERS_FENCE,
+    block: buildHeadersFile(opts),
+    io: hostFileIo,
+  })
 }

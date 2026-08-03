@@ -13,9 +13,16 @@ describe('processMarkdown', () => {
       ])
     })
 
-    it('does not extract h5/h6 headings', async () => {
+    it('extracts h5/h6 headings too', async () => {
+      // This asserted the opposite, which is why nothing flagged the gap:
+      // `rehype-slug` gives every heading an id, so h5/h6 had working anchors
+      // that the table of contents silently refused to list. A note that nests
+      // six deep is exactly the one a reader needs the outline for.
       const result = await processMarkdown(`##### Five\n###### Six`)
-      expect(result.headings).toEqual([])
+      expect(result.headings.map((h) => h.depth)).toEqual([5, 6])
+      expect(result.headings.map((h) => h.text)).toEqual(['Five', 'Six'])
+      // The ids are what make them navigable at all.
+      expect(result.headings.every((h) => h.id.length > 0)).toBe(true)
     })
 
     it('handles headings with special characters in text', async () => {
@@ -395,5 +402,97 @@ describe('note videos', () => {
   it('leaves ordinary images alone', async () => {
     const result = await processMarkdown('![pic](./a.png)', { resolveVideo })
     expect(result.html).not.toContain('<video')
+  })
+})
+
+/**
+ * Obsidian syntax that reached the page as literal text.
+ *
+ * `rehypeUnwrapSelfLinkedImages` exists in this pipeline *because* Obsidian
+ * exports `[![](x.png)](x.png)` — so a vault export was already in scope. These
+ * three were the gaps a vault owner hits on day one.
+ */
+describe('Obsidian syntax', () => {
+  const resolve = (t: string) =>
+    t.toLowerCase() === 'deep modules' ? { slug: 'deep-modules', title: 'Deep Modules' } : null
+
+  it('renders ![[image.png]] as an image, not a stray ! and a broken link', async () => {
+    const r = await processMarkdown('![[Pasted image 20240101.png]]', {
+      resolveWikiLink: resolve,
+    })
+    expect(r.html).toContain('<img')
+    expect(r.html).toContain('Pasted image 20240101.png')
+    // The old output: a literal `!` next to a red `wikilink-broken` anchor.
+    expect(r.html).not.toContain('wikilink-broken')
+    expect(r.html).not.toMatch(/>!\s*</)
+  })
+
+  it('drops the size hint after an embedded image rather than showing it', async () => {
+    // `|300` is Obsidian's width, not an alias — it used to become the anchor
+    // text, so the reader saw the number "300" where a screenshot belonged.
+    const r = await processMarkdown('![[diagram.png|300]]', { resolveWikiLink: resolve })
+    expect(r.html).toContain('<img')
+    expect(r.html).not.toContain('300<')
+  })
+
+  it('links a non-media embed instead of leaving a stray marker', async () => {
+    const r = await processMarkdown('![[Deep Modules]]', { resolveWikiLink: resolve })
+    expect(r.html).toContain('href="/notes/deep-modules"')
+    expect(r.html).not.toMatch(/>!\s*</)
+  })
+
+  it('leaves an ordinary wiki link exactly as it was', async () => {
+    const r = await processMarkdown('[[Deep Modules]]', { resolveWikiLink: resolve })
+    expect(r.html).toContain('href="/notes/deep-modules"')
+    expect(r.html).toContain('wikilink')
+  })
+
+  it('strips %%comments%% before they reach the page', async () => {
+    const r = await processMarkdown('visible %%a note to self%% visible')
+    // Obsidian comments hold TODOs, half-formed opinions and names of real
+    // people. This is the one gap with a privacy consequence.
+    expect(r.html).not.toContain('note to self')
+    expect(r.html).toContain('visible')
+  })
+
+  it('keeps comments out of the search index too', async () => {
+    const r = await processMarkdown('public %%secret%% text')
+    // `rawText` feeds the search index and the markdown mirrors.
+    expect(r.rawText).not.toContain('secret')
+  })
+
+  it('strips a comment spanning several lines', async () => {
+    const r = await processMarkdown('a\n\n%%\nhidden\nlines\n%%\n\nb')
+    expect(r.html).not.toContain('hidden')
+  })
+
+  it('renders a callout as a typed blockquote, not as its own syntax', async () => {
+    const r = await processMarkdown('> [!warning] Careful\n> body text')
+    expect(r.html).toContain('data-callout="warning"')
+    expect(r.html).toContain('data-callout-title="Careful"')
+    expect(r.html).toContain('body text')
+    // The old output showed the marker to the reader.
+    expect(r.html).not.toContain('[!warning]')
+  })
+
+  it('accepts a callout with no title', async () => {
+    const r = await processMarkdown('> [!note]\n> just body')
+    expect(r.html).toContain('data-callout="note"')
+    expect(r.html).toContain('just body')
+    expect(r.html).not.toContain('[!note]')
+  })
+
+  it('records the fold marker without hiding anything', async () => {
+    // Collapsed-by-default would hide content from readers who never find the
+    // affordance, and from find-in-page.
+    const r = await processMarkdown('> [!tip]- Folded\n> body')
+    expect(r.html).toContain('data-callout-fold="-"')
+    expect(r.html).toContain('body')
+  })
+
+  it('leaves an ordinary blockquote alone', async () => {
+    const r = await processMarkdown('> just a quotation')
+    expect(r.html).toContain('<blockquote>')
+    expect(r.html).not.toContain('data-callout')
   })
 })

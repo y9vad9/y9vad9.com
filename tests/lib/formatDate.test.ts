@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { execFileSync } from 'node:child_process'
 import { formatDateShort, formatDateLong } from '@lib/formatDate'
 
 /**
@@ -36,6 +37,31 @@ describe('formatDate', () => {
     expect(formatDateShort('2026-07-31T12:00:00Z', 'en')).toBe(
       formatDateShort(JULY, 'en'),
     )
+  })
+
+  it('renders the calendar day the author wrote, in any reader timezone', () => {
+    // A note's `date:` is a calendar day, not an instant — YAML parses
+    // `2024-03-01` to midnight UTC. Formatted in a western zone that instant
+    // is still the previous day, so cards showed "Feb 29, 2024" for a note
+    // dated the 1st. The date components are client components, so the reader's
+    // timezone decided, and it disagreed with the server's own render.
+    //
+    // A child process is the only honest way to assert this: the runner's own
+    // TZ is fixed by the time the suite imports anything, and `Intl` resolves
+    // its zone when a formatter is constructed — which the module memoises.
+    const run = (tz: string) =>
+      execFileSync(process.execPath, [
+        '-e',
+        `process.stdout.write(new Intl.DateTimeFormat('en',` +
+          `{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})` +
+          `.format(new Date('2024-03-01T00:00:00.000Z')))`,
+      ], { env: { ...process.env, TZ: tz }, encoding: 'utf8' })
+
+    expect(run('America/Los_Angeles')).toBe('Mar 1, 2024')
+    expect(run('Pacific/Kiritimati')).toBe('Mar 1, 2024')
+    expect(run('UTC')).toBe('Mar 1, 2024')
+    // ...and the module under test agrees with that, whatever zone CI runs in.
+    expect(formatDateShort('2024-03-01T00:00:00.000Z', 'en')).toBe('Mar 1, 2024')
   })
 
   it('reuses one formatter per locale and style', () => {

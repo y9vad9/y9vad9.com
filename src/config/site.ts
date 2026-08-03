@@ -57,7 +57,14 @@ export interface WorkEntry {
   role: string
   period: string
   url: string
-  logo: string
+  /**
+   * Optional. Required until the template's own demo entries pointed at
+   * `/logos/acme.svg` and friends — files `public/logos/` never contained —
+   * so a fresh clone rendered three broken images on its homepage. Plenty of
+   * employers have no logo worth showing, and forcing a path is how you get
+   * placeholder 404s.
+   */
+  logo?: string
 }
 
 export interface ProjectEntry {
@@ -77,7 +84,8 @@ export interface EducationEntry {
   institution: string
   degree: string
   period: string
-  logo: string
+  /** Optional — see `WorkEntry.logo`. */
+  logo?: string
   url?: string
 }
 
@@ -98,11 +106,50 @@ export interface SiteConfig {
   themes?: ThemeOption[]
   /** Brand mark for the header. Omit to use `owner.handle` as plain text. */
   branding?: Branding
-  mode: 'static' | 'server'
+  /**
+   * Which build this site is: a static export for a CDN, or a Node server.
+   *
+   * The `ONVU_MODE` environment variable overrides it — `npm run build:static`
+   * sets that — so CI can force a mode without editing config. This is the
+   * default when the variable is unset.
+   *
+   * It genuinely does something now. It was previously a *required* key that
+   * nothing anywhere read: the env var was the only real switch, so setting
+   * `mode: 'server'` and running `build:static` produced a static build, and
+   * the config could disagree with the artifact with no error. Optional now
+   * because the env var is the more common way to say it.
+   */
+  mode?: 'static' | 'server'
+  /**
+   * Serve the site from a subpath — `example.com/notes/` rather than the
+   * domain root. GitHub Pages project sites are the usual reason.
+   *
+   * Next prefixes its own `<Link>`, `router.push()` and `next/image` URLs. It
+   * cannot prefix the ones this template builds by hand — the static search
+   * index, the API routes, the generated asset paths — so those go through
+   * `publicPath()`, which reads the same value. Setting it here wires
+   * `basePath`, `assetPrefix` and `NEXT_PUBLIC_BASE_PATH` together, because
+   * three places that must agree should not be three places to edit.
+   *
+   * No trailing slash.
+   */
+  basePath?: string
+  /**
+   * Web app manifest, rendered by `src/app/manifest.ts`.
+   *
+   * This block was declared required and read by nothing, while a hand-written
+   * `public/manifest.webmanifest` carried the same three strings, was never
+   * linked, and pointed at icon files that did not exist. It is now the sole
+   * source for the generated manifest.
+   */
   pwa: {
     name: string
     shortName: string
     description: string
+    /** Browser UI colour once installed. Omitted from the manifest if unset. */
+    themeColor?: string
+    /** Splash-screen colour. Omitted from the manifest if unset. */
+    backgroundColor?: string
   }
   navigation: {
     featuredNotes: string[]
@@ -110,8 +157,6 @@ export interface SiteConfig {
     projectsNote: string
     educationNote: string
     summaryNote: string
-    interestsNote?: string
-    pronunciationNote?: string
   }
   home: {
     workExperience: WorkEntry[]
@@ -119,10 +164,31 @@ export interface SiteConfig {
     education: EducationEntry[]
   }
   comments?: CommentsConfig
+  links?: LinksConfig
   seo?: SeoConfig
   agents?: AgentsConfig
   shortcuts?: ShortcutsConfig
   garden?: GardenConfig
+}
+
+/**
+ * Outgoing-link presentation.
+ */
+export interface LinksConfig {
+  /**
+   * Fetch each external link's `<title>` so the outgoing-links panel shows a
+   * real label rather than the bare URL.
+   *
+   * **Off by default, and that is a deliberate change.** It used to be
+   * unconditional, which made every build depend on third-party sites being
+   * up and unthrottled: the same commit produced different HTML online and
+   * offline, with failures falling back silently so nothing ever said why.
+   * It also pings every site you have ever cited, from CI, on every deploy,
+   * with an identifying user agent.
+   *
+   * Turn it on if you want the labels and can accept a non-hermetic build.
+   */
+  fetchExternalTitles?: boolean
 }
 
 /** Built-in actions the garden index can offer. */
@@ -363,10 +429,31 @@ export interface AgentSchemaConfig {
  * at least set `siteUrl` so canonical/OG URLs resolve correctly.
  */
 export interface SeoConfig {
-  /** Canonical origin, no trailing slash. Falls back to NEXT_PUBLIC_BASE_URL. */
+  /**
+   * Canonical origin, no trailing slash.
+   *
+   * **This wins over `NEXT_PUBLIC_BASE_URL`** — set one or the other, not
+   * both. Leave it out entirely to let the environment variable decide, which
+   * is what the deployment docs assume. Any value here beats the env var,
+   * including a placeholder, so the template ships this key commented out
+   * rather than filled in with `https://example.com`.
+   */
   siteUrl?: string
   /** Static fallback OG image (absolute path or URL). */
   defaultOgImage?: string
+  /**
+   * A font for the generated OG cards and favicon.
+   *
+   * `next/og` bundles a Latin-subset face, so without this a Japanese, Korean,
+   * Chinese, Arabic or Hebrew title renders as tofu boxes on every social card
+   * — and the build succeeds, so nothing tells you. Point `path` at a font
+   * file in your repo (relative to the project root).
+   *
+   * Not a default, because covering CJK means tens of megabytes that most
+   * forks would never use, and fetching one at build time would make the build
+   * depend on the network.
+   */
+  ogFont?: { path: string; name?: string }
   /** Twitter site handle, including the leading `@`. */
   twitterHandle?: string
   /** When set, JSON-LD emits Organization instead of Person for the site root. */

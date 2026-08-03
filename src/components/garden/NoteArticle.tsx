@@ -12,6 +12,7 @@ import { NoteCoverImage } from './NoteCoverImage'
 import { SearchHighlight } from './SearchHighlight'
 import { SeriesNavigation } from './SeriesNavigation'
 import { RelatedNotes, type RelatedNote } from './RelatedNotes'
+import { loadNoteViewSlots } from '@lib/content/noteView'
 import { MentionsSection, type MentionItem } from './MentionsSection'
 import { CommentsSection } from './CommentsSection'
 import type { CommentsConfig } from '@config/site'
@@ -42,6 +43,7 @@ export async function NoteArticle({
   commentsConfig,
 }: NoteArticleProps) {
   const t = await getTranslations({ locale, namespace: 'note' })
+  const slots = await loadNoteViewSlots()
 
   return (
     <>
@@ -81,7 +83,7 @@ export async function NoteArticle({
               {t('readingTime', { minutes: note.readingTimeMinutes })}
             </span>
             {note.isArchived && (
-              <span className="flex items-center gap-1 text-amber-500">
+              <span className="flex items-center gap-1 text-warning">
                 <Archive size={13} />
                 {t('archive')}
               </span>
@@ -89,7 +91,7 @@ export async function NoteArticle({
           </div>
           {resolvedParents.length > 0 && (
             <div className="flex flex-wrap items-baseline gap-x-1 mt-3 text-sm text-muted">
-              <span aria-hidden className="text-muted/70 mr-1">↳</span>
+              <span aria-hidden className="text-muted/70 me-1">↳</span>
               {resolvedParents.map((parent, idx) => (
                 <span key={parent.name} className="inline-flex items-baseline">
                   <ParentTag parent={parent} locale={locale} />
@@ -101,6 +103,11 @@ export async function NoteArticle({
             </div>
           )}
         </header>
+
+        {/* The site's own header addition, from `content/noteView.tsx`.
+            Nothing renders without that file — a template that shipped an
+            example here would put its markup on every fork's notes. */}
+        {slots.header && <>{await slots.header({ note, locale })}</>}
 
         <div
           className="prose"
@@ -117,6 +124,8 @@ export async function NoteArticle({
 
         <MentionsSection linked={linkedMentions} unlinked={unlinkedMentions} />
         <RelatedNotes notes={relatedNotes} />
+
+        {slots.footer && <>{await slots.footer({ note, locale })}</>}
 
         <CommentsSection config={commentsConfig} />
       </article>

@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePanelStore } from '@store/panelStore'
+import { useRouter } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import { useTabStore } from '@store/tabStore'
+import { createShortcutActions } from '@lib/shortcuts/createShortcutActions'
 import {
   GARDEN_SHORTCUTS,
   isMacPlatform,
   matchesShortcut,
-  type ShortcutActions,
 } from '@lib/shortcuts/gardenShortcuts'
 
 /**
@@ -27,21 +28,21 @@ import {
  * everything.
  */
 export function useKeyboardShortcuts(enabled = true) {
-  const { toggleLeft, toggleRight, focusExplorer, focusTools } = usePanelStore()
-  const { tabs, activeSlug, closeTab } = useTabStore()
+  // Only Alt+1–9 needs the tab list; everything else goes through
+  // `createShortcutActions`, which reads the stores at dispatch time.
+  const tabs = useTabStore((s) => s.tabs)
+  const router = useRouter()
+  const locale = useLocale()
 
   useEffect(() => {
     if (!enabled) return
 
-    const actions: ShortcutActions = {
-      toggleLeft,
-      toggleRight,
-      closeActiveTab: () => {
-        if (activeSlug) closeTab(activeSlug)
-      },
-      focusExplorer,
-      focusTools,
-    }
+    // Shared with the palette and the index's action row, so a command added
+    // in one place cannot quietly do nothing in another.
+    const actions = createShortcutActions({
+      navigate: (path) => router.push(path),
+      locale,
+    })
 
     function isTyping(target: EventTarget | null): boolean {
       const el = target as HTMLElement | null
@@ -82,5 +83,5 @@ export function useKeyboardShortcuts(enabled = true) {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [enabled, toggleLeft, toggleRight, focusExplorer, focusTools, tabs, activeSlug, closeTab])
+  }, [enabled, tabs, router, locale])
 }

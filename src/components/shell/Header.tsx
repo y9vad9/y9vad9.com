@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { useLocaleLabel } from '@hooks/useLocaleLabel'
-import { useRouter, usePathname } from 'next/navigation'
+import { useLocaleSwitch } from '@hooks/useLocaleSwitch'
 import Image from 'next/image'
 import {
   Search,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { themeIconFor } from '@lib/themeIcon'
 import { useThemeStore, THEMES, THEME_OPTIONS } from '@store/themeStore'
+import { themeLabel, THEMEABLE } from '@lib/theme'
 import { useSearchStore } from '@store/searchStore'
 import { useOnClickOutside } from '@hooks/useOnClickOutside'
 import { useBodyScrollLock } from '@hooks/useBodyScrollLock'
@@ -24,24 +25,6 @@ import { navigation } from '~/content/navigation'
 import type { NavGroup as NavGroupType, NavLink } from '@config/navigation'
 import { LOCALES, MULTILINGUAL } from '@i18n/routing'
 import type { Locale, ThemeOption } from '@config/site'
-
-/**
- * Resolve a theme's display label. Tries the `theme.<id>` i18n key first
- * (covers the built-in themes), then the literal `label` field, then `id`.
- */
-function themeLabel(
-  id: string,
-  t: (key: string) => string,
-): string {
-  const opt = THEME_OPTIONS.find((o) => o.id === id)
-  try {
-    const translated = t(opt?.label ?? id)
-    if (translated && translated !== (opt?.label ?? id)) return translated
-  } catch {
-    // missing key — fall through
-  }
-  return opt?.label ?? id
-}
 
 function themeIcon(option: ThemeOption | undefined, size = 16): React.ReactNode {
   const Icon = themeIconFor(option?.icon)
@@ -79,11 +62,11 @@ function resolveHref(href: string, locale: string): string {
 
 export function Header() {
   const tHeader = useTranslations('header')
+  const tA11y = useTranslations('a11y')
   const tTheme = useTranslations('theme')
   const langLabel = useLocaleLabel()
   const locale = useLocale() as Locale
-  const router = useRouter()
-  const pathname = usePathname()
+  const goToLocale = useLocaleSwitch()
   const { theme, cycleTheme } = useThemeStore()
   const openSearch = useSearchStore((s) => s.open)
   const shortcutsEnabled = useShortcutsEnabled()
@@ -121,9 +104,7 @@ export function Header() {
 
   function switchLocale(next: Locale) {
     setLangOpen(false)
-    // Strip current locale prefix and add new one
-    const stripped = pathname.replace(`/${locale}`, '') || '/'
-    router.push(`/${next}${stripped}`)
+    goToLocale(next)
   }
 
   const navGroups: NavGroupType[] =
@@ -132,7 +113,7 @@ export function Header() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 h-14 bg-bg/90 backdrop-blur border-b border-border transition-transform duration-300 ${
+        className={`fixed top-0 start-0 end-0 z-50 h-14 bg-bg/90 backdrop-blur border-b border-border transition-transform duration-300 ${
           // Pinned open while the drawer is: the bar carries the close
           // button, so sliding it away would strand the drawer without one.
           mobileOpen || isVisible ? 'translate-y-0' : '-translate-y-full'
@@ -143,13 +124,13 @@ export function Header() {
           <Link
             prefetch={false}
             href={`/${locale}`}
-            className="font-bold text-fg hover:text-primary transition-colors mr-2 flex-shrink-0"
+            className="font-bold text-fg hover:text-primary transition-colors me-2 flex-shrink-0"
           >
             <BrandMark />
           </Link>
 
           {/* Right-aligned cluster: nav items → search → controls. */}
-          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+          <div className="flex items-center gap-2 ms-auto flex-shrink-0">
             <nav className="hidden md:flex items-center gap-1">
               {navGroups.map((group) => (
                 <NavGroupRender key={group.label} group={group} locale={locale} />
@@ -164,7 +145,7 @@ export function Header() {
               // was wrong outright once the reader turned shortcuts off.
             >
               <Search size={14} className="flex-shrink-0" aria-hidden="true" />
-              <span className="text-xs flex-1 text-left truncate">{tHeader('searchPlaceholder')}</span>
+              <span className="text-xs flex-1 text-start truncate">{tHeader('searchPlaceholder')}</span>
               {shortcutsEnabled && (
                 <kbd
                   aria-hidden="true"
@@ -199,17 +180,17 @@ export function Header() {
               <button
                 onClick={() => setLangOpen((v) => !v)}
                 className="p-2 rounded-lg hover:bg-card-hover transition-colors text-muted hover:text-fg"
-                aria-label="Switch language"
+                aria-label={tA11y('switchLanguage')}
               >
                 <Globe size={16} />
               </button>
               {langOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-32">
+                <div className="absolute end-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-32">
                   {LOCALES.map((l) => (
                     <button
                       key={l}
                       onClick={() => switchLocale(l)}
-                      className={`w-full px-4 py-2 text-sm text-left hover:bg-card-hover transition-colors ${l === locale ? 'text-primary font-medium' : 'text-fg'}`}
+                      className={`w-full px-4 py-2 text-sm text-start hover:bg-card-hover transition-colors ${l === locale ? 'text-primary font-medium' : 'text-fg'}`}
                     >
                       {langLabel(l)}
                     </button>
@@ -219,7 +200,9 @@ export function Header() {
             </div>
             )}
 
-            {/* Theme */}
+            {/* Theme. Hidden when there is only one, exactly as the language
+                switcher is — see THEMEABLE. */}
+            {THEMEABLE && (
             <button
               onClick={cycleTheme}
               className="p-2 rounded-lg hover:bg-card-hover transition-colors text-muted hover:text-fg"
@@ -228,6 +211,7 @@ export function Header() {
             >
               {themeIcon(THEME_OPTIONS.find((t) => t.id === theme))}
             </button>
+            )}
 
             {/* Mobile hamburger. Same muted-to-fg treatment as the language
                 and theme buttons beside it — without it this one inherited
@@ -235,7 +219,7 @@ export function Header() {
             <button
               onClick={() => setMobileOpen(true)}
               className="md:hidden p-2 rounded-lg hover:bg-card-hover transition-colors text-muted hover:text-fg"
-              aria-label="Open menu"
+              aria-label={tA11y('openMenu')}
             >
               <Menu size={18} />
             </button>
@@ -264,7 +248,7 @@ export function Header() {
               <button
                 onClick={() => setMobileOpen(false)}
                 className="p-1 -m-1 rounded-lg text-muted hover:text-fg hover:bg-card-hover transition-colors"
-                aria-label="Close menu"
+                aria-label={tA11y('closeMenu')}
               >
                 <X size={18} />
               </button>
@@ -300,6 +284,7 @@ export function Header() {
             </DrawerSection>
             )}
 
+            {THEMEABLE && (
             <DrawerSection title={tHeader('theme')}>
               {THEMES.map((th) => (
                 <button
@@ -311,6 +296,7 @@ export function Header() {
                 </button>
               ))}
             </DrawerSection>
+            )}
           </div>
         </div>
       )}
@@ -365,7 +351,7 @@ function NavGroupRender({
         <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-44">
+        <div className="absolute top-full end-0 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-44">
           {group.items.map((item) => (
             <NavLink
               key={item.href}

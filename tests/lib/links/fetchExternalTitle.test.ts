@@ -4,14 +4,29 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // per-case. We import the module fresh inside each block to get a clean
 // title cache — the cache is module-scoped so it persists across calls
 // within one test file load.
-async function importFresh() {
+async function importFresh(fetchExternalTitles = true) {
   vi.resetModules()
+  // The fetcher is off unless the site opts in — an unconditional network call
+  // per external link made every build depend on third-party uptime. These
+  // cases are about the parsing, so they opt in.
+  const actual = await vi.importActual<typeof import('~/site.config')>('~/site.config')
+  vi.doMock('~/site.config', () => ({
+    config: { ...actual.config, links: { fetchExternalTitles } },
+  }))
   return await import('@lib/links/fetchExternalTitle')
 }
 
 describe('fetchExternalTitle', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
+  })
+
+  it('makes no network call unless the site opts in', async () => {
+    const { fetchExternalTitle } = await importFresh(false)
+    expect(await fetchExternalTitle('https://example.com')).toBeNull()
+    // The point of the flag: a build stays hermetic and reproducible, and CI
+    // stops pinging every site the author has ever cited.
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('extracts <title> when available', async () => {

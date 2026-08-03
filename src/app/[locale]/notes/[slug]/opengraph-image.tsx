@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { ogFonts } from '@lib/seo/ogFont'
 import { createRepository } from '@adapters/createRepositories'
 import { getNote } from '@core/GetNote'
 import { loadSiteConfig } from '@lib/config/loadConfig'
@@ -17,9 +18,10 @@ export function generateStaticParams() {
     const notesDir = path.join(process.cwd(), 'content', 'notes', locale)
     try {
       return fs
-        .readdirSync(notesDir)
-        .filter((f) => f.endsWith('.md'))
-        .map((f) => ({ locale, slug: f.replace(/\.md$/, '') }))
+        .readdirSync(notesDir, { recursive: true })
+      .map((f) => String(f))
+        .filter((f) => f.endsWith('.md') && !f.split(path.sep).some((s) => s.startsWith('_')))
+        .map((f) => ({ locale, slug: path.basename(f).replace(/\.md$/, '') }))
     } catch {
       return []
     }
@@ -68,6 +70,6 @@ export default async function NoteOgImage({
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: await ogFonts() },
   )
 }

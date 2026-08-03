@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
@@ -26,6 +27,7 @@ export function ArticleEnhancer({
   slug: string
   containerSelector?: string
 }) {
+  const tA11y = useTranslations('a11y')
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const router = useRouter()
   const params = useParams<{ locale: string }>()
@@ -143,7 +145,7 @@ export function ArticleEnhancer({
       const btn = document.createElement('button')
       btn.type = 'button'
       btn.className = 'code-copy-btn'
-      btn.setAttribute('aria-label', 'Copy code')
+      btn.setAttribute('aria-label', tA11y('copyCode'))
       btn.textContent = 'Copy'
 
       const onClick = async () => {
@@ -190,7 +192,10 @@ export function ArticleEnhancer({
     }
 
     return () => { for (const fn of cleanups) fn() }
-  }, [slug, containerSelector])
+  // `tA11y` is a dependency because the copy button's accessible name is
+  // injected into the DOM here rather than rendered — switching language has
+  // to re-label the buttons, not leave them in the previous one.
+  }, [slug, containerSelector, tA11y])
 
   // Lightbox keyboard handling
   useEffect(() => {
@@ -212,12 +217,12 @@ export function ArticleEnhancer({
       className="fixed inset-0 z-[100] bg-fg/70 backdrop-blur-sm flex items-center justify-center p-8 cursor-zoom-out"
       onClick={() => setLightboxSrc(null)}
       role="dialog"
-      aria-label="Image preview"
+      aria-label={tA11y('imagePreview')}
     >
       <button
         onClick={() => setLightboxSrc(null)}
-        className="absolute top-4 right-4 p-2 rounded-lg bg-bg/80 hover:bg-bg text-fg transition-colors"
-        aria-label="Close"
+        className="absolute top-4 end-4 p-2 rounded-lg bg-bg/80 hover:bg-bg text-fg transition-colors"
+        aria-label={tA11y('close')}
       >
         <X size={20} />
       </button>

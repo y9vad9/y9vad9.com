@@ -27,7 +27,7 @@ describe('/api/search', () => {
       `---\ntitle: Alpha\n---\nBody`,
       'utf-8',
     )
-    const { GET } = await import('../../../src/app/api/search/route')
+    const { GET } = await import('../../../src/app/api/search/route.node')
     const req = new NextRequest('http://localhost/api/search?locale=en')
     const res = await GET(req)
     const body = await res.json()
@@ -41,7 +41,7 @@ describe('/api/search', () => {
       `---\ntitle: Alpha\n---\nBody mentions kotlin twice: kotlin again.`,
       'utf-8',
     )
-    const { GET } = await import('../../../src/app/api/search/route')
+    const { GET } = await import('../../../src/app/api/search/route.node')
     const req = new NextRequest(
       'http://localhost/api/search?locale=en&q=kotlin&fulltext=1',
     )
@@ -57,7 +57,7 @@ describe('/api/search', () => {
       `---\ntitle: Alpha\n---\nBody`,
       'utf-8',
     )
-    const { GET } = await import('../../../src/app/api/search/route')
+    const { GET } = await import('../../../src/app/api/search/route.node')
     const req = new NextRequest('http://localhost/api/search?locale=zz')
     const res = await GET(req)
     const body = await res.json()

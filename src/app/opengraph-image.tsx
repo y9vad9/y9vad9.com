@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { ogFonts } from '@lib/seo/ogFont'
 import { config as siteConfig } from '~/site.config'
 
 export const dynamic = 'force-static'
@@ -7,7 +8,7 @@ export const alt = siteConfig.owner.name
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-export default function OgImage() {
+export default async function OgImage() {
   return new ImageResponse(
     (
       <div
@@ -33,6 +34,6 @@ export default function OgImage() {
         <div style={{ height: 8, width: 120, background: '#a78bfa', borderRadius: 4 }} />
       </div>
     ),
-    size,
+    { ...size, fonts: await ogFonts() },
   )
 }

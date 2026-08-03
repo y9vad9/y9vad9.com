@@ -20,8 +20,12 @@ export default async function NotesLayout({
   const repo = createRepository(locale)
   const allNotes = await listAllNotes(repo)
 
-  // In static mode, emit the pre-built JSON files on first build invocation
-  if (process.env.ONVU_MODE !== 'server' && process.env.NODE_ENV === 'production') {
+  // In static mode, emit the pre-built JSON files on first build invocation.
+  // Reads the *resolved* mode that `next.config.ts` computed, not `ONVU_MODE`
+  // directly: testing `!== 'server'` here meant an unset variable passed, so a
+  // plain `npm run build` wrote megabytes of snapshots that the server-mode
+  // client it had just built would never fetch.
+  if (process.env.NEXT_PUBLIC_ONVU_MODE === 'static' && process.env.NODE_ENV === 'production') {
     await emitStaticData(repo, locale)
   }
   // Agent-facing artifacts (markdown mirrors, llms.txt). Covers every locale

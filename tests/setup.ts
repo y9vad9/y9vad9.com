@@ -53,9 +53,14 @@ if (typeof window !== 'undefined') {
   if (typeof (globalThis as { PointerEvent?: unknown }).PointerEvent === 'undefined') {
     class FakePointerEvent extends MouseEvent {
       pointerId: number
+      // Carried through because behaviour hangs off it: the graph's
+      // long-press labels are gated on `pointerType === 'touch'`, and a
+      // polyfill that dropped it would make every test look like a mouse.
+      pointerType: string
       constructor(type: string, init: PointerEventInit = {}) {
         super(type, init)
         this.pointerId = init.pointerId ?? 1
+        this.pointerType = init.pointerType ?? 'mouse'
       }
     }
     ;(globalThis as { PointerEvent?: unknown }).PointerEvent = FakePointerEvent
@@ -124,13 +129,21 @@ vi.mock('next/navigation', () => {
 // trees don't need a real IntlProvider in tests.
 vi.mock('next-intl', () => {
   return {
-    useTranslations: (_ns?: string) =>
-      (key: string, values?: Record<string, unknown>) => {
+    useTranslations: (_ns?: string) => {
+      const t = (key: string, values?: Record<string, unknown>) => {
         if (values && Object.keys(values).length > 0) {
           return `${key}(${JSON.stringify(values)})`
         }
         return key
-      },
+      }
+      // The real `useTranslations` returns a callable carrying `has()`. Code
+      // that asks before translating — `themeLabel`, so a custom theme falls
+      // back to its literal label instead of rendering `theme.ocean` — needs
+      // it here too. Answering `true` matches this mock's own contract: it
+      // resolves every key, verbatim.
+      t.has = (_key: string) => true
+      return t
+    },
     useLocale: () => 'en',
     useFormatter: () => ({
       dateTime: (d: Date) => d.toISOString(),

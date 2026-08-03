@@ -23,18 +23,39 @@
       }
     ],
     "paths": {
-      "@core/*": ["./src/core/*"],
-      "@config/*": ["./src/config/*"],
-      "@adapters/*": ["./src/adapters/*"],
-      "@components/*": ["./src/components/*"],
-      "@hooks/*": ["./src/hooks/*"],
-      "@store/*": ["./src/store/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@i18n/*": ["./src/i18n/*"],
-      "~/site.config": ["./site.config"],
-      "~/site.*.config": ["./site.*.config"],
-      "~/content/*": ["./content/*"],
-      "~/*": ["./*"]
+      "@core/*": [
+        "./src/core/*"
+      ],
+      "@config/*": [
+        "./src/config/*"
+      ],
+      "@adapters/*": [
+        "./src/adapters/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@store/*": [
+        "./src/store/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
+      "@i18n/*": [
+        "./src/i18n/*"
+      ],
+      "~/site.config": [
+        "./site.config"
+      ],
+      "~/site.*.config": [
+        "./site.*.config"
+      ],
+      "~/content/*": [
+        "./content/*"
+      ]
     }
   },
   "include": [

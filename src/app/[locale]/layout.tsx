@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@i18n/routing'
 import type { Locale } from '@config/site'
 import { ClientProviders } from '@components/shell/ClientProviders'
+import { Document } from '@components/shell/Document'
 import { baseMetadata } from '@lib/seo/metadata'
 import { JsonLd } from '@components/seo/JsonLd'
 import {
@@ -59,10 +60,16 @@ export default async function LocaleLayout({
   const agents = resolveAgentsConfig()
 
   return (
+    <Document locale={locale}>
     <NextIntlClientProvider messages={messages}>
       <SiteConfigProvider value={siteConfig}>
         <ClientProviders>
-          <JsonLd data={[websiteJsonLd(locale), organizationJsonLd() ?? personJsonLd(topics)]} />
+          <JsonLd
+            data={[
+              websiteJsonLd(locale, siteConfig),
+              organizationJsonLd(siteConfig) ?? personJsonLd(siteConfig, topics),
+            ]}
+          />
           {agents.webmcp.enabled && (
             <WebMcpTools locale={locale} hasMirrors={agents.markdown.enabled} />
           )}
@@ -70,5 +77,6 @@ export default async function LocaleLayout({
         </ClientProviders>
       </SiteConfigProvider>
     </NextIntlClientProvider>
+    </Document>
   )
 }

@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { colorSchemeFor, themePolarity, themeBootstrapScript, THEMES } from '@lib/theme'
+import {
+  colorSchemeFor,
+  themePolarity,
+  themeBootstrapScript,
+  themeLabel,
+  THEMES,
+  THEMEABLE,
+} from '@lib/theme'
 import { config as siteConfig } from '~/site.config'
 
 /**
@@ -9,7 +16,16 @@ import { config as siteConfig } from '~/site.config'
  * tests stay in the fast node pool.
  */
 function runBootstrap(stored: string | null, startingClass = 'geist-sans geist-mono') {
-  const html = { className: startingClass, style: { colorScheme: '' } }
+  const attrs: Record<string, string> = {}
+  const html = {
+    className: startingClass,
+    style: { colorScheme: '' },
+    // The script stamps `data-polarity` here. Without this on the fake the
+    // call throws into the script's own try/catch and the assertion below
+    // would pass against a no-op.
+    setAttribute: (k: string, v: string) => { attrs[k] = v },
+    attrs,
+  }
   const document = { documentElement: html }
   const localStorage = { getItem: (k: string) => (k === 'theme' ? stored : null) }
   new Function('document', 'localStorage', themeBootstrapScript())(document, localStorage)
@@ -79,5 +95,58 @@ describe('themeBootstrapScript', () => {
 
   it('never emits a class list with stray whitespace', () => {
     expect(runBootstrap(null, '').className).toBe(`theme-${siteConfig.defaultTheme}`)
+  })
+})
+
+/**
+ * Everything below derives from `ThemeOption` rather than from a list of
+ * known theme names — the class of bug that made `content/theme.css`'s own
+ * documented "add an ocean theme" walkthrough produce a broken site.
+ */
+describe('themeLabel', () => {
+  it('prefers a translation when the catalogue actually has one', () => {
+    const t = Object.assign((k: string) => (k === 'dark' ? 'Dark' : `theme.${k}`), {
+      has: (k: string) => k === 'dark',
+    })
+    expect(themeLabel('dark', t)).toBe('Dark')
+  })
+
+  it('falls back to the literal label, not to a key path', () => {
+    // next-intl does NOT throw on a missing key — it returns `theme.<key>`.
+    // The header's try/catch assumed otherwise, so a custom theme's button
+    // read "theme.ocean", and declaring `label: 'Ocean Blue'` made it worse:
+    // "theme.Ocean Blue".
+    const t = Object.assign((k: string) => `theme.${k}`, { has: () => false })
+    expect(themeLabel('system', t)).toBe('system')
+  })
+
+  it('survives a translator with no `has`', () => {
+    const t = ((k: string) => `theme.${k}`) as unknown as Parameters<typeof themeLabel>[1]
+    expect(themeLabel('dark', t)).toBe('dark')
+  })
+})
+
+describe('THEMEABLE', () => {
+  it('tracks whether there is anything to switch between', () => {
+    // The counterpart of MULTILINGUAL. With one theme configured the button
+    // survived as a no-op that still wrote to localStorage — `cycleTheme`
+    // resolves `cyclables[(0 + 1) % 1]` straight back to itself.
+    expect(THEMEABLE).toBe(THEMES.length > 1)
+  })
+})
+
+describe('bootstrap polarity', () => {
+  it('stamps data-polarity before the stylesheet lands', () => {
+    // The polarity-keyed rules are in the render-blocking stylesheet, so an
+    // attribute that only arrived at hydration would paint one frame of
+    // light-theme code blocks first — the flash this script exists to prevent.
+    expect(runBootstrap(null).attrs['data-polarity']).toBe(
+      themePolarity(siteConfig.defaultTheme),
+    )
+  })
+
+  it('stamps the polarity of a persisted theme, not of the default', () => {
+    const stored = JSON.stringify({ state: { theme: 'dark' } })
+    expect(runBootstrap(stored).attrs['data-polarity']).toBe('dark')
   })
 })

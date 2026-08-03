@@ -50,13 +50,13 @@ describe('language switcher visibility', () => {
   it('renders the switcher when more than one locale is configured', async () => {
     mockLocales(['en', 'de', 'uk'])
     await renderNotesHeader()
-    expect(screen.getByLabelText('Switch language')).toBeInTheDocument()
+    expect(screen.getByLabelText('switchLanguage')).toBeInTheDocument()
   })
 
   it('hides the switcher when only one locale is configured', async () => {
     mockLocales(['en'])
     await renderNotesHeader()
-    expect(screen.queryByLabelText('Switch language')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('switchLanguage')).not.toBeInTheDocument()
   })
 
   it('still renders the rest of the header on a single-locale site', async () => {

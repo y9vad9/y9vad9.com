@@ -82,7 +82,7 @@ export function HeroIntro({
   children?: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-4 text-center md:text-left">
+    <div className="flex flex-col gap-4 text-center md:text-start">
       <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{name}</h1>
       <p className="text-lg text-muted max-w-lg">{bio}</p>
       {children}

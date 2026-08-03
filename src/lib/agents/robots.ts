@@ -1,5 +1,5 @@
-import { config as siteConfig } from '~/site.config'
 import { siteUrl } from '@lib/seo/url'
+import { robotsDisallowPaths } from '@lib/seo/noindex'
 import { buildCrawlerRules, crawlerPolicy } from './crawlers'
 import { buildContentSignal, contentSignals } from './contentSignals'
 
@@ -31,7 +31,8 @@ export interface RobotsDocument {
  * byte-identical file to the one it had before.
  */
 export function buildRobots(): RobotsDocument {
-  const disallow = siteConfig.seo?.noindexPaths ?? ['/notes/graph']
+  // Locale-expanded: a bare `/notes/graph` never matched `/en/notes/graph`.
+  const disallow = robotsDisallowPaths()
   const signal = buildContentSignal(contentSignals())
 
   // No llms.txt pointer here on purpose: it lives at a fixed well-known path,

@@ -14,6 +14,9 @@ const aliases = {
   '@lib': resolve(__dirname, './src/lib'),
   '@i18n': resolve(__dirname, './src/i18n'),
   '~/site.config': resolve(__dirname, './site.config'),
+  // Bare `~` so `loadSiteConfig`'s dynamic `~/site.<locale>.config` resolves
+  // in tests the same way webpack resolves it in a build.
+  '~': resolve(__dirname, '.'),
   '~/content': resolve(__dirname, './content'),
 }
 

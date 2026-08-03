@@ -62,3 +62,54 @@ describe('sortNotes', () => {
     expect(SORT_MODES).toHaveLength(Object.keys(SORT_LABEL_KEY).length)
   })
 })
+
+/**
+ * Bare `localeCompare()` uses the *browser's* locale, not the page's — and
+ * these run in client components, so "Name (A–Z)" ordered one way for a
+ * Ukrainian reader and another for an English one, on the same page.
+ */
+describe('sortNotes — locale-aware name ordering', () => {
+  const note = (title: string) => ({ title, date: null })
+
+  it('orders Ukrainian letters by the alphabet, not by code point', () => {
+    const sorted = sortNotes([note('Яблуко'), note('Абрикос'), note('Кавун')], 'name-asc', 'uk')
+    expect(sorted.map((n) => n.title)).toEqual(['Абрикос', 'Кавун', 'Яблуко'])
+  })
+
+  it('ignores case rather than sorting capitals first', () => {
+    // Code-point ordering puts every capital before every lowercase letter,
+    // so "banana" landed after "Cherry".
+    const sorted = sortNotes([note('banana'), note('Cherry'), note('apple')], 'name-asc', 'en')
+    expect(sorted.map((n) => n.title)).toEqual(['apple', 'banana', 'Cherry'])
+  })
+
+  it('orders embedded numbers naturally', () => {
+    // "Part 10" sorted before "Part 2" as a string. Series titles are full of
+    // this shape.
+    const sorted = sortNotes(
+      [note('Part 10'), note('Part 2'), note('Part 1')],
+      'name-asc',
+      'en',
+    )
+    expect(sorted.map((n) => n.title)).toEqual(['Part 1', 'Part 2', 'Part 10'])
+  })
+
+  it('reverses cleanly for name-desc', () => {
+    const sorted = sortNotes([note('Абрикос'), note('Яблуко')], 'name-desc', 'uk')
+    expect(sorted.map((n) => n.title)).toEqual(['Яблуко', 'Абрикос'])
+  })
+
+  it('keeps date ordering locale-independent', () => {
+    // ISO strings compare lexicographically; running them through a collator
+    // would be slower and could reorder equal-prefix dates.
+    const sorted = sortNotes(
+      [
+        { title: 'b', date: '2024-01-01T00:00:00.000Z' },
+        { title: 'a', date: '2024-06-01T00:00:00.000Z' },
+      ],
+      'date-desc',
+      'uk',
+    )
+    expect(sorted.map((n) => n.title)).toEqual(['a', 'b'])
+  })
+})

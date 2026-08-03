@@ -1,9 +1,21 @@
-import { config as siteConfig } from '~/site.config'
 import { routing } from '@i18n/routing'
 import type { Note } from '@core/Note'
+import type { SiteConfig } from '@config/site'
 import { absoluteUrl, localizedPath, noteUrl, siteUrl } from './url'
 import { resolveAgentsConfig, markdownMirrorPath } from '@lib/agents/config'
 
+/**
+ * Every builder that needs owner or SEO data takes the *resolved* config —
+ * `loadSiteConfig(locale)`, not the base `~/site.config` import.
+ *
+ * This module used to import the base config directly, so `site.uk.config.ts`
+ * reached `<meta name="description">` and not the JSON-LD `description` beside
+ * it: the same page declared `inLanguage: "uk"` and then served the English
+ * bio. `metadata.ts` documents fixing exactly this for `<head>`; the structured
+ * data was never brought along. Taking the config as an argument rather than
+ * awaiting it here keeps these pure and testable, and makes the omission a
+ * type error rather than a silent English fallback.
+ */
 type JsonLd = Record<string, unknown>
 
 /** Minimal note reference for the relationship fields below. */
@@ -12,7 +24,7 @@ export interface NoteRef {
   title: string
 }
 
-export function websiteJsonLd(locale: string): JsonLd {
+export function websiteJsonLd(locale: string, siteConfig: SiteConfig): JsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -31,7 +43,7 @@ export function websiteJsonLd(locale: string): JsonLd {
   }
 }
 
-export function personJsonLd(topics: string[] = []): JsonLd {
+export function personJsonLd(siteConfig: SiteConfig, topics: string[] = []): JsonLd {
   const cfg = resolveAgentsConfig()
   return {
     '@context': 'https://schema.org',
@@ -47,7 +59,7 @@ export function personJsonLd(topics: string[] = []): JsonLd {
   }
 }
 
-export function organizationJsonLd(): JsonLd | null {
+export function organizationJsonLd(siteConfig: SiteConfig): JsonLd | null {
   const org = siteConfig.seo?.organization
   if (!org) return null
   return {
@@ -152,7 +164,11 @@ function articleRelationships(
  * explains a concept *is* a defined term, and the garden as a whole is the
  * term set — so the mapping costs nothing beyond saying it out loud.
  */
-export function definedTermJsonLd(note: Note, locale: string): JsonLd | null {
+export function definedTermJsonLd(
+  note: Note,
+  locale: string,
+  siteConfig: SiteConfig,
+): JsonLd | null {
   if (!resolveAgentsConfig().schema.definedTerms) return null
   return {
     '@context': 'https://schema.org',
@@ -174,6 +190,7 @@ export function definedTermJsonLd(note: Note, locale: string): JsonLd | null {
 export function articleJsonLd(
   note: Note,
   locale: string,
+  siteConfig: SiteConfig,
   ctx: { seriesNotes?: NoteRef[]; mentions?: NoteRef[] } = {},
 ): JsonLd {
   const authorName = note.author ?? siteConfig.owner.name

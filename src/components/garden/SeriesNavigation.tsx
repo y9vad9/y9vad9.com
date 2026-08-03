@@ -50,7 +50,7 @@ export function SeriesNavigation({
             slug={next.slug}
             title={next.title}
             href={`/${params.locale}/notes/${next.slug}`}
-            className="group p-4 rounded-xl border border-border hover:border-primary hover:bg-card transition-all text-right"
+            className="group p-4 rounded-xl border border-border hover:border-primary hover:bg-card transition-all text-end"
           >
             <span className="flex items-center justify-end gap-1 text-xs text-muted mb-1">
               {t('next')} <ArrowRight size={11} />

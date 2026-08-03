@@ -16,7 +16,15 @@ export function usePanelResize(side: 'left' | 'right') {
     (e: PointerEvent) => {
       const start = startState.current
       if (!start) return
-      const delta = e.clientX - start.x
+      // Pointer movement is physical; panel sides are logical. Under
+      // `dir="rtl"` the "left" panel renders on the right, so dragging outward
+      // (toward the viewport edge) is a *decreasing* clientX there — without
+      // this, grabbing the handle and pulling away from the content shrank the
+      // panel instead of growing it.
+      const rtl =
+        typeof document !== 'undefined' &&
+        document.documentElement.getAttribute('dir') === 'rtl'
+      const delta = (e.clientX - start.x) * (rtl ? -1 : 1)
       const next = side === 'left' ? start.width + delta : start.width - delta
       if (side === 'left') setLeftWidth(next)
       else setRightWidth(next)

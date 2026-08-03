@@ -96,7 +96,7 @@ describe('garden header vs mobile drawer layering', () => {
     const { container } = renderHeader()
     const header = container.querySelector('header')!
 
-    fireEvent.click(screen.getByLabelText('Switch language'))
+    fireEvent.click(screen.getByLabelText('switchLanguage'))
 
     // `Українська` is one of the configured locales; finding it proves the
     // menu opened. It has to be a *descendant* of the header — a menu

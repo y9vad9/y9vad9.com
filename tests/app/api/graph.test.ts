@@ -31,7 +31,7 @@ describe('/api/graph', () => {
       `---\ntitle: B\n---\nBody`,
       'utf-8',
     )
-    const { GET } = await import('../../../src/app/api/graph/route')
+    const { GET } = await import('../../../src/app/api/graph/route.node')
     const req = new Request('http://localhost/api/graph?locale=en')
     const res = await GET(req)
     const body = await res.json()

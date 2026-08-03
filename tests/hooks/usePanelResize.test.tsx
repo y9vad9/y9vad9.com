@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { usePanelResize } from '@hooks/usePanelResize'
 import { usePanelStore } from '@store/panelStore'
@@ -58,5 +58,41 @@ describe('usePanelResize', () => {
     expect(document.body.style.cursor).toBe('col-resize')
     act(() => document.dispatchEvent(new PointerEvent('pointerup')))
     expect(document.body.style.cursor).toBe('')
+  })
+})
+
+/**
+ * Pointer movement is physical; panel sides are logical. Under `dir="rtl"` the
+ * "left" panel renders on the right of the viewport, so dragging its handle
+ * away from the content is a *decreasing* clientX — the same gesture grew the
+ * panel in LTR and shrank it in RTL.
+ */
+describe('usePanelResize — direction awareness', () => {
+  afterEach(() => document.documentElement.removeAttribute('dir'))
+
+  it('widens the left panel when dragged outward in RTL', () => {
+    document.documentElement.setAttribute('dir', 'rtl')
+    const { result } = renderHook(() => usePanelResize('left'))
+    act(() => result.current.onPointerDown(pointerDown(100)))
+    act(() => {
+      // Outward in RTL is toward the right edge, i.e. decreasing clientX.
+      document.dispatchEvent(
+        new PointerEvent('pointermove', { clientX: 50 } as PointerEventInit),
+      )
+    })
+    expect(usePanelStore.getState().leftWidth).toBe(290)
+    act(() => document.dispatchEvent(new PointerEvent('pointerup')))
+  })
+
+  it('leaves LTR behaviour exactly as it was', () => {
+    const { result } = renderHook(() => usePanelResize('left'))
+    act(() => result.current.onPointerDown(pointerDown(100)))
+    act(() => {
+      document.dispatchEvent(
+        new PointerEvent('pointermove', { clientX: 150 } as PointerEventInit),
+      )
+    })
+    expect(usePanelStore.getState().leftWidth).toBe(290)
+    act(() => document.dispatchEvent(new PointerEvent('pointerup')))
   })
 })

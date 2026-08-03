@@ -78,6 +78,7 @@ function Group({
   emptyMessage: string
 }) {
   const t = useTranslations('note')
+  const tA11y = useTranslations('a11y')
   const params = useParams<{ locale: string }>()
   const [filter, setFilter] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -113,8 +114,8 @@ function Group({
         )
       : items.slice()
 
-    return sortNotes(list, sort)
-  }, [items, filter, sort])
+    return sortNotes(list, sort, params.locale)
+  }, [items, filter, sort, params.locale])
 
   const sortLabels = Object.fromEntries(
     SORT_MODES.map((m) => [m, t(SORT_LABEL_KEY[m])]),
@@ -125,15 +126,15 @@ function Group({
       <header className="flex items-center gap-2 mb-3">
         <h3 className="flex items-center gap-1.5 text-xs uppercase tracking-wide font-medium text-muted">
           {icon} {title}
-          <span className="ml-1 px-1.5 py-0.5 rounded-full bg-card text-fg text-[10px]">
+          <span className="ms-1 px-1.5 py-0.5 rounded-full bg-card text-fg text-[10px]">
             {items.length}
           </span>
         </h3>
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="flex items-center gap-1 ms-auto">
           <button
             onClick={() => setFilterOpen((v) => !v)}
             className="p-1 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-            aria-label="Filter"
+            aria-label={tA11y('filter')}
           >
             <Search size={12} />
           </button>
@@ -141,17 +142,17 @@ function Group({
             <button
               onClick={() => setSortOpen((v) => !v)}
               className="p-1 rounded hover:bg-card-hover text-muted hover:text-fg transition-colors"
-              aria-label="Sort"
+              aria-label={tA11y('sort')}
             >
               <ArrowUpDown size={12} />
             </button>
             {sortOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-20 min-w-44">
+              <div className="absolute end-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-20 min-w-44">
                 {SORT_MODES.map((mode) => (
                   <button
                     key={mode}
                     onClick={() => { setSort(mode); setSortOpen(false) }}
-                    className={`block w-full px-3 py-1.5 text-xs text-left hover:bg-card-hover transition-colors ${
+                    className={`block w-full px-3 py-1.5 text-xs text-start hover:bg-card-hover transition-colors ${
                       sort === mode ? 'text-primary font-bold' : 'text-fg'
                     }`}
                   >
@@ -173,21 +174,21 @@ function Group({
 
       {filterOpen && (
         <div className="relative mb-3">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+          <Search size={12} className="absolute start-2.5 top-1/2 -translate-y-1/2 text-muted" />
           <input
             ref={filterInputRef}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter…"
+            placeholder={tA11y('filterPlaceholder')}
             // 16px below `sm`: iOS Safari zooms the viewport on focus for
             // anything smaller, and never zooms back out.
-            className="w-full pl-8 pr-7 py-1.5 text-base sm:text-xs bg-card border border-border rounded-lg focus:outline-none focus:border-primary"
+            className="w-full ps-8 pe-7 py-1.5 text-base sm:text-xs bg-card border border-border rounded-lg focus:outline-none focus:border-primary"
           />
           {filter && (
             <button
               onClick={() => setFilter('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-fg"
-              aria-label="Clear"
+              className="absolute end-2 top-1/2 -translate-y-1/2 text-muted hover:text-fg"
+              aria-label={tA11y('clear')}
             >
               <X size={12} />
             </button>

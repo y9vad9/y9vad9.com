@@ -21,16 +21,32 @@ import { absoluteUrl, localizedPath, siteUrl } from './url'
 export async function baseMetadata({
   locale,
   path = '/',
+  availableLocales,
 }: {
   locale: string
   path?: string
+  /**
+   * Locales this path actually resolves in. Defaults to all of them, which is
+   * right for routes that exist everywhere (the home page, the garden index)
+   * and wrong for a note that has not been translated yet — see
+   * `localesForNote`.
+   */
+  availableLocales?: readonly string[]
 }): Promise<Metadata> {
   const siteConfig = await loadSiteConfig(locale)
   const canonical = absoluteUrl(localizedPath(locale, path))
-  const languages: Record<string, string> = {
-    'x-default': absoluteUrl(localizedPath(routing.defaultLocale, path)),
+
+  // Only locales that can serve this path. hreflang has to be reciprocal, so
+  // advertising an alternate that 404s doesn't merely add a dead link —
+  // Google discards the whole cluster, taking the genuine translations with it.
+  const serving = (availableLocales ?? routing.locales).filter((l) =>
+    routing.locales.includes(l),
+  )
+  const languages: Record<string, string> = {}
+  if (serving.includes(routing.defaultLocale)) {
+    languages['x-default'] = absoluteUrl(localizedPath(routing.defaultLocale, path))
   }
-  for (const l of routing.locales) {
+  for (const l of serving) {
     languages[l] = absoluteUrl(localizedPath(l, path))
   }
 

@@ -34,8 +34,11 @@ next-env.d.ts
 # dynamically generated assets & static content (build-time optimized)
 public/notes-assets/
 public/_static/
-# copied out of the `geist` package by `ensureMonoFont` at build time
-public/fonts/
+# copied out of the `geist` package by `ensureMonoFont` at build time.
+# Named exactly, not as a directory: `public/fonts/` is where anyone would put
+# a self-hosted webface, and ignoring the folder meant their font worked
+# locally and 404'd in production without ever failing a commit.
+public/fonts/geist-mono.woff2
 
 # testing (vitest & coverage)
 coverage/
@@ -59,10 +62,23 @@ Thumbs.db
 public/*/notes/*.md
 public/llms.txt
 public/llms-full.txt
-public/_headers
 
-# onvu agent surfaces
+# `public/_headers` and `public/_redirects` are deliberately NOT ignored, even
+# though the build writes both. They are host configuration a site owns — CSP,
+# HSTS and cache policy in one, redirects for renamed note slugs in the other —
+# and onvu merges its rules into a fenced block rather than overwriting them.
+# Ignoring `_headers` meant an adopter's security headers were never committed,
+# so CI cloned clean and production shipped bare; the same would go for their
+# redirects. Neither ships with the template: a committed copy would just be a
+# file for every fork to conflict on.
+
+# The pre-merge snapshots, genuinely generated.
 public/.onvu-headers-base
+public/.onvu-redirects-base
+# Their in-flight temporaries. The generated host files are written to a
+# neighbouring temp and renamed into place so a concurrent reader never sees a
+# half-written file; a build killed between the two steps leaves one behind.
+public/.*.tmp
 
 # Local wrangler / miniflare state (pages dev)
 .wrangler/

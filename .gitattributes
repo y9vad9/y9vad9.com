@@ -1,8 +1,28 @@
 # User-owned paths — their version always wins on `git merge upstream`.
 # Anything under `content/` (notes, navigation, landing composition,
 # assets, translations) is treated as the template consumer's project.
+#
+# THIS DOES NOTHING UNLESS THE DRIVER IS DEFINED. `ours` is not one of git's
+# built-in merge drivers (those are `text`, `binary`, `union`) — it has to be
+# registered in repo config, and git falls back to a normal 3-way merge
+# *silently* when it isn't. `.gitattributes` cannot register it itself; that
+# is deliberate in git, so that cloning a repo can't make it run arbitrary
+# merge commands. `npm install` arms it via the `prepare` script in
+# package.json, or do it by hand:
+#
+#     git config merge.ours.driver true
+#
+# Scope, so nobody over-trusts this: the driver only arbitrates when *both*
+# sides changed a file. A file upstream adds still arrives; a file upstream
+# deletes still goes, and if you had modified it you get a modify/delete
+# conflict with upstream's copy left in the tree. The real protection is that
+# upstream does not write to these paths — this is the backstop, not the plan.
 content/**                   merge=ours
-site.config.ts               merge=ours
+
+# Both the base config and the per-locale overrides `loadSiteConfig` resolves.
+# The glob matters: `site.uk.config.ts` is the most content-like file in a
+# multilingual fork, and the bare `site.config.ts` pattern never covered it.
+site*.config.ts              merge=ours
 
 # Normalise line endings
 * text=auto

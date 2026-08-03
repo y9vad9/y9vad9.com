@@ -37,6 +37,7 @@
   --color-primary: var(--primary);
   --color-primary-muted: var(--primary-muted);
   --color-muted: var(--muted);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
@@ -82,6 +83,11 @@
   --primary: #7c3aed;
   --primary-muted: #ede9fe;
   --muted: #6b7280;
+  /* Archived badges and similar advisory marks. A per-palette token rather
+     than a Tailwind `amber-500`, which measured 1.99:1 against this
+     background — Lighthouse flags it, and it needs 4.5:1. Dark palettes keep
+     the bright amber, where it is already legible. */
+  --warning: #a35a00;
   --border: #e5e7eb;
   --card: #ffffff;
   --card-hover: #f9fafb;
@@ -98,6 +104,7 @@
   --primary: #a78bfa;
   --primary-muted: #2e1065;
   --muted: #9ca3af;
+  --warning: #fbbf24;
   --border: #27272a;
   --card: #0a0a0a;
   --card-hover: #111111;
@@ -114,6 +121,7 @@
   --primary: #f59e0b;
   --primary-muted: #451a03;
   --muted: #a8956a;
+  --warning: #fbbf24;
   --border: #4a3728;
   --card: #3a2e24;
   --card-hover: #453826;
@@ -130,6 +138,7 @@
   --primary: #4ade80;
   --primary-muted: #052e16;
   --muted: #6ee7b7;
+  --warning: #fbbf24;
   --border: #134e24;
   --card: #0f2318;
   --card-hover: #152d1e;
@@ -147,6 +156,7 @@
     --primary: #7c3aed;
     --primary-muted: #ede9fe;
     --muted: #6b7280;
+    --warning: #a35a00;
     --border: #e5e7eb;
     --card: #ffffff;
     --card-hover: #f9fafb;
@@ -164,12 +174,89 @@
     --primary: #a78bfa;
     --primary-muted: #2e1065;
     --muted: #9ca3af;
+    --warning: #fbbf24;
     --border: #27272a;
     --card: #0a0a0a;
     --card-hover: #111111;
     --code-bg: #18181b;
     --selection: #4c1d95;
   }
+}
+
+/* ── Obsidian callouts ───────────────────────────────────────────────── */
+/* `> [!note] Title` becomes a blockquote carrying `data-callout`, so it
+   degrades to an ordinary quotation wherever this stylesheet is absent —
+   markdown mirrors, RSS previews, reader modes. The accent is driven by a
+   single custom property per type rather than a rule per type, so an
+   unrecognised callout still looks deliberate instead of unstyled. */
+.prose blockquote[data-callout] {
+  --callout-accent: var(--muted);
+  border-inline-start: 3px solid var(--callout-accent);
+  background: color-mix(in srgb, var(--callout-accent) 8%, transparent);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-style: normal;
+}
+.prose blockquote[data-callout]::before {
+  content: attr(data-callout-title);
+  display: block;
+  font-weight: 600;
+  color: var(--callout-accent);
+  /* Only when a title was actually written — `attr()` yields the empty
+     string otherwise, and an empty bold line still takes vertical space. */
+  margin-bottom: 0.35rem;
+}
+.prose blockquote[data-callout]:not([data-callout-title])::before {
+  display: none;
+}
+.prose blockquote[data-callout='tip'],
+.prose blockquote[data-callout='hint'],
+.prose blockquote[data-callout='success'],
+.prose blockquote[data-callout='check'],
+.prose blockquote[data-callout='done'] {
+  --callout-accent: #16a34a;
+}
+.prose blockquote[data-callout='warning'],
+.prose blockquote[data-callout='caution'],
+.prose blockquote[data-callout='attention'] {
+  --callout-accent: var(--warning);
+}
+.prose blockquote[data-callout='danger'],
+.prose blockquote[data-callout='error'],
+.prose blockquote[data-callout='bug'],
+.prose blockquote[data-callout='failure'] {
+  --callout-accent: #dc2626;
+}
+.prose blockquote[data-callout='note'],
+.prose blockquote[data-callout='info'],
+.prose blockquote[data-callout='todo'],
+.prose blockquote[data-callout='question'],
+.prose blockquote[data-callout='example'],
+.prose blockquote[data-callout='abstract'],
+.prose blockquote[data-callout='summary'] {
+  --callout-accent: var(--primary);
+}
+
+/* ── Right-to-left: mirror directional icons ─────────────────────────── */
+/* lucide stamps every icon with `lucide-<name>`, so "which glyph points
+   somewhere?" is answerable in CSS rather than by hand-editing each of the
+   fourteen call sites — and an icon added next month is covered without
+   anyone remembering to. Only glyphs whose meaning is *direction of travel*
+   are listed: an external-link arrow points out of the page, not along the
+   reading order, and flipping it would be wrong.
+
+   `scaleX(-1)` rather than swapping the icon, because the component that
+   renders it should not have to know which way the page reads. */
+[dir='rtl'] .lucide-arrow-right,
+[dir='rtl'] .lucide-arrow-left,
+[dir='rtl'] .lucide-chevron-right,
+[dir='rtl'] .lucide-chevron-left,
+[dir='rtl'] .lucide-corner-down-right,
+[dir='rtl'] .lucide-panel-left,
+[dir='rtl'] .lucide-panel-right,
+[dir='rtl'] .lucide-move-right,
+[dir='rtl'] .lucide-move-left {
+  transform: scaleX(-1);
 }
 
 /* ── Graph canvas ────────────────────────────────────────────────────── */
@@ -410,16 +497,24 @@ body {
 
 /* ── Syntax highlighting (rehype-pretty-code / Shiki) ─────────────────
    We compile both light and dark themes into the markup as CSS vars
-   per token (`--shiki-light`, `--shiki-dark`). Pick the right set per
-   active theme — light uses github-light; dark/warm/forest use
-   github-dark; system follows OS preference. */
+   per token (`--shiki-light`, `--shiki-dark`). Pick the right set by the
+   *polarity* of the active theme, not by its name.
+
+   `data-polarity` is stamped on <html> by the blocking bootstrap script
+   and by `applyTheme`, derived from `ThemeOption.dark` in site config.
+   These rules used to enumerate `.theme-dark, .theme-warm, .theme-forest`
+   — a list a custom theme could never join, so following
+   `content/theme.css`'s own worked example (a dark `.theme-ocean`) gave you
+   github-*light* tokens on a near-black background. The config already
+   declared the answer; the stylesheet just couldn't see it.
+
+   `system` resolves to the OS preference, which is why it stays a media
+   query rather than a third attribute value. */
 .prose pre code span {
   color: var(--shiki-light);
   background-color: var(--shiki-light-bg);
 }
-.theme-dark .prose pre code span,
-.theme-warm .prose pre code span,
-.theme-forest .prose pre code span {
+[data-polarity='dark'] .prose pre code span {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
 }
@@ -427,21 +522,16 @@ body {
 /* Per-image opt-in: an author appends `?dark-invert` to a logo URL when
    the asset is a dark-on-transparent monochrome that needs flipping
    against a dark backdrop. The renderer parses the marker and tags the
-   <img> with `image-dark-invert`; the filter only fires under the dark
-   themes (and the system theme when the OS is dark) so light themes are
-   left alone. `system` follows the OS preference. */
-.theme-dark .image-dark-invert,
-.theme-warm .image-dark-invert,
-.theme-forest .image-dark-invert {
+   <img> with `image-dark-invert`; the filter only fires on dark palettes
+   (and under `system` when the OS is dark) so light themes are left alone. */
+[data-polarity='dark'] .image-dark-invert {
   filter: invert(1);
 }
 @media (prefers-color-scheme: dark) {
-  .theme-system .image-dark-invert {
+  [data-polarity='system'] .image-dark-invert {
     filter: invert(1);
   }
-}
-@media (prefers-color-scheme: dark) {
-  .theme-system .prose pre code span {
+  [data-polarity='system'] .prose pre code span {
     color: var(--shiki-dark);
     background-color: var(--shiki-dark-bg);
   }

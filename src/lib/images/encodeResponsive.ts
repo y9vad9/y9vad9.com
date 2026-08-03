@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { publicPath } from '@lib/publicPath'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import sharp from 'sharp'
@@ -24,7 +25,10 @@ import type { Metadata } from 'sharp'
  */
 
 const ASSETS_DIR_NAME = 'notes-assets'
-const URL_PREFIX = `/${ASSETS_DIR_NAME}`
+// Written straight into `<img src>` by the rehype pipeline, so Next never
+// sees it and never prefixes it — the one class of asset URL that breaks
+// under a subpath deployment.
+const URL_PREFIX = publicPath(`/${ASSETS_DIR_NAME}`)
 
 function assetsRoot(): string {
   return path.join(process.cwd(), 'public', ASSETS_DIR_NAME)

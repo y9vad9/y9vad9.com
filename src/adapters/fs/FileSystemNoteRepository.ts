@@ -4,7 +4,8 @@ import matter from 'gray-matter'
 import readingTime from 'reading-time'
 import type { NoteRepository } from '@core/NoteRepository'
 import type { Note } from '@core/Note'
-import { processMarkdown, type WikiLinkResolver } from '@lib/mdx/pipeline'
+import { processMarkdown } from '@lib/mdx/pipeline'
+import { createWikiLinkResolver } from '@lib/notes/wikiLinkResolver'
 import { processNoteImage } from '@lib/images/processNoteImage'
 import { processNoteVideo } from '@lib/images/processNoteVideo'
 import { processStaticImage } from '@lib/images/processStaticImage'
@@ -28,7 +29,7 @@ type NoteMeta = Omit<
 >
 
 function parseNoteMeta(slug: string, raw: string): NoteMeta {
-  const { data } = matter(raw)
+  const { data, content } = matter(raw)
   return {
     slug,
     title: String(data.title ?? slug),
@@ -45,30 +46,10 @@ function parseNoteMeta(slug: string, raw: string): NoteMeta {
     series: data.series ? String(data.series) : null,
     order: data.order != null ? Number(data.order) : null,
     isArchived: Boolean(data.archived),
+    isDraft: Boolean(data.draft),
     isEpic: Boolean(data.epic),
     isPinned: Boolean(data.pinned),
-    readingTimeMinutes: Math.ceil(readingTime(raw).minutes),
-  }
-}
-
-function normaliseKey(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-}
-
-/** Build a resolver mapping wiki-link targets (slug OR title) to a note. */
-function buildResolver(metas: Map<string, NoteMeta>): WikiLinkResolver {
-  const bySlug = new Map<string, NoteMeta>()
-  const byTitle = new Map<string, NoteMeta>()
-  for (const m of metas.values()) {
-    bySlug.set(m.slug.toLowerCase(), m)
-    byTitle.set(m.title.toLowerCase(), m)
-  }
-  return (target) => {
-    const direct =
-      bySlug.get(target.toLowerCase()) ??
-      byTitle.get(target.toLowerCase()) ??
-      bySlug.get(normaliseKey(target))
-    return direct ? { slug: direct.slug, title: direct.title } : null
+    readingTimeMinutes: Math.ceil(readingTime(content).minutes),
   }
 }
 
@@ -94,36 +75,66 @@ export class FileSystemNoteRepository implements NoteRepository {
     this.listPromise = (async () => {
       let files: string[]
       try {
-        files = await fs.readdir(this.dir)
+        // Recursive: a vault is a tree, and this saw only its root. Every note
+        // in a subfolder was silently invisible — no warning, no error, just an
+        // empty garden. Slugs stay flat (the basename), so nothing downstream
+        // has to learn about paths and existing URLs do not move; the folder
+        // becomes an organisational convenience rather than a URL segment.
+        files = await fs.readdir(this.dir, { recursive: true })
       } catch {
         // Locale folder doesn't exist — that locale just has no notes yet.
         return []
       }
-      const mdFiles = files.filter((f) => f.endsWith('.md'))
+      const mdFiles = files
+        .filter((f) => f.endsWith('.md'))
+        // A leading underscore on any segment means "not content" — the
+        // convention every static generator uses for partials and scratch
+        // folders, and the one an author reaches for to park work in progress.
+        .filter((f) => !f.split(path.sep).some((seg) => seg.startsWith('_')))
 
       // Pass 1: read frontmatter for every note so we can resolve [[wiki links]].
       const rawByslug = new Map<string, { raw: string; content: string }>()
       const metas = new Map<string, NoteMeta>()
+      /** slug → the file it came from, so a collision can name both sides. */
+      const slugSources = new Map<string, string>()
       await Promise.all(
         mdFiles.map(async (file) => {
-          const slug = file.replace(/\.md$/, '')
+          // Basename, not path: two notes with the same filename in different
+          // folders would collide, so that is reported rather than silently
+          // resolved — see the duplicate check below.
+          const slug = path.basename(file).replace(/\.md$/, '')
           const raw = await fs.readFile(path.join(this.dir, file), 'utf-8')
           const { content } = matter(raw)
+          const clash = slugSources.get(slug)
+          if (clash) {
+            throw new Error(
+              `[onvu] Two notes share the slug "${slug}": ` +
+                `${clash} and ${file}. Slugs come from the filename, so a ` +
+                `nested vault can collide across folders. Rename one.`,
+            )
+          }
+          slugSources.set(slug, file)
           rawByslug.set(slug, { raw, content })
           metas.set(slug, parseNoteMeta(slug, raw))
         }),
       )
 
-      const resolver = buildResolver(metas)
+      const resolver = createWikiLinkResolver(metas.values())
 
       // Pass 2: process markdown bodies with the resolver wired in. Each
       // note gets its own image resolver scoped to the directory containing
       // its `.md` file — so authors can reference `./diagram.png` or
       // `assets/foo.png` and have those copied + resized to a stable URL.
-      const noteDir = this.dir
       const notes = await Promise.all(
         Array.from(rawByslug.entries()).map(async ([slug, { content }]) => {
           const meta = metas.get(slug)!
+          // Co-located images resolve beside the note's own file. With a flat
+          // tree this was always the locale root; with a nested one, a note in
+          // `permanent/` referencing `./diagram.png` means the copy in
+          // `permanent/`.
+          const noteDir = path.dirname(
+            path.join(this.dir, slugSources.get(slug)!),
+          )
           const { html, headings, outgoingLinks, rawText } =
             await processMarkdown(content, {
               resolveWikiLink: resolver,
@@ -175,8 +186,19 @@ export class FileSystemNoteRepository implements NoteRepository {
         }),
       )
 
-      this.cache = new Map(notes.map((n) => [n.slug, n]))
-      return notes
+      // Drafts stop here, at the single choke point every consumer already
+      // goes through — the note list, the mention graph, the search index, the
+      // sitemap, the feed, the markdown mirrors and `generateStaticParams`. A
+      // filter per consumer is how one of them ends up forgotten, and the one
+      // that forgets publishes the note.
+      //
+      // `ONVU_DRAFTS=1` shows them, so an author can read their own unfinished
+      // writing on the dev server without editing frontmatter to check.
+      const published =
+        process.env.ONVU_DRAFTS === '1' ? notes : notes.filter((n) => !n.isDraft)
+
+      this.cache = new Map(published.map((n) => [n.slug, n]))
+      return published
     })()
 
     return this.listPromise

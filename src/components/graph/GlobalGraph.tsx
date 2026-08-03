@@ -82,12 +82,12 @@ export function GlobalGraph({ graph }: { graph: MentionGraph }) {
         linkDistance={linkDistance}
       />
 
-      <div className="absolute top-4 right-4 flex flex-col gap-2 bg-card/95 backdrop-blur border border-border rounded-xl p-3 w-60 shadow-lg">
+      <div className="absolute top-4 end-4 flex flex-col gap-2 bg-card/95 backdrop-blur border border-border rounded-xl p-3 w-60 shadow-lg">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">{t('title')}</p>
 
         <div className="flex gap-1">
           <div className="relative flex-1">
-            <Search size={11} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted" />
+            <Search size={11} className="absolute start-2 top-1/2 -translate-y-1/2 text-muted" />
             <input
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
@@ -95,10 +95,10 @@ export function GlobalGraph({ graph }: { graph: MentionGraph }) {
               // 16px below `sm`: iOS Safari zooms the viewport on focus for
               // anything smaller, and never zooms back out. The two range
               // sliders below are exempt — iOS doesn't zoom on those.
-              className="w-full pl-6 pr-12 py-1 text-base sm:text-xs bg-card-hover border border-border rounded focus:outline-none focus:border-primary"
+              className="w-full ps-6 pe-12 py-1 text-base sm:text-xs bg-card-hover border border-border rounded focus:outline-none focus:border-primary"
             />
             {searchQ && (
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted tabular-nums">
+              <span className="absolute end-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted tabular-nums">
                 {matchCount}
               </span>
             )}

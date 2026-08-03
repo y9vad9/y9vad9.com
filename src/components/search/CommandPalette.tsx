@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { publicPath } from '@lib/publicPath'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, X, FileText, Globe, Palette, Navigation, Command } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
@@ -21,15 +22,18 @@ import { createShortcutActions } from '@lib/shortcuts/createShortcutActions'
 import {
   GARDEN_SHORTCUTS,
   isMacPlatform,
+  matchesCommandQuery,
   scopedCommandLabel,
   shortcutHint,
   type ShortcutActions,
 } from '@lib/shortcuts/gardenShortcuts'
 import { useThemeStore, THEMES } from '@store/themeStore'
+import { themeLabel } from '@lib/theme'
 import { useTabStore } from '@store/tabStore'
 import { useNoteContextStore } from '@store/noteContextStore'
 import { LOCALES } from '@i18n/routing'
 import { useLocaleLabel } from '@hooks/useLocaleLabel'
+import { useLocaleSwitch } from '@hooks/useLocaleSwitch'
 import type { SearchIndexEntry } from '@core/search/SearchIndex'
 import type { Locale } from '@config/site'
 
@@ -39,8 +43,8 @@ async function loadIndex(locale: string): Promise<SearchIndexEntry[]> {
   const hit = cachedIndex.get(locale)
   if (hit) return hit
   const url = process.env.NEXT_PUBLIC_ONVU_MODE === 'static'
-    ? `/_static/${locale}/search-index.json`
-    : `/api/search-index?locale=${encodeURIComponent(locale)}`
+    ? publicPath(`/_static/${locale}/search-index.json`)
+    : publicPath(`/api/search-index?locale=${encodeURIComponent(locale)}`)
   const res = await fetch(url)
   if (res.ok) {
     const data: SearchIndexEntry[] = await res.json()
@@ -62,6 +66,7 @@ export function CommandPalette() {
   const locale = useLocale() as Locale
   const router = useRouter()
   const pathname = usePathname()
+  const goToLocale = useLocaleSwitch()
   const { theme, setTheme } = useThemeStore()
   const inputRef = useRef<HTMLInputElement>(null)
   const [index, setIndex] = useState<SearchIndexEntry[]>([])
@@ -183,7 +188,10 @@ export function CommandPalette() {
     [pathname, locale],
   )
 
-  const commandActions = useMemo<ShortcutActions>(() => createShortcutActions(), [])
+  const commandActions = useMemo<ShortcutActions>(
+    () => createShortcutActions({ navigate: (path) => router.push(path), locale }),
+    [router, locale],
+  )
 
   const allResults = useMemo(() => {
     const r: Array<{
@@ -224,14 +232,17 @@ export function CommandPalette() {
           tCommands(`scopes.${shortcut.scope}`),
           tCommands(shortcut.id),
         )
-        if (q && !label.toLowerCase().includes(q)) continue
+        if (!matchesCommandQuery(label, q)) continue
         r.push({
           type: 'command',
           id: shortcut.id,
           label,
           // A chord is worth printing only where it can be typed. The
           // command itself stays — tapping it is the whole point on touch.
-          hint: shortcutsEnabled && hasKeyboard ? shortcutHint(shortcut, isMac) : undefined,
+          hint:
+            shortcutsEnabled && hasKeyboard
+              ? (shortcutHint(shortcut, isMac) ?? undefined)
+              : undefined,
           onSelect: () => shortcut.run(commandActions),
         })
       }
@@ -253,7 +264,7 @@ export function CommandPalette() {
     // word "shortcuts" is in the string itself, so the separate literal check
     // this used to carry — which also matched every prefix of that word, and
     // so surfaced the entry on a bare `s` — is gone.
-    if (hasKeyboard && (!q || toggleLabel.toLowerCase().includes(q))) {
+    if (hasKeyboard && matchesCommandQuery(toggleLabel, q)) {
       r.push({
         type: 'command',
         id: 'toggleShortcuts',
@@ -267,18 +278,23 @@ export function CommandPalette() {
       r.push({ type: 'note', id: n.slug, label: n.title, onSelect: () => router.push(`/${locale}/notes/${n.slug}`) }),
     )
 
-    // Languages
+    // Languages. Through the same hook the two headers use, so choosing a
+    // language here is remembered exactly as it is there.
     otherLocales.forEach((l) =>
-      r.push({ type: 'lang', id: l, label: langLabel(l), onSelect: () => router.push(`/${l}${pathname.replace(`/${locale}`, '')}`) }),
+      r.push({ type: 'lang', id: l, label: langLabel(l), onSelect: () => goToLocale(l) }),
     )
 
     // Themes
     otherThemes.forEach((th) =>
-      r.push({ type: 'theme', id: th, label: tTheme(th), onSelect: () => setTheme(th as Parameters<typeof setTheme>[0]) }),
+      // Same resolution the two headers use: `ThemeOption.label` then the id,
+      // translated only if a key exists. This called `tTheme(th)` raw and keyed
+      // off the id, so a custom theme showed one wrong string here and a
+      // different wrong string in the header.
+      r.push({ type: 'theme', id: th, label: themeLabel(th, tTheme), onSelect: () => setTheme(th as Parameters<typeof setTheme>[0]) }),
     )
 
     return r
-  }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, pathname, router, langLabel,
+  }, [cleanQuery, noteResults, otherLocales, otherThemes, locale, router, langLabel, goToLocale,
     tTheme, tNav, setTheme, gardenCommands, commandActions, shortcutsEnabled, hasKeyboard,
     tCommands])
 
@@ -401,7 +417,7 @@ export function CommandPalette() {
                     }}
                     onMouseEnter={() => setHighlightedIdx(idx)}
                     onClick={(e) => pickItem(item, { newTab: e.metaKey || e.ctrlKey })}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-start transition-colors ${
                       isHighlighted ? 'bg-primary-muted text-primary' : 'text-fg hover:bg-card-hover'
                     }`}
                   >

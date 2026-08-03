@@ -75,7 +75,10 @@ export const TableOfContents = forwardRef<TableOfContentsHandle, { headings: Hea
               linkRefs.current[idx] = el
               nav.setItemRef(idx)(el)
             }}
-            style={{ paddingLeft: `${0.25 + h.depth * 0.5}rem` }}
+            // `paddingInlineStart`, not `paddingLeft`: this is the one inline
+            // style in the tree that would ignore `<html dir="rtl">` and indent
+            // the outline off the wrong edge.
+            style={{ paddingInlineStart: `${0.25 + h.depth * 0.5}rem` }}
             className={`panel-item ${activeId === h.id ? 'is-active' : 'is-muted'} ${idx === nav.idx ? 'is-kbd' : ''}`}
             onMouseEnter={() => nav.setIdx(idx)}
             onClick={(e) => {

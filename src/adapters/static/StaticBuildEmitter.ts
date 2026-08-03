@@ -11,7 +11,7 @@ const emitted = new Set<Locale>()
 
 /**
  * Emits per-locale JSON snapshots used by the static client. Each locale
- * gets its own subfolder: `public/_static/<locale>/{notes-index,search-index,graph}.json`.
+ * gets its own subfolder: `public/_static/<locale>/{search-index,graph}.json`.
  */
 export async function emitStaticData(
   repo: NoteRepository,
@@ -23,22 +23,19 @@ export async function emitStaticData(
   const outDir = path.join(OUT_ROOT, locale)
   await fs.mkdir(outDir, { recursive: true })
 
-  const [notes, searchIndex, graph] = await Promise.all([
-    repo.listAll(),
+  // No `notes-index.json`. It carried every note's full rendered `body` and
+  // `rawText` and its only consumer was `StaticNoteRepository`, which nothing
+  // ever constructed — `createRepository` always returns the filesystem
+  // adapter. On the site this template was extracted from that was 3.8 MB
+  // across three locales, published to the CDN on every deploy and fetched by
+  // nobody. It also republished the full text of `noindex` notes in one
+  // convenient blob.
+  const [searchIndex, graph] = await Promise.all([
     buildSearchIndex(repo),
     buildMentionGraph(repo),
   ])
 
-  const serializedNotes = notes.map((n) => ({
-    ...n,
-    date: n.date?.toISOString() ?? null,
-  }))
-
   await Promise.all([
-    fs.writeFile(
-      path.join(outDir, 'notes-index.json'),
-      JSON.stringify(serializedNotes),
-    ),
     fs.writeFile(
       path.join(outDir, 'search-index.json'),
       JSON.stringify(searchIndex),

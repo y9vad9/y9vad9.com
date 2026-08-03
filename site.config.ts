@@ -28,6 +28,8 @@ export const config: SiteConfig = {
     name: 'Vadym Yaroshchuk',
     shortName: 'y9vad9',
     description: 'Software Engineer & software design enthusiast in Munich. Exploring system design and the Kotlin ecosystem to build software that lasts with clear contracts.',
+    themeColor: '#7c3aed',
+    backgroundColor: '#fafafa',
   },
 
   navigation: {

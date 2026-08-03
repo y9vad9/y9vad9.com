@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next'
-import { GeistSans } from 'geist/font/sans'
 // Mono is self-hosted rather than handled by `next/font` so its preload can be
 // decided per page — see `ensureMonoFont` for the measurements behind that.
 import { ensureMonoFont } from '@lib/fonts/monoFont'
-import { themeBootstrapScript, META_COLOR_SCHEME } from '@lib/theme'
+import { emitHostRedirects } from '@adapters/static/HostRedirectsEmitter'
+import { META_COLOR_SCHEME } from '@lib/theme'
 import './globals.css'
 import '../../content/theme.css'
 
@@ -33,6 +33,18 @@ export const viewport: Viewport = {
   colorScheme: META_COLOR_SCHEME,
 }
 
+/**
+ * A passthrough, deliberately.
+ *
+ * `<html>` lives in `@components/shell/Document`, rendered by
+ * `[locale]/layout.tsx` and by the two routes that sit outside the locale
+ * segment. It has to: this layout is above `[locale]` and cannot know which
+ * language it is wrapping, so the `lang` attribute it used to hardcode was
+ * `"en"` on every German and Ukrainian page on the site.
+ *
+ * What stays here is what genuinely is global — the metadata defaults, the
+ * viewport, the stylesheets, and the font emit below.
+ */
 export default async function RootLayout({
   children,
 }: {
@@ -42,37 +54,15 @@ export default async function RootLayout({
   // `public/`. Awaited here, in the one layout every route renders through,
   // so no page can reference the file before it exists.
   await ensureMonoFont()
-  return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={GeistSans.variable}
-    >
-      <head>
-        {/* Runs before React hydration.
-            Registers a `default` Trusted Types policy so subsequent
-            `innerHTML` assignments (note body MDX, Mermaid SVG, Giscus
-            container clear) don't violate a
-            `require-trusted-types-for 'script'` CSP. The policy is a
-            passthrough — we already trust the content we generate
-            server-side or load from giscus.app; a stricter sanitiser
-            here would break legitimate HTML in note bodies. Sites
-            that want sanitisation can register their own `default`
-            policy earlier (a `<script src>` before this one). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{if(window.trustedTypes&&window.trustedTypes.createPolicy&&!window.trustedTypes.defaultPolicy){window.trustedTypes.createPolicy('default',{createHTML:function(s){return s;},createScript:function(s){return s;},createScriptURL:function(s){return s;}});}}catch(e){}})();`,
-          }}
-        />
-        {/* Paints the persisted (or configured default) theme on the first
-            frame — class *and* `color-scheme`. Must stay blocking and ahead
-            of the stylesheet: anything deferred runs after the first paint,
-            which is the flash we're removing. */}
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
-      </head>
-      <body className="bg-bg text-fg">
-        {children}
-      </body>
-    </html>
-  )
+  // `public/_redirects`, so the static export answers at `/` rather than
+  // serving its 404 page there. Same reason it lives here: this layout is the
+  // only one guaranteed to run, and the site root is not any locale's concern.
+  // Static builds only — a server build has `src/proxy.ts` for this.
+  if (
+    process.env.NEXT_PUBLIC_ONVU_MODE === 'static' &&
+    process.env.NODE_ENV === 'production'
+  ) {
+    await emitHostRedirects()
+  }
+  return children
 }

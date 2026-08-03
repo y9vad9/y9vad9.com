@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { LOCALES, DEFAULT_LOCALE } from '@i18n/routing'
+import { readLocalePreference } from '@lib/i18n/localePreference'
 import type { Locale } from '@config/site'
 
 export default function LocaleFreeRedirect() {
@@ -10,17 +11,22 @@ export default function LocaleFreeRedirect() {
   const params = useParams<{ slug: string }>()
 
   useEffect(() => {
-    let locale: Locale = DEFAULT_LOCALE
-    try {
-      const localeStored = localStorage.getItem('locale') as Locale | null
-      if (localeStored && LOCALES.includes(localeStored)) {
-        locale = localeStored
-      } else {
+    // A language the reader chose beats one their browser was configured with.
+    // `rememberLocale` is what writes this, from every language switcher on the
+    // site; before that existed this branch was unreachable and someone reading
+    // in German kept being sent back to their browser's language.
+    const preferred = readLocalePreference()
+    let locale: Locale = preferred ?? DEFAULT_LOCALE
+    // Only consult the browser when the reader has expressed nothing. Testing
+    // `locale === DEFAULT_LOCALE` instead would discard a deliberate choice of
+    // the primary language, which is the one choice most readers make.
+    if (!preferred) {
+      try {
         const browserLang = navigator.language.split('-')[0] as Locale
         if (LOCALES.includes(browserLang)) locale = browserLang
+      } catch {
+        // No `navigator.language` to consult; the default stands.
       }
-    } catch {
-      // localStorage not available
     }
     // Preserve any `#hash` and `?query` from the incoming URL when
     // bouncing through to the localised note page. Without this, a link
@@ -33,9 +39,8 @@ export default function LocaleFreeRedirect() {
     router.replace(`/${locale}/notes/${params.slug}${tail}`)
   }, [router, params.slug])
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <span className="text-muted text-sm">Redirecting…</span>
-    </div>
-  )
+  // The visible "Redirecting…" label is rendered by the server layout, which
+  // can translate it — this component exists only to choose a locale and
+  // navigate.
+  return null
 }

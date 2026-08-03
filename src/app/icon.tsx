@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { ogFonts } from '@lib/seo/ogFont'
 import { config as siteConfig } from '~/site.config'
 
 /**
@@ -35,7 +36,7 @@ export const runtime = 'nodejs'
 export const size = { width: 64, height: 64 }
 export const contentType = 'image/png'
 
-export default function Icon() {
+export default async function Icon() {
   const initial = (siteConfig.owner.handle || siteConfig.owner.name || '?')
     .trim()
     .charAt(0)
@@ -61,6 +62,6 @@ export default function Icon() {
         {initial}
       </div>
     ),
-    size,
+    { ...size, fonts: await ogFonts() },
   )
 }

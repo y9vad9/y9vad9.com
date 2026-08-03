@@ -3,6 +3,7 @@ import { createRepository } from '@adapters/createRepositories'
 import { listAllNotes } from '@core/ListNotes'
 import { loadSiteConfig } from '@lib/config/loadConfig'
 import { siteUrl } from '@lib/seo/url'
+import { escapeXml } from '@lib/xml'
 import { routing } from '@i18n/routing'
 
 export const dynamic = 'force-static'
@@ -37,15 +38,17 @@ export async function GET(
       const url = `${baseUrl}/${locale}/notes/${note.slug}`
       const pubDate = note.date!.toUTCString()
       const image = note.coverImage
-        ? `<media:content url="${note.coverImage.startsWith('http') ? note.coverImage : baseUrl + note.coverImage}" medium="image" />`
+        ? `<media:content url="${escapeXml(
+            note.coverImage.startsWith('http') ? note.coverImage : baseUrl + note.coverImage,
+          )}" medium="image" />`
         : ''
       return `
     <item>
-      <title><![CDATA[${note.title}]]></title>
-      <link>${url}</link>
-      <guid isPermaLink="true">${url}</guid>
+      <title>${escapeXml(note.title)}</title>
+      <link>${escapeXml(url)}</link>
+      <guid isPermaLink="true">${escapeXml(url)}</guid>
       <pubDate>${pubDate}</pubDate>
-      <description><![CDATA[${note.preview}]]></description>
+      <description>${escapeXml(note.preview)}</description>
       ${image}
     </item>`
     })
@@ -56,12 +59,12 @@ export async function GET(
   xmlns:atom="http://www.w3.org/2005/Atom"
   xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
-    <title>${feedTitle}</title>
-    <link>${baseUrl}/${locale}</link>
-    <description>${siteConfig.owner.bio}</description>
+    <title>${escapeXml(feedTitle)}</title>
+    <link>${escapeXml(`${baseUrl}/${locale}`)}</link>
+    <description>${escapeXml(siteConfig.owner.bio)}</description>
     <language>${locale}</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
-    <atom:link href="${feedUrl}" rel="self" type="application/rss+xml" />
+    <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />
     ${items}
   </channel>
 </rss>`

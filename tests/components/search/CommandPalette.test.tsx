@@ -216,6 +216,61 @@ describe('CommandPalette', () => {
       state.pathname = '/en'
     })
 
+    it('offers the knowledge graph, which had no palette entry at all', async () => {
+      // The tools-panel graph shows the open note's neighbourhood; this is
+      // the whole-garden one. It was reachable from the header and the index
+      // action row, and from nowhere a reader would think to look for it.
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText(cmd('garden', 'globalGraph'))).toBeInTheDocument())
+      state.pathname = '/en'
+    })
+
+    it('navigates to the graph when that command is selected', async () => {
+      const { router, state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText(cmd('garden', 'globalGraph'))).toBeInTheDocument())
+
+      fireEvent.click(screen.getByText(cmd('garden', 'globalGraph')))
+      // The page itself claims the tab on arrival via RouteTabSync, so
+      // navigating is the whole job.
+      expect(router.push).toHaveBeenCalledWith('/en/notes/graph')
+      state.pathname = '/en'
+    })
+
+    it('keeps the graph command out of the landing page', async () => {
+      const { state } = await getRouterMock()
+      state.pathname = '/en'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText('Kotlin')).toBeInTheDocument())
+      // It would still work off a garden route, but a command that navigates
+      // into the garden belongs with the garden's other commands rather than
+      // duplicating the Navigation group.
+      expect(screen.queryByText(cmd('garden', 'globalGraph'))).not.toBeInTheDocument()
+    })
+
+    it('finds a command whose words the reader typed out of order', async () => {
+      // The palette used to match the query as one contiguous substring of
+      // the whole label, so anything but the author's exact phrasing found
+      // nothing — in the real catalogue, "search notes" missed
+      // `Explorer: Search in notes` over the preposition between them, and
+      // the command read as missing. (The real labels are asserted in
+      // tests/lib/shortcuts; next-intl returns keys verbatim here.)
+      const { state } = await getRouterMock()
+      state.pathname = '/en/notes/some-note'
+      renderPalette()
+      await waitFor(() => expect(screen.getByText(cmd('explorer', 'search'))).toBeInTheDocument())
+
+      fireEvent.change(screen.getByPlaceholderText('placeholder'), {
+        target: { value: 'search scopes.explorer' },
+      })
+
+      await waitFor(() => expect(screen.getByText(cmd('explorer', 'search'))).toBeInTheDocument())
+      state.pathname = '/en'
+    })
+
     it('runs the action when a command is selected', async () => {
       const { state } = await getRouterMock()
       state.pathname = '/en/notes/some-note'

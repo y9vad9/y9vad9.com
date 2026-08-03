@@ -23,11 +23,17 @@ export async function PortfolioLogo({
   className = '',
   sizes = '32px',
 }: {
-  src: string
+  /** Omit when the entry has no logo — the row renders without one. */
+  src?: string
   alt: string
   className?: string
   sizes?: string
 }) {
+  // No logo is a normal state, not a missing asset: `WorkEntry.logo` and
+  // `EducationEntry.logo` are optional, and rendering nothing beats rendering
+  // a broken image.
+  if (!src) return null
+
   const { src: rawSrc, className: decoClass } = parseDecoratedImage(src)
   const optimised = await processStaticImage(rawSrc)
   const combined = `rounded-md flex-shrink-0 ${decoClass} ${className}`.trim()

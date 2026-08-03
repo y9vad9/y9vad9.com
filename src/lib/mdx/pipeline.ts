@@ -11,7 +11,13 @@ import rehypeStringify from 'rehype-stringify'
 import { visit, SKIP } from 'unist-util-visit'
 import { toString as hastToString } from 'hast-util-to-string'
 import type { Root as HastRoot, Element, ElementContent } from 'hast'
-import type { Root as MdastRoot, Text as MdastText, Link as MdastLink, PhrasingContent } from 'mdast'
+import type {
+  Root as MdastRoot,
+  Text as MdastText,
+  Link as MdastLink,
+  Blockquote as MdastBlockquote,
+  PhrasingContent,
+} from 'mdast'
 import type { Heading, OutgoingLink } from '@core/Note'
 
 /**
@@ -53,9 +59,14 @@ export type VideoResolver = (ref: string) => Promise<{
 function rehypeExtractHeadings(out: Heading[]) {
   return () => (tree: HastRoot) => {
     visit(tree, 'element', (node: Element) => {
-      const m = /^h([1-4])$/.exec(node.tagName)
+      // h1–h6, not h1–h4. `rehype-slug` gives every heading an id, so the
+      // deeper ones already had working anchors — they just never appeared in
+      // the table of contents, which reads as a broken TOC rather than a
+      // deliberate depth limit. Notes that nest that far are exactly the ones
+      // a reader needs the outline for.
+      const m = /^h([1-6])$/.exec(node.tagName)
       if (!m) return
-      const depth = Number(m[1]) as 1 | 2 | 3 | 4
+      const depth = Number(m[1]) as 1 | 2 | 3 | 4 | 5 | 6
       const id = typeof node.properties?.id === 'string' ? node.properties.id : ''
       if (!id) return
       out.push({ id, depth, text: hastToString(node) })
@@ -317,6 +328,77 @@ function rehypeImageCarousel() {
   }
 }
 
+// ── Obsidian comments ────────────────────────────────────────────────────
+//
+// `%%private note to self%%` is Obsidian's comment syntax: it never renders in
+// the app, so authors use it for TODOs, half-formed opinions and — the reason
+// this matters — names of real people. onvu rendered it as body text and put
+// it in `rawText`, so it reached the page, the search index and the markdown
+// mirrors. That is the one gap in the Obsidian story with a privacy
+// consequence rather than a cosmetic one.
+//
+// Runs on the mdast, before anything else looks at the text, so nothing
+// downstream can see the stripped content.
+
+const OBSIDIAN_COMMENT_RE = /%%[\s\S]*?%%/g
+
+function remarkStripObsidianComments() {
+  return () => (tree: MdastRoot) => {
+    visit(tree, 'text', (node: MdastText) => {
+      if (node.value.includes('%%')) {
+        node.value = node.value.replace(OBSIDIAN_COMMENT_RE, '')
+      }
+    })
+  }
+}
+
+// ── Obsidian callouts ────────────────────────────────────────────────────
+//
+// `> [!note] Optional title` — the most-used Obsidian block after the
+// wikilink. Without a transform the marker rendered as literal body text: a
+// reader saw `[!warning] Careful` sitting inside a plain blockquote.
+//
+// Emitted as a blockquote with `data-callout="<type>"` rather than a bespoke
+// element, so it degrades to a normal quotation anywhere the CSS is missing —
+// including the markdown mirrors and RSS previews.
+
+const CALLOUT_RE = /^\[!([A-Za-z-]+)\]([+-]?)\s*(.*)$/
+
+function remarkCallouts() {
+  return () => (tree: MdastRoot) => {
+    visit(tree, 'blockquote', (node: MdastBlockquote) => {
+      const first = node.children?.[0]
+      if (!first || first.type !== 'paragraph') return
+      const lead = first.children?.[0]
+      if (!lead || lead.type !== 'text') return
+
+      const [line, ...restOfLead] = lead.value.split('\n')
+      const m = CALLOUT_RE.exec(line)
+      if (!m) return
+
+      const [, rawType, fold, title] = m
+      const type = rawType.toLowerCase()
+
+      // Drop the marker line; keep any title as the callout's heading and
+      // whatever followed it on the same text node as body.
+      const remainder = restOfLead.join('\n')
+      if (remainder) lead.value = remainder
+      else first.children.shift()
+      if (first.children.length === 0) node.children.shift()
+
+      const data = (node.data ??= {})
+      const attrs = ((data as { hProperties?: Record<string, unknown> })
+        .hProperties ??= {})
+      attrs['data-callout'] = type
+      if (title) attrs['data-callout-title'] = title
+      // `+`/`-` is Obsidian's foldable marker. Recorded rather than acted on:
+      // a collapsed-by-default block hides content from readers who never
+      // discover the affordance, and from find-in-page.
+      if (fold) attrs['data-callout-fold'] = fold
+    })
+  }
+}
+
 // ── Wiki link plugin ─────────────────────────────────────────────────────
 //
 // Transforms `[[Target]]` and `[[Target|Display]]` syntax inside text nodes
@@ -324,7 +406,20 @@ function rehypeImageCarousel() {
 // Unresolved targets are still rendered as anchors but marked with the
 // `wikilink-broken` class so authors can spot dangling references.
 
-const WIKILINK_RE = /\[\[([^\]|\n]+?)(?:\|([^\]\n]+?))?\]\]/g
+/**
+ * `[[Target]]`, `[[Target|Display]]`, and the embed forms `![[…]]`.
+ *
+ * The leading `!` used to be outside the pattern, so Obsidian's *default*
+ * image syntax — `![[Pasted image 20240101.png]]`, what every pasted
+ * screenshot produces — matched only the inner link. The output was a stray
+ * literal `!` followed by a red broken link, on every screenshot in a vault.
+ * `![[image.png|300]]` was worse: the pipe reads as an alias, so the anchor
+ * text became `300`.
+ */
+const WIKILINK_RE = /(!?)\[\[([^\]|\n]+?)(?:\|([^\]\n]+?))?\]\]/g
+
+/** Media the embed form should turn into an image or video, not a link. */
+const EMBEDDABLE_RE = /\.(png|jpe?g|gif|webp|avif|svg|bmp|mp4|webm|mov|m4v|ogv)$/i
 
 /**
  * A "bare" link target — no slashes, no protocol, no fragment, no file
@@ -384,9 +479,26 @@ function remarkWikiLinks(resolve: WikiLinkResolver) {
         if (start > cursor) {
           replacements.push({ type: 'text', value: text.slice(cursor, start) })
         }
-        const target = m[1].trim()
-        const display = (m[2] ?? m[1]).trim()
+        const isEmbed = m[1] === '!'
+        const target = m[2].trim()
+        const display = (m[3] ?? m[2]).trim()
+
+        // `![[image.png]]` is an image, not a link. Emitted with the raw
+        // filename as the URL so `rehypeNoteImages` resolves it against the
+        // note's own directory exactly as `![](image.png)` would — the
+        // machinery already existed, the syntax just never reached it.
+        // A pipe after an embed is Obsidian's size hint (`|300`), not an alt
+        // text, so it is dropped rather than shown.
+        if (isEmbed && EMBEDDABLE_RE.test(target)) {
+          replacements.push({ type: 'image', url: target, alt: target })
+          cursor = start + m[0].length
+          continue
+        }
+
         const resolved = resolve(target)
+        // A non-media embed — `![[Some Note]]` — is a transclusion. onvu does
+        // not inline note bodies, so it renders as a plain link to the note
+        // rather than as a stray `!` beside one.
         const link: MdastLink = {
           type: 'link',
           url: resolved ? `/notes/${resolved.slug}` : '#',
@@ -642,8 +754,12 @@ export async function processMarkdown(
 
   let chain = unified()
     .use(remarkParse)
+    // Before everything: a comment must not reach the renderer, the search
+    // index or a mirror, and later plugins read these same text nodes.
+    .use(remarkStripObsidianComments())
     .use(remarkGfm)
     .use(remarkMath)
+    .use(remarkCallouts())
   if (options.resolveWikiLink) {
     chain = chain.use(remarkWikiLinks(options.resolveWikiLink))
   }

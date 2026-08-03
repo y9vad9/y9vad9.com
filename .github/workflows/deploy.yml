@@ -54,5 +54,5 @@ jobs:
           # publishes the site could change under you between two runs of the
           # same commit. Pinned for the same reason package.json is.
           wranglerVersion: '4.116.0'
-          command: pages deploy out --project-name=y9vad9-site
+          command: pages deploy out --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

@@ -188,6 +188,32 @@ export function ForceGraph({
   // doesn't also navigate — labelling and opening are different intents.
   const suppressClick = useRef(false)
 
+  // Which kind of pointer the reader last used. Not state: this only feeds
+  // the `nodeLabel` accessor, which the library calls on its own animation
+  // frame — re-rendering on it would buy nothing and reheat nothing.
+  const pointerIsTouch = useRef(false)
+  const notePointerType = useCallback((e: React.PointerEvent) => {
+    pointerIsTouch.current = e.pointerType === 'touch'
+  }, [])
+
+  // `nodeLabel` is the library's own HTML tooltip, and a touch raises it just
+  // as a hover does — it takes the pointer position from `pointerdown` too.
+  // So a held node ended up wearing two names: the canvas chip above it and
+  // the tooltip below the finger.
+  //
+  // The tooltip is the one that goes, because it's the one that doesn't work
+  // on touch. It appears under the finger that summoned it, a plain tap
+  // raises it on the way to opening the note, and nothing takes it back down
+  // afterwards — hover-out never comes without a hover. The chip is placed
+  // clear of the fingertip and dismissed by tapping the background.
+  //
+  // An empty label is how force-graph is told there is no tooltip: it nulls
+  // any falsy content, and null content hides the element.
+  const nodeLabel = useCallback(
+    (n: GraphNodeData) => (pointerIsTouch.current ? '' : n.name),
+    [],
+  )
+
   const cancelPress = useCallback(() => {
     if (pressTimer.current !== null) {
       window.clearTimeout(pressTimer.current)
@@ -211,6 +237,10 @@ export function ForceGraph({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
+      // Recorded before the early return: a mouse press must still be able to
+      // put the tooltip back after a touch, on the hybrid devices that have
+      // both.
+      notePointerType(e)
       if (e.pointerType !== 'touch') return
       cancelPress()
       suppressClick.current = false
@@ -224,11 +254,14 @@ export function ForceGraph({
         suppressClick.current = true
       }, LONG_PRESS_MS)
     },
-    [cancelPress, nodeAtPoint],
+    [cancelPress, nodeAtPoint, notePointerType],
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      // A mouse hovering the canvas never presses, so this is the only place
+      // that hears about it.
+      notePointerType(e)
       const origin = pressOrigin.current
       if (!origin) return
       // Drifting means the user is panning the canvas, not holding a node.
@@ -236,7 +269,7 @@ export function ForceGraph({
         cancelPress()
       }
     },
-    [cancelPress],
+    [cancelPress, notePointerType],
   )
 
   const handleNodeClick = useCallback(
@@ -381,7 +414,7 @@ export function ForceGraph({
           width={dims.w}
           height={dims.h}
           backgroundColor="transparent"
-          nodeLabel="name"
+          nodeLabel={nodeLabel}
           nodeRelSize={3}
           // Default hitbox is the painted circle — tiny nodes are almost
           // impossible to click. Paint a wider transparent disc so the

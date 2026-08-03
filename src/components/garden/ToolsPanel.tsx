@@ -151,7 +151,7 @@ export function ToolsPanel() {
                   className={`${ITEM_BASE} ${note.slug === currentSlug ? ITEM_ACTIVE : ''} ${idx === seriesNav.idx ? 'is-kbd' : ''}`}
                   aria-current={note.slug === currentSlug ? 'page' : undefined}
                 >
-                  <span className="text-xs text-muted w-5 text-right flex-shrink-0">
+                  <span className="text-xs text-muted w-5 text-end flex-shrink-0">
                     {note.order}
                   </span>
                   <span className="truncate">{note.title}</span>

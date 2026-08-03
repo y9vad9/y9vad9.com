@@ -11,7 +11,8 @@
     "codeProfile": "Code-Profil",
     "summary": "Zusammenfassung",
     "interests": "Interessen",
-    "pronunciation": "Aussprache"
+    "pronunciation": "Aussprache",
+    "redirecting": "Weiterleitung…"
   },
   "header": {
     "searchPlaceholder": "Suchen…",
@@ -149,7 +150,8 @@
       "explorer": "Explorer",
       "tools": "Werkzeuge",
       "tabs": "Tabs",
-      "shortcuts": "Tastenkürzel"
+      "shortcuts": "Tastenkürzel",
+      "garden": "Garten"
     },
     "toggleLeft": "Bereich umschalten",
     "toggleRight": "Bereich umschalten",
@@ -159,8 +161,25 @@
     "toc": "Inhaltsverzeichnis öffnen",
     "series": "Serie öffnen",
     "links": "Links öffnen",
-    "graph": "Graph öffnen",
+    "graph": "Lokalen Graph öffnen",
+    "globalGraph": "Wissensgraph öffnen",
     "disableShortcuts": "Deaktivieren",
     "enableShortcuts": "Aktivieren"
+  },
+  "a11y": {
+    "filter": "Filtern",
+    "filterPlaceholder": "Filtern…",
+    "sort": "Sortieren",
+    "clear": "Zurücksetzen",
+    "resizeLeftPanel": "Linken Bereich anpassen",
+    "resizeRightPanel": "Rechten Bereich anpassen",
+    "imagePreview": "Bildvorschau",
+    "close": "Schließen",
+    "switchLanguage": "Sprache wechseln",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "toggleExplorer": "Explorer umschalten",
+    "toggleTools": "Werkzeuge umschalten",
+    "copyCode": "Code kopieren"
   }
 }

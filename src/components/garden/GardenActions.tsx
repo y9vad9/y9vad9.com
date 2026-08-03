@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { publicOrigin } from '@lib/publicPath'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Network, Shuffle, Rss, Check, ArrowUpRight } from 'lucide-react'
@@ -20,7 +21,7 @@ import type { GardenAction, CustomGardenAction } from '@config/site'
 const CARD =
   'group flex items-center gap-2.5 p-4 rounded-xl border border-border ' +
   'hover:border-primary hover:bg-card transition-all duration-300 ' +
-  'text-left w-full cursor-pointer'
+  'text-start w-full cursor-pointer'
 
 const ICON = 'text-primary flex-shrink-0'
 
@@ -64,7 +65,7 @@ export function GardenActions({
   async function copy(value: string, key: string) {
     // A site-relative value becomes a real URL here rather than in config,
     // which cannot know the deployed origin.
-    const text = value.startsWith('/') ? `${window.location.origin}${value}` : value
+    const text = value.startsWith('/') ? `${publicOrigin()}${value}` : value
     try {
       await navigator.clipboard.writeText(text)
       setCopiedKey(key)
@@ -79,7 +80,9 @@ export function GardenActions({
 
   function runCommand(id: string) {
     const shortcut = GARDEN_SHORTCUTS.find((s) => s.id === id)
-    if (shortcut) shortcut.run(createShortcutActions())
+    if (shortcut) {
+      shortcut.run(createShortcutActions({ navigate: (path) => router.push(path), locale }))
+    }
   }
 
   function iconFor(action: CustomGardenAction, fallback: React.ReactNode) {

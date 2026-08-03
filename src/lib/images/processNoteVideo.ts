@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { publicPath } from '@lib/publicPath'
 import path from 'node:path'
 import crypto from 'node:crypto'
 
@@ -7,7 +8,7 @@ import crypto from 'node:crypto'
  * images so it's served as a static asset under the same prefix.
  */
 const ASSETS_ROOT = path.join(process.cwd(), 'public', 'notes-assets')
-const URL_PREFIX = '/notes-assets'
+const URL_PREFIX = publicPath('/notes-assets')
 
 export const VIDEO_EXTS = new Set([
   '.mp4',

@@ -76,7 +76,7 @@ export function TabBar() {
             role="button"
             tabIndex={0}
             onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClose(e, tab.slug)}
-            className="opacity-0 group-hover:opacity-100 hover:text-fg transition-opacity ml-0.5 cursor-pointer"
+            className="opacity-0 group-hover:opacity-100 hover:text-fg transition-opacity ms-0.5 cursor-pointer"
             aria-label={`Close ${tab.title}`}
           >
             <X size={11} />

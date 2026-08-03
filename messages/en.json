@@ -11,7 +11,8 @@
     "codeProfile": "Code Profile",
     "summary": "Summary",
     "interests": "Interests",
-    "pronunciation": "Pronunciation"
+    "pronunciation": "Pronunciation",
+    "redirecting": "Redirecting…"
   },
   "header": {
     "searchPlaceholder": "Search…",
@@ -149,7 +150,8 @@
       "explorer": "Explorer",
       "tools": "Tools",
       "tabs": "Tabs",
-      "shortcuts": "Shortcuts"
+      "shortcuts": "Shortcuts",
+      "garden": "Garden"
     },
     "toggleLeft": "Toggle panel",
     "toggleRight": "Toggle panel",
@@ -159,8 +161,25 @@
     "toc": "Open table of contents",
     "series": "Open series",
     "links": "Open links",
-    "graph": "Open graph",
+    "graph": "Open local graph",
+    "globalGraph": "Open knowledge graph",
     "disableShortcuts": "Disable",
     "enableShortcuts": "Enable"
+  },
+  "a11y": {
+    "filter": "Filter",
+    "filterPlaceholder": "Filter…",
+    "sort": "Sort",
+    "clear": "Clear",
+    "resizeLeftPanel": "Resize left panel",
+    "resizeRightPanel": "Resize right panel",
+    "imagePreview": "Image preview",
+    "close": "Close",
+    "switchLanguage": "Switch language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "toggleExplorer": "Toggle explorer",
+    "toggleTools": "Toggle tools",
+    "copyCode": "Copy code"
   }
 }

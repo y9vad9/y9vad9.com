@@ -99,3 +99,106 @@ describe('FileSystemNoteRepository', () => {
     expect(second).toEqual(first)
   })
 })
+
+/**
+ * `draft: true` keeps a note in the repository and off the site.
+ *
+ * Neither existing flag said that: `archived` is a badge on a page that still
+ * exists, and `noindex` still builds and lists the page. A vault of 400 notes
+ * has 250 nobody should see, and the only way to say so was to move the file
+ * out of the tree.
+ */
+describe('drafts', () => {
+  async function repo() {
+    const { FileSystemNoteRepository } = await import(
+      '@adapters/fs/FileSystemNoteRepository'
+    )
+    return new FileSystemNoteRepository('en')
+  }
+
+  it('excludes a draft from the list', async () => {
+    await write('ready.md', `---\ntitle: Ready\n---\nbody`)
+    await write('wip.md', `---\ntitle: WIP\ndraft: true\n---\nbody`)
+    expect((await (await repo()).listAll()).map((n) => n.slug)).toEqual(['ready'])
+  })
+
+  it('makes a draft unreachable by slug too', async () => {
+    await write('wip.md', `---\ntitle: WIP\ndraft: true\n---\nbody`)
+    // Filtering only the list would leave the page buildable and linkable —
+    // which is what `noindex` already provides, and not what a draft is.
+    expect(await (await repo()).getBySlug('wip')).toBeNull()
+  })
+
+  it('treats an absent flag as published', async () => {
+    await write('plain.md', `---\ntitle: Plain\n---\nbody`)
+    expect((await (await repo()).listAll())[0].isDraft).toBe(false)
+  })
+
+  it('shows drafts when ONVU_DRAFTS=1, for the author', async () => {
+    await write('wip.md', `---\ntitle: WIP\ndraft: true\n---\nbody`)
+    vi.stubEnv('ONVU_DRAFTS', '1')
+    expect((await (await repo()).listAll()).map((n) => n.slug)).toEqual(['wip'])
+    vi.unstubAllEnvs()
+  })
+})
+
+/**
+ * A vault is a tree. `fs.readdir` without `recursive` saw only its root, so
+ * every note in a subfolder was silently invisible — no warning, no error,
+ * just an empty garden. Slugs stay flat, so folders organise the source
+ * without moving any URL.
+ */
+describe('nested folders', () => {
+  async function repo() {
+    const { FileSystemNoteRepository } = await import(
+      '@adapters/fs/FileSystemNoteRepository'
+    )
+    return new FileSystemNoteRepository('en')
+  }
+  async function mkdir(rel: string) {
+    await fs.mkdir(path.join(tmpRoot, 'content', 'notes', 'en', rel), {
+      recursive: true,
+    })
+  }
+
+  it('finds notes in subfolders', async () => {
+    await mkdir('permanent')
+    await write('root.md', `---\ntitle: Root\n---\nbody`)
+    await write('permanent/deep.md', `---\ntitle: Deep\n---\nbody`)
+    const slugs = (await (await repo()).listAll()).map((n) => n.slug).sort()
+    expect(slugs).toEqual(['deep', 'root'])
+  })
+
+  it('keeps the slug flat so existing URLs do not move', async () => {
+    await mkdir('a/b/c')
+    await write('a/b/c/buried.md', `---\ntitle: Buried\n---\nbody`)
+    expect((await (await repo()).listAll())[0].slug).toBe('buried')
+  })
+
+  it('skips folders and files marked with a leading underscore', async () => {
+    await mkdir('_scratch')
+    await write('_scratch/wip.md', `---\ntitle: WIP\n---\nbody`)
+    await write('real.md', `---\ntitle: Real\n---\nbody`)
+    // The convention every static generator uses for partials, and the one an
+    // author reaches for to park work in progress.
+    expect((await (await repo()).listAll()).map((n) => n.slug)).toEqual(['real'])
+  })
+
+  it('names both files when two folders collide on a slug', async () => {
+    await mkdir('literature')
+    await mkdir('permanent')
+    await write('literature/kotlin.md', `---\ntitle: Lit\n---\nbody`)
+    await write('permanent/kotlin.md', `---\ntitle: Perm\n---\nbody`)
+    // Silently picking one would publish the wrong note and lose the other.
+    await expect((await repo()).listAll()).rejects.toThrow(/share the slug "kotlin"/)
+  })
+
+  it('resolves a co-located image beside the note, not the locale root', async () => {
+    await mkdir('permanent')
+    await write('permanent/withimg.md', `---\ntitle: Img\n---\n![a](./pic.png)`)
+    const notes = await (await repo()).listAll()
+    // The point of tracking each note's own directory: `./pic.png` in
+    // `permanent/` means the copy in `permanent/`.
+    expect(notes[0].body).toContain('pic.png')
+  })
+})

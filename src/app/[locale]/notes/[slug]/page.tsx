@@ -16,6 +16,7 @@ import { routing } from '@i18n/routing'
 import type { Note } from '@core/Note'
 import { JsonLd } from '@components/seo/JsonLd'
 import { baseMetadata } from '@lib/seo/metadata'
+import { localesForNote } from '@lib/seo/availableLocales'
 import { articleJsonLd, breadcrumbsJsonLd, definedTermJsonLd } from '@lib/seo/jsonLd'
 import { fetchExternalTitle, urlLabel } from '@lib/links/fetchExternalTitle'
 import { resolveAgentsConfig, markdownMirrorPath } from '@lib/agents/config'
@@ -40,7 +41,13 @@ export async function generateMetadata({
   const note = await getNote(repo, slug)
   if (!note) return {}
 
-  const base = await baseMetadata({ locale, path: `/notes/${slug}` })
+  const base = await baseMetadata({
+    locale,
+    path: `/notes/${slug}`,
+    // Only the locales this note is actually written in — an untranslated
+    // note used to advertise alternates that 404.
+    availableLocales: await localesForNote(slug),
+  })
   const description = note.description ?? note.preview
   const image = note.ogImage ?? note.coverImage ?? undefined
   const authorName = note.author ?? siteConfig.owner.name
@@ -195,11 +202,11 @@ export default async function NotePage({
           // Series siblings and wiki-link mentions come from data this page
           // already loaded for the side panels — the schema just says out
           // loud what the garden's structure already is.
-          articleJsonLd(note, locale, {
+          articleJsonLd(note, locale, siteConfig, {
             seriesNotes: seriesNav?.series.notes,
             mentions: mentions.linked.map((n) => ({ slug: n.slug, title: n.title })),
           }),
-          definedTermJsonLd(note, locale),
+          definedTermJsonLd(note, locale, siteConfig),
         ].filter((d): d is NonNullable<typeof d> => d !== null)}
       />
       <NoteContextProvider

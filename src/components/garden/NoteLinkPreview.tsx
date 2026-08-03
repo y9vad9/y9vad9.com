@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { publicPath } from '@lib/publicPath'
 import { createPortal } from 'react-dom'
 import { useLocale } from 'next-intl'
 import type { SearchIndexEntry } from '@core/search/SearchIndex'
@@ -26,8 +27,8 @@ function loadIndex(locale: string): Promise<Map<string, SearchIndexEntry>> {
     // (see `StaticBuildEmitter.ts`). The dev/server branch keeps the
     // `/api/search-index` route so we still get fresh data on rebuild.
     const url = process.env.NEXT_PUBLIC_ONVU_MODE === 'static'
-      ? `/_static/${locale}/search-index.json`
-      : `/api/search-index?locale=${encodeURIComponent(locale)}`
+      ? publicPath(`/_static/${locale}/search-index.json`)
+      : publicPath(`/api/search-index?locale=${encodeURIComponent(locale)}`)
     p = fetch(url)
       .then((r) => (r.ok ? r.json() : []))
       .then((rows: SearchIndexEntry[]) => new Map(rows.map((r) => [r.slug, r])))

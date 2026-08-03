@@ -83,7 +83,7 @@ export function NoteCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           {note.isArchived && (
-            <span className="text-xs text-amber-500 flex items-center gap-0.5">
+            <span className="text-xs text-warning flex items-center gap-0.5">
               <Archive size={10} /> {tNote('archive')}
             </span>
           )}

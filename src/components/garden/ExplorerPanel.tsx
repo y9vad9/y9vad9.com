@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { publicPath } from '@lib/publicPath'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { Search, BookOpen } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -77,6 +78,7 @@ function findOccurrences(
 
 export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
   const t = useTranslations('explorer')
+  const tPanel = useTranslations('panel')
   const { explorerMode, explorerFocusNonce, closeLeft, setExplorerMode } = usePanelStore()
   const params = useParams<{ locale: string }>()
   const pathname = usePathname()
@@ -229,7 +231,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
       searchQuery.trim() &&
       searchIndex.length === 0
     ) {
-      fetch(`/_static/${params.locale}/search-index.json`)
+      fetch(publicPath(`/_static/${params.locale}/search-index.json`))
         .then((res) => {
           if (res.ok) return res.json()
           throw new Error()
@@ -245,7 +247,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&fulltext=1`)
+        const res = await fetch(publicPath(`/api/search?q=${encodeURIComponent(searchQuery)}&fulltext=1`))
         if (res.ok) setFetchedResults(await res.json())
       } catch {
         // graceful degradation
@@ -278,7 +280,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
         <div className="flex flex-col h-full">
           <div className="p-2 flex-shrink-0">
             <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+              <Search size={13} className="absolute start-2.5 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 ref={filterInputRef}
                 value={fileFilter}
@@ -290,7 +292,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 // auto-zooms the viewport whenever a focused input renders
                 // below 16px, and it never zooms back out. Desktop keeps
                 // the denser text-sm.
-                className="w-full pl-8 pr-3 py-1.5 text-base sm:text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
+                className="w-full ps-8 pe-3 py-1.5 text-base sm:text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -336,7 +338,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                     <BookOpen
                       size={11}
                       className="flex-shrink-0 text-muted opacity-50"
-                      aria-label="Series"
+                      aria-label={tPanel('series')}
                     />
                   )}
                 </NoteLink>
@@ -348,7 +350,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
         <div className="flex flex-col h-full">
           <div className="p-2">
             <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+              <Search size={13} className="absolute start-2.5 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 ref={searchInputRef}
                 value={searchQuery}
@@ -358,7 +360,7 @@ export function ExplorerPanel({ notes }: { notes: NoteListItem[] }) {
                 placeholder={t('searchPlaceholder')}
                 // See the filter input above: 16px on mobile keeps iOS
                 // Safari from zooming the viewport on focus.
-                className="w-full pl-8 pr-3 py-1.5 text-base sm:text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
+                className="w-full ps-8 pe-3 py-1.5 text-base sm:text-sm bg-card-hover border border-border rounded-lg focus:outline-none focus:border-primary"
               />
             </div>
           </div>

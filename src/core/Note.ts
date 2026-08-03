@@ -1,7 +1,11 @@
 export interface Heading {
   id: string
   text: string
-  depth: 1 | 2 | 3 | 4
+  /**
+   * h1–h6. This capped at 4, while `rehype-slug` gave every heading an id —
+   * so h5/h6 had working anchors that the table of contents never listed.
+   */
+  depth: 1 | 2 | 3 | 4 | 5 | 6
 }
 
 export type OutgoingLink =
@@ -36,6 +40,20 @@ export interface Note {
   series: string | null
   order: number | null
   isArchived: boolean
+  /**
+   * Kept in the repository, never published.
+   *
+   * Distinct from `archived`, which is a badge on a page that still exists,
+   * and from `noindex`, which builds and lists the page while asking search
+   * engines to look away. Neither is what a writer means by "not ready": a
+   * vault of 400 notes has 250 nobody should see, and until this there was no
+   * way to say so short of moving files out of the tree.
+   *
+   * Filtered at the repository boundary, so nothing downstream — the note
+   * list, the graph, the search index, the sitemap, the feed, the markdown
+   * mirrors, `generateStaticParams` — has to remember to exclude it.
+   */
+  isDraft: boolean
   isEpic: boolean
   /**
    * Author-chosen entry point, surfaced above everything else in the garden.

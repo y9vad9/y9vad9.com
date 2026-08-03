@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Pin, Star, Wrench } from 'lucide-react'
 import Link from 'next/link'
@@ -15,7 +16,7 @@ import { breadcrumbsJsonLd, collectionPageJsonLd } from '@lib/seo/jsonLd'
 import { baseMetadata } from '@lib/seo/metadata'
 import { loadSiteConfig } from '@lib/config/loadConfig'
 import { DEFAULT_GARDEN_ACTIONS } from '@config/site'
-import { loadGardenIntro } from '@lib/content/gardenIntro'
+import { loadGardenIntro, loadGardenIntroSummary } from '@lib/content/gardenIntro'
 
 export async function generateMetadata({
   params,
@@ -23,14 +24,22 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const [t, base] = await Promise.all([
+  const [t, base, summary] = await Promise.all([
     getTranslations({ locale, namespace: 'garden' }),
     baseMetadata({ locale, path: '/notes' }),
+    loadGardenIntroSummary(locale),
   ])
   return {
     ...base,
     title: t('welcome'),
-    description: t('welcomeDescription'),
+    // The author's own opening line, or nothing — in which case the
+    // site-level description from `baseMetadata` stands.
+    //
+    // This used to be `t('welcomeDescription')`. That string was removed from
+    // the page itself for reading as filler ("A living collection of notes,
+    // ideas, and connections.") and survived here, which is where filler does
+    // the most damage: every onvu garden shipped the same meta description.
+    ...(summary ? { description: summary } : {}),
   }
 }
 
@@ -47,12 +56,15 @@ export default async function GardenHubPage({
   ])
   const repo = createRepository(locale)
 
-  const [allNotes, pinnedNotes, epics, intro] = await Promise.all([
+  const [allNotes, pinnedNotes, epics] = await Promise.all([
     listAllNotes(repo),
     listPinnedNotes(repo),
     getEpics(repo),
-    loadGardenIntro(locale),
   ])
+  // Sequenced after the note list rather than alongside it, because the intro's
+  // wiki links resolve against the corpus. The repository caches, so the notes
+  // are already in hand and this costs a markdown pass, not a second read.
+  const intro = await loadGardenIntro(locale, allNotes)
   // Archived notes are excluded the same way pins exclude them: a third of
   // this corpus can be retired writing, and a "random note" that lands there
   // a third of the time is a worse invitation than one that doesn't.
@@ -199,7 +211,12 @@ export default async function GardenHubPage({
 
       {/* Note list */}
       <div className="mt-12">
-        <NoteListClient notes={notesForList} locale={locale} />
+        {/* `useSearchParams` needs a boundary or the whole page opts out of
+            static rendering. The list reads `?parent=` so the topic cards
+            above can drive it. */}
+        <Suspense fallback={null}>
+          <NoteListClient notes={notesForList} locale={locale} />
+        </Suspense>
       </div>
     </div>
   )

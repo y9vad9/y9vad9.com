@@ -20,6 +20,13 @@
  *
  * Constructing an `Intl.DateTimeFormat` is the expensive part and formatting
  * is cheap, so instances are memoised per locale rather than per call.
+ *
+ * Everything is formatted in UTC, because a note's `date:` is a calendar day
+ * and not an instant. YAML parses `date: 2024-03-01` to midnight UTC, so any
+ * reader behind Greenwich formatting in their own zone sees the day before —
+ * `Feb 29, 2024` in Los Angeles. The components that render dates are client
+ * components, so this was the *reader's* timezone deciding what day a note
+ * was published, and it disagreed with the server's own render.
  */
 type Style = 'short' | 'long'
 
@@ -29,7 +36,12 @@ function formatter(locale: string, month: Style): Intl.DateTimeFormat {
   const key = `${locale}:${month}`
   let hit = cache.get(key)
   if (!hit) {
-    hit = new Intl.DateTimeFormat(locale, { month, day: 'numeric', year: 'numeric' })
+    hit = new Intl.DateTimeFormat(locale, {
+      month,
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    })
     cache.set(key, hit)
   }
   return hit

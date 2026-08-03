@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { publicOrigin } from '@lib/publicPath'
 import { Loader2 } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useThemeStore } from '@store/themeStore'
@@ -24,7 +25,7 @@ function giscusTheme(theme: string): string {
   if (typeof window === 'undefined') return 'preferred_color_scheme'
   if (theme === 'system') return 'preferred_color_scheme'
   if (!CUSTOM_THEMES.has(theme)) return 'preferred_color_scheme'
-  return `${window.location.origin}/giscus/${theme}.css`
+  return `${publicOrigin()}/giscus/${theme}.css`
 }
 
 /** Locales Giscus has a UI translation for. Anything else falls back to English. */

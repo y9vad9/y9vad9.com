@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { publicPath } from '@lib/publicPath'
 import {
   buildWebMcpTools,
   findModelContextHost,
@@ -34,7 +35,15 @@ export function WebMcpTools({ locale, hasMirrors }: Props) {
       host,
       buildWebMcpTools({
         locale,
-        searchIndexUrl: `/_static/${locale}/search-index.json`,
+        searchIndexUrl: publicPath(
+          // Was hardcoded to the static path with no mode branch, unlike the
+          // four other fetchers — so on a server-mode deploy, where
+          // `public/_static` is never emitted, `search_notes` and `list_notes`
+          // 404'd for every agent that called them.
+          process.env.NEXT_PUBLIC_ONVU_MODE === 'static'
+            ? `/_static/${locale}/search-index.json`
+            : `/api/search-index?locale=${encodeURIComponent(locale)}`,
+        ),
         noteUrl: (slug) => `${origin}/${locale}/notes/${slug}/`,
         mirrorUrl: hasMirrors ? (slug) => `${origin}/${locale}/notes/${slug}.md` : null,
         fetchJson: async (url) => {

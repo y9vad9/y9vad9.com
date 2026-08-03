@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useEffect, useRef } from 'react'
 import { usePanelStore } from '@store/panelStore'
 import { usePanelResize } from '@hooks/usePanelResize'
@@ -66,6 +67,7 @@ export function PanelWrapper({
   noteList: NoteListItem[]
   children: React.ReactNode
 }) {
+  const tA11y = useTranslations('a11y')
   const { leftOpen, rightOpen, leftWidth, rightWidth, toggleLeft, toggleRight } = usePanelStore()
   const isMobile = useIsMobile()
   const resizeLeft = usePanelResize('left')
@@ -147,7 +149,7 @@ export function PanelWrapper({
               onClick={toggleLeft}
               aria-hidden="true"
             />
-            <aside className={`${MOBILE_DRAWER} left-0`}>
+            <aside className={`${MOBILE_DRAWER} start-0`}>
               <ExplorerPanel notes={noteList} />
             </aside>
           </>
@@ -165,7 +167,7 @@ export function PanelWrapper({
               onClick={toggleRight}
               aria-hidden="true"
             />
-            <aside className={`${MOBILE_DRAWER} right-0`}>
+            <aside className={`${MOBILE_DRAWER} end-0`}>
               <ToolsPanel />
             </aside>
           </>
@@ -187,7 +189,7 @@ export function PanelWrapper({
           <div
             onPointerDown={resizeLeft.onPointerDown}
             className={`w-1 -mx-1 cursor-col-resize hover:bg-primary/40 transition-colors z-10 ${STICKY_FRAME}`}
-            aria-label="Resize left panel"
+            aria-label={tA11y('resizeLeftPanel')}
             role="separator"
           />
         </>
@@ -202,7 +204,7 @@ export function PanelWrapper({
           <div
             onPointerDown={resizeRight.onPointerDown}
             className={`w-1 -mx-1 cursor-col-resize hover:bg-primary/40 transition-colors z-10 ${STICKY_FRAME}`}
-            aria-label="Resize right panel"
+            aria-label={tA11y('resizeRightPanel')}
             role="separator"
           />
           <aside
