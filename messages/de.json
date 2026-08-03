@@ -92,7 +92,7 @@
     "linkDistance": "Linkabstand",
     "fullscreen": "Vollbild",
     "exitFullscreen": "Vollbild beenden",
-    "viewFullGraph": "Vollständigen Graphen anzeigen",
+    "viewFullGraph": "Ganzen Graphen öffnen",
     "loading": "Graph wird geladen…",
     "noRelations": "Diese Notiz hat noch keine Verbindungen."
   },

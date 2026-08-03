@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { useThemeStore } from '@store/themeStore'
 import type { MentionGraph } from '@core/graph/MentionGraph'
 import { hitRadius, pickNodeAt } from '@lib/graph/nodeHitTest'
 
@@ -13,6 +12,48 @@ import { hitRadius, pickNodeAt } from '@lib/graph/nodeHitTest'
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
   ssr: false,
 }) as unknown as React.ComponentType<Record<string, unknown>>
+
+/**
+ * The active palette, resolved to concrete colour values.
+ *
+ * Exported so the graph and its tests read the same definition, and separate
+ * from the component so it can run before mount without pulling React state
+ * into it. Falls back to the light palette's values when a variable is missing,
+ * which is what a stylesheet that has not arrived yet looks like.
+ */
+export interface GraphColors {
+  primary: string
+  muted: string
+  border: string
+  dim: string
+  bg: string
+  fg: string
+}
+
+export function readGraphColors(): GraphColors {
+  if (typeof window === 'undefined') {
+    return {
+      primary: '#6366f1',
+      muted: '#9ca3af',
+      border: '#e5e7eb',
+      dim: 'rgba(0,0,0,0.05)',
+      bg: '#ffffff',
+      fg: '#111827',
+    }
+  }
+  const cs = getComputedStyle(document.documentElement)
+  const read = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback
+  return {
+    primary: read('--primary', '#6366f1'),
+    muted: read('--muted', '#9ca3af'),
+    border: read('--border', '#e5e7eb'),
+    dim: read('--border', 'rgba(0,0,0,0.05)'),
+    // For the long-press label chip: canvas can't read CSS variables, so the
+    // card/foreground pair is resolved here alongside the rest.
+    bg: read('--card', read('--bg', '#ffffff')),
+    fg: read('--fg', '#111827'),
+  }
+}
 
 export interface ForceGraphProps {
   graph: MentionGraph
@@ -105,38 +146,43 @@ export function ForceGraph({
   const fgRef = useRef<ForceGraphInstance | null>(null)
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null)
 
-  // Canvas needs resolved color values — CSS variables don't apply inside a
-  // canvas context. Re-resolve when the theme changes so nodes follow the
-  // active palette.
-  const theme = useThemeStore((s) => s.theme)
-  const colors = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return {
-        primary: '#6366f1',
-        muted: '#9ca3af',
-        border: '#e5e7eb',
-        dim: 'rgba(0,0,0,0.05)',
-        bg: '#ffffff',
-        fg: '#111827',
-      }
+  // Canvas needs resolved colour values, because CSS variables mean nothing
+  // inside a canvas context. They therefore have to be read out of the DOM,
+  // and the only reliable moment to do that is *after* the DOM says what the
+  // palette is.
+  //
+  // Deriving them during render, keyed on the theme in the store, looked
+  // equivalent and was not: the class those variables hang off is written by
+  // `ThemeProvider` in an effect, and effects run after render. A child's
+  // effect also runs before its parent's, so there is no render in which this
+  // component can be sure `<html>` already carries the class the store is
+  // reporting. When the two disagree the wrong palette gets baked in, and it
+  // stays baked in, because the store's value does not change again: the graph
+  // then draws the default theme's violet and grey on a warm page until the
+  // reader happens to switch themes.
+  //
+  // Watching the attribute removes the ordering question rather than trying to
+  // win it. Whatever writes the class — the bootstrap script, the provider's
+  // effect, a theme picked in another tab — this sees the result.
+  const [colors, setColors] = useState(readGraphColors)
+  useEffect(() => {
+    const update = () => setColors(readGraphColors())
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+    // `system` resolves through `prefers-color-scheme`, which changes the
+    // computed values without touching the class, so the attribute alone would
+    // miss an OS switch while that theme is active.
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    media.addEventListener('change', update)
+    return () => {
+      observer.disconnect()
+      media.removeEventListener('change', update)
     }
-    const cs = getComputedStyle(document.documentElement)
-    const read = (name: string, fallback: string) => {
-      const v = cs.getPropertyValue(name).trim()
-      return v || fallback
-    }
-    return {
-      primary: read('--primary', '#6366f1'),
-      muted: read('--muted', '#9ca3af'),
-      border: read('--border', '#e5e7eb'),
-      dim: read('--border', 'rgba(0,0,0,0.05)'),
-      // For the long-press label chip: canvas can't read CSS variables, so
-      // the card/foreground pair is resolved here alongside the rest.
-      bg: read('--card', read('--bg', '#ffffff')),
-      fg: read('--fg', '#111827'),
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme])
+  }, [])
 
   useEffect(() => {
     const el = containerRef.current

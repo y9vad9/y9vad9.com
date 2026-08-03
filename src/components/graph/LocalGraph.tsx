@@ -64,9 +64,25 @@ export function LocalGraph({ slug }: { slug: string }) {
         // for the moment between Ctrl-click and the destination mount.
         routeTitle="Knowledge Graph"
         routeKind="graph"
-        className="flex items-center justify-center gap-1 m-2 py-1.5 text-xs text-muted hover:text-primary border border-border hover:border-primary rounded transition-colors"
+        // The panel is resizable down to 180px and this label is translated,
+        // so assume it will wrap: `text-center` keeps a two-line label looking
+        // deliberate instead of ragged, and `px-2` stops it touching the
+        // border. Without `flex-shrink-0` the arrow is what gives way first —
+        // an 11px icon squashed to 9px wide but still 11 tall, which reads as
+        // a smudge rather than an arrow.
+        className="flex items-center justify-center gap-1 m-2 px-2 py-1.5 text-xs text-center text-muted hover:text-primary border border-border hover:border-primary rounded transition-colors"
       >
-        {t('viewFullGraph')} <ArrowRight size={11} />
+        {/*
+          `justify-center` centres the whole row, and the row is label + gap +
+          arrow — so the label itself sat 7.5px left of centre, in every
+          language. Mirroring the arrow on the leading side puts the label back
+          on the button's axis. It's the same icon at the same size rather than
+          a fixed-width spacer, so the two cannot drift apart if `size` changes,
+          and being in flow it stays balanced when the label wraps.
+        */}
+        <ArrowRight size={11} aria-hidden className="invisible flex-shrink-0" />
+        {t('viewFullGraph')}
+        <ArrowRight size={11} className="flex-shrink-0" />
       </RouteLink>
     </div>
   )

@@ -26,6 +26,25 @@ if (typeof window !== 'undefined') {
     if (typeof document !== 'undefined') document.body.innerHTML = ''
   })
 
+  // Neither is `matchMedia`, which any component asking about
+  // `prefers-color-scheme` or a breakpoint calls unguarded — `useMediaQuery`
+  // and the graph's palette watcher both do. Four suites each carried their own
+  // stub before this; a default here means a component that starts asking does
+  // not take an unrelated test file down with it. Suites that need a specific
+  // answer still override it with `vi.stubGlobal`.
+  if (!window.matchMedia) {
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia
+  }
+
   // ResizeObserver isn't implemented by jsdom. Tests that care about the
   // restore-on-grow loop in useTabScrollRestore reach for the polyfill via
   // (globalThis as any).__resizeObservers to fire callbacks manually.
