@@ -67,6 +67,11 @@ export const config: SiteConfig = {
         description: 'Mit Kotlin entwickelter Club-Manager-Bot für Brawl Stars (Telegram & Discord).',
         url: 'notes/projects#krawler',
       },
+      {
+        name: 'Onvu',
+        description: 'Template für Portfolio und digitalen Garten, gebaut mit Next.js. Es treibt diese Seite an.',
+        url: 'notes/projects#onvu',
+      },
     ],
 
     education: [

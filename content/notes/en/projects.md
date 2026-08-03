@@ -33,3 +33,7 @@ Cadento takes the Pomodoro technique to the next level, allowing users to share 
 ## [Krawler](https://github.com/y9vad9/krawler)
 
 Currently my most ambitious project, Krawler helps players of _Brawl Stars_ manage clubs, track performance, and get actionable insights. It started as a Telegram bot and now spans Android, iOS, and web platforms, powered by Kotlin Multiplatform. Hopefully it will be finished someday.
+
+## [Onvu](https://github.com/y9vad9/onvu)
+
+The template this site runs on. I pulled it out into its own repository so the engine and my writing could move at different speeds — Next.js, wiki links, a knowledge graph, three languages. It is public if you want to build something similar.

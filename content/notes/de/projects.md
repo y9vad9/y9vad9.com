@@ -34,3 +34,7 @@ _Cadento_ hebt die Pomodoro-Technik auf die nächste Stufe, indem es Benutzern e
 ## [Krawler](https://github.com/y9vad9/krawler)
 
 Derzeit mein ambitioniertestes Projekt, Krawler hilft Spielern von _Brawl Stars_ dabei, Clubs zu verwalten, die Leistung zu verfolgen und umsetzbare Erkenntnisse zu gewinnen. Es begann als Telegram-Bot und erstreckt sich nun über Android-, iOS- und Web-App-Plattformen, angetrieben von Kotlin Multiplatform. Hoffentlich wird es eines Tages fertig sein.
+
+## [Onvu](https://github.com/y9vad9/onvu)
+
+Das Template, auf dem diese Seite läuft. Ich habe es in ein eigenes Repository ausgelagert, damit sich die Technik und meine Texte unabhängig voneinander entwickeln können – Next.js, Wiki-Links, ein Wissensgraph, drei Sprachen. Es ist öffentlich, falls du etwas Ähnliches bauen möchtest.
