@@ -42,7 +42,7 @@ export const config: SiteConfig = {
     workExperience: [
       {
         company: 'Jochen Schweizer mydays Group',
-        role: 'Веб-розробник (JS/TS) • Стажування',
+        role: 'Веб-розробник (JS/TS) • Учнівство',
         period: 'Вересень 2025 — дотепер',
         url: 'notes/experience#jochen-schweizer-mydays-group',
         logo: '/images/jochen-schweizer-mydays-group-logo.webp?dark-invert',
