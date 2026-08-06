@@ -19,6 +19,7 @@ import type {
   PhrasingContent,
 } from 'mdast'
 import type { Heading, OutgoingLink } from '@core/Note'
+import type { NoteHref } from '@lib/notes/noteHref'
 
 /**
  * Resolver used by the wiki-link plugin to map a `[[Target]]` reference to
@@ -97,7 +98,13 @@ function rehypeExtractAllOutgoingLinks(out: OutgoingLink[]) {
         return
       }
       const m =
-        href.match(/^\/(?:[a-z]{2}\/)?notes\/([^#?/]+)/) ??
+        // Any leading segments, then `notes/<slug>`. It used to insist on at
+        // most one two-letter segment, which fitted the locale-free hrefs the
+        // wiki-link plugin emitted at the time and nothing since: a locale is
+        // not always two letters (`pt-BR`), and a subpath deployment puts its
+        // base path in front of the lot. Every miss silently dropped a note
+        // from the links panel and an edge from the graph.
+        href.match(/(?:^|\/)notes\/([^#?/]+)/) ??
         href.match(/^(?:\.\.?\/)?([^#?/.]+)\.md$/) ??
         href.match(/^\[\[([^\]]+)\]\]$/)
       if (!m) return
@@ -434,7 +441,7 @@ function isBareLinkTarget(url: string): boolean {
   return true
 }
 
-function remarkWikiLinks(resolve: WikiLinkResolver) {
+function remarkWikiLinks(resolve: WikiLinkResolver, noteHref: NoteHref) {
   return () => (tree: MdastRoot) => {
     // Pass A: rewrite bare `[text](target)` markdown links into wiki links.
     visit(tree, 'link', (node: MdastLink) => {
@@ -452,7 +459,7 @@ function remarkWikiLinks(resolve: WikiLinkResolver) {
         node.url = '#'
         return
       }
-      node.url = `/notes/${resolved.slug}`
+      node.url = noteHref(resolved.slug)
       node.title = resolved.title
       node.data = {
         ...(node.data ?? {}),
@@ -501,7 +508,7 @@ function remarkWikiLinks(resolve: WikiLinkResolver) {
         // rather than as a stray `!` beside one.
         const link: MdastLink = {
           type: 'link',
-          url: resolved ? `/notes/${resolved.slug}` : '#',
+          url: resolved ? noteHref(resolved.slug) : '#',
           title: resolved ? resolved.title : undefined,
           children: [{ type: 'text', value: display }],
           data: {
@@ -744,6 +751,11 @@ export async function processMarkdown(
   content: string,
   options: {
     resolveWikiLink?: WikiLinkResolver
+    /**
+     * Where a resolved wiki link should point. Required alongside
+     * `resolveWikiLink` — see the guard below.
+     */
+    noteHref?: NoteHref
     resolveImage?: ImageResolver
     resolveVideo?: VideoResolver
   } = {},
@@ -761,7 +773,20 @@ export async function processMarkdown(
     .use(remarkMath)
     .use(remarkCallouts())
   if (options.resolveWikiLink) {
-    chain = chain.use(remarkWikiLinks(options.resolveWikiLink))
+    // Demanded rather than defaulted. The obvious default is the locale-free
+    // `/notes/<slug>`, which is what this used to emit — a URL no locale of
+    // the site actually serves, that only worked because a host redirect
+    // rewrote it, and that sent every reader of a translated note back to the
+    // primary language. A caller that resolves wiki links knows its locale;
+    // making it say so is what stops that shape coming back by omission.
+    if (!options.noteHref) {
+      throw new Error(
+        '[onvu] processMarkdown: resolveWikiLink needs noteHref alongside it, ' +
+          'so links can carry the locale they were resolved in. Pass ' +
+          '`noteHref: noteHrefFor(locale)`.',
+      )
+    }
+    chain = chain.use(remarkWikiLinks(options.resolveWikiLink, options.noteHref))
   }
   const rehypeChain = chain
     .use(remarkRehype, { allowDangerousHtml: true })

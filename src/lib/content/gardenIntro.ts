@@ -4,6 +4,7 @@ import matter from 'gray-matter'
 import { processMarkdown, type WikiLinkResolver } from '@lib/mdx/pipeline'
 import { processNoteImage } from '@lib/images/processNoteImage'
 import { createWikiLinkResolver, type ResolvableNote } from '@lib/notes/wikiLinkResolver'
+import { noteHrefFor } from '@lib/notes/noteHref'
 
 /**
  * The author's own opening for the garden index, read from
@@ -122,6 +123,8 @@ export async function loadGardenIntro(
     // beside a note.
     resolveImage: (ref) => processNoteImage(ref, dir),
     resolveWikiLink,
+    // Same locale the intro was read from, so its links stay in it.
+    noteHref: noteHrefFor(locale),
   })
   return html.trim() || null
 }

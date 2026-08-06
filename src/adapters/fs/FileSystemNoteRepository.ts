@@ -6,6 +6,7 @@ import type { NoteRepository } from '@core/NoteRepository'
 import type { Note } from '@core/Note'
 import { processMarkdown } from '@lib/mdx/pipeline'
 import { createWikiLinkResolver } from '@lib/notes/wikiLinkResolver'
+import { noteHrefFor } from '@lib/notes/noteHref'
 import { processNoteImage } from '@lib/images/processNoteImage'
 import { processNoteVideo } from '@lib/images/processNoteVideo'
 import { processStaticImage } from '@lib/images/processStaticImage'
@@ -138,6 +139,9 @@ export class FileSystemNoteRepository implements NoteRepository {
           const { html, headings, outgoingLinks, rawText } =
             await processMarkdown(content, {
               resolveWikiLink: resolver,
+              // This repository is per-locale, so its notes link within their
+              // own language rather than through a redirect that guesses.
+              noteHref: noteHrefFor(this.locale),
               resolveImage: (ref) => processNoteImage(ref, noteDir),
               resolveVideo: (ref) => processNoteVideo(ref, noteDir),
             })

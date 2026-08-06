@@ -63,6 +63,8 @@ Put your rules above the generated block. Cloudflare Pages and Netlify both run 
 
 One path is deliberately not redirected. `/notes/<slug>` without a locale is a real route that picks a language from the reader's stored preference and their browser settings, which a static rule cannot do.
 
+That is worth knowing before you write a rule for it. A `/notes/*  /en/notes/:splat` line looks like it is covering a gap, but redirect rules run at the edge, ahead of any route, so it replaces the language negotiation with a fixed guess: a reader browsing in German who opens a locale-free note link gets the English one. If you have renamed a note whose unprefixed URL was public, redirect that slug on its own rather than the whole prefix.
+
 ## Cloudflare Pages
 
 A workflow ships at `.github/workflows/deploy.yml`. It restores two caches (the Next build cache and `public/notes-assets/`, keyed on your note sources so images are not re-encoded on every run), builds the static export, and publishes with Wrangler.

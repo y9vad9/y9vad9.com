@@ -65,7 +65,10 @@ export function NoteLinkPreview({
       const explicit = a.getAttribute('data-note-slug')
       if (explicit) return explicit
       const href = a.getAttribute('href') ?? ''
-      const m = href.match(/^(?:\/[a-z]{2})?\/notes\/([^#?/]+)/)
+      // Locale segments are not always two letters (`pt-BR`), and a subpath
+      // deployment adds its own in front. Anchor on `notes/<slug>` instead of
+      // trying to enumerate what precedes it.
+      const m = href.match(/(?:^|\/)notes\/([^#?/]+)/)
       return m ? m[1] : null
     }
 

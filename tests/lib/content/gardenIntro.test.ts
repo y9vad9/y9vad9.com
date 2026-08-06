@@ -44,7 +44,10 @@ describe('loadGardenIntro', () => {
     // The pipeline only installs the wiki-link plugin when handed a resolver.
     // Without one the intro rendered `[[Deep Modules]]` as literal brackets —
     // on the page whose entire job is pointing readers at entry notes.
-    expect(html).toContain('href="/notes/deep-modules"')
+    // Locale-prefixed: the intro is read per locale, so the notes it points
+    // at are that locale's. The trailing slash follows the build's URL shape
+    // and is covered by the `noteHref` tests.
+    expect(html).toMatch(/href="\/en\/notes\/deep-modules\/?"/)
     expect(html).not.toContain('[[')
   })
 

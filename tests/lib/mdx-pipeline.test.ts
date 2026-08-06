@@ -257,11 +257,15 @@ describe('processMarkdown', () => {
       return null
     }
 
-    it('rewrites resolved wiki links to /notes/<slug>', async () => {
+    it('rewrites resolved wiki links to the locale the caller resolved them in', async () => {
       const result = await processMarkdown(`See [[Foo]].`, {
         resolveWikiLink: resolveFoo,
+        noteHref: (slug) => `/uk/notes/${slug}/`,
       })
-      expect(result.html).toContain('href="/notes/foo"')
+      // Not `/notes/foo`. That URL is served by no locale of the site; it only
+      // ever resolved via a host redirect, and the redirect answers in the
+      // primary language whatever the reader was reading.
+      expect(result.html).toContain('href="/uk/notes/foo/"')
       expect(result.html).toContain('data-note-slug="foo"')
       expect(result.html).toContain('class="wikilink"')
     })
@@ -269,6 +273,7 @@ describe('processMarkdown', () => {
     it('marks broken wiki links with wikilink-broken class', async () => {
       const result = await processMarkdown(`See [[Missing]].`, {
         resolveWikiLink: resolveFoo,
+        noteHref: (slug) => `/uk/notes/${slug}/`,
       })
       expect(result.html).toContain('wikilink-broken')
     })
@@ -276,6 +281,7 @@ describe('processMarkdown', () => {
     it('honours display text [[Target|Label]]', async () => {
       const result = await processMarkdown(`See [[Foo|the link]].`, {
         resolveWikiLink: resolveFoo,
+        noteHref: (slug) => `/uk/notes/${slug}/`,
       })
       expect(result.html).toContain('the link')
     })
@@ -419,6 +425,7 @@ describe('Obsidian syntax', () => {
   it('renders ![[image.png]] as an image, not a stray ! and a broken link', async () => {
     const r = await processMarkdown('![[Pasted image 20240101.png]]', {
       resolveWikiLink: resolve,
+      noteHref: (slug) => `/en/notes/${slug}/`,
     })
     expect(r.html).toContain('<img')
     expect(r.html).toContain('Pasted image 20240101.png')
@@ -430,20 +437,29 @@ describe('Obsidian syntax', () => {
   it('drops the size hint after an embedded image rather than showing it', async () => {
     // `|300` is Obsidian's width, not an alias — it used to become the anchor
     // text, so the reader saw the number "300" where a screenshot belonged.
-    const r = await processMarkdown('![[diagram.png|300]]', { resolveWikiLink: resolve })
+    const r = await processMarkdown('![[diagram.png|300]]', {
+      resolveWikiLink: resolve,
+      noteHref: (slug) => `/en/notes/${slug}/`,
+    })
     expect(r.html).toContain('<img')
     expect(r.html).not.toContain('300<')
   })
 
   it('links a non-media embed instead of leaving a stray marker', async () => {
-    const r = await processMarkdown('![[Deep Modules]]', { resolveWikiLink: resolve })
-    expect(r.html).toContain('href="/notes/deep-modules"')
+    const r = await processMarkdown('![[Deep Modules]]', {
+      resolveWikiLink: resolve,
+      noteHref: (slug) => `/en/notes/${slug}/`,
+    })
+    expect(r.html).toContain('href="/en/notes/deep-modules/"')
     expect(r.html).not.toMatch(/>!\s*</)
   })
 
   it('leaves an ordinary wiki link exactly as it was', async () => {
-    const r = await processMarkdown('[[Deep Modules]]', { resolveWikiLink: resolve })
-    expect(r.html).toContain('href="/notes/deep-modules"')
+    const r = await processMarkdown('[[Deep Modules]]', {
+      resolveWikiLink: resolve,
+      noteHref: (slug) => `/en/notes/${slug}/`,
+    })
+    expect(r.html).toContain('href="/en/notes/deep-modules/"')
     expect(r.html).toContain('wikilink')
   })
 
