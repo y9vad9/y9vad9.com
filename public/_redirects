@@ -1,5 +1,17 @@
-/  /en  302
-/notes/*  /en/notes/:splat  302
+# No `/` rule here. The generated block at the bottom already sends the site
+# root to /en/ — with the trailing slash, which the export actually serves.
+# Writing `/  /en  302` above it won first, then earned a second 308 to add
+# the slash back: two hops on the one URL most visitors arrive at.
+
+# `/notes/*` used to be caught here and sent to /en/. onvu ships a real route
+# at that path which picks the language from the reader's own preference, and
+# an edge rule runs first, so the rule was shadowing it: a German reader who
+# opened a locale-free note link got the English one. The rules below keep the
+# two slugs that were renamed while their locale-free form was public, since
+# those no longer exist for that route to redirect to.
+/notes/programming-languages /en/notes/tech-stack 301
+/notes/site-features /en/notes/how-this-garden-works 301
+
 /en/notes/programming-languages /en/notes/tech-stack 301
 /de/notes/programming-languages /de/notes/tech-stack 301
 /uk/notes/programming-languages /uk/notes/tech-stack 301
